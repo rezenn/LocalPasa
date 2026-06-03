@@ -25,7 +25,6 @@ export const config = {
 
   db: {
     uri: process.env.MONGODB_URI!,
-    uriTest: process.env.MONGODB_URI_TEST || "",
   },
 
   jwt: {
