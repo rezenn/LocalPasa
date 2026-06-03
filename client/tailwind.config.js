@@ -4,6 +4,12 @@ module.exports = {
     "./app/**/*.{js,jsx,ts,tsx}",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      fontFamily: {
+        gagalin: ["Gagalin"],
+      },
+    },
+  },
   plugins: [],
 };

@@ -14,18 +14,18 @@ export default function Welcome() {
         resizeMode="contain"
       />
       <Text
-        className="uppercase font-extrabold tracking-wide -mt-5 mb-16"
+        className="uppercase font-gagalin tracking-wide -mt-10 mb-16"
         style={{
           textAlign: "center",
           color: Colors.text.primary,
           fontSize: 14,
         }}
       >
-        Discover Nepal's Living Culture
+        {"Discover Nepal's Living Culture"}
       </Text>
       <Image
         source={require("@/assets/images/skyline.png")}
-        className=" mt-12 h-48 w-screen"
+        className=" mt-12 h-52 w-screen"
         resizeMode="contain"
       />
       <TouchableOpacity
@@ -33,11 +33,20 @@ export default function Welcome() {
         style={{ backgroundColor: Colors.button.primary }}
         onPress={() => router.push("/(onboarding)/OnboardingScreen1")}
       >
-        <Text className="text-white items-center font-extrabold">
+        <Text className="text-white items-center font-extrabold text-lg">
           Get Started
         </Text>
       </TouchableOpacity>
-      <Text className="mt-5">I will explore on my own →</Text>
+      <Text
+        className="mt-5 capitalize font-gagalin"
+        style={{
+          textAlign: "center",
+          color: Colors.text.primary,
+          fontSize: 14,
+        }}
+      >
+        I will explore on my own →
+      </Text>
     </View>
   );
 }
