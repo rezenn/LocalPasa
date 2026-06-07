@@ -7,7 +7,7 @@ export default function OnboardingScreen1() {
   return (
     <View
       className="flex-1  px-3"
-      style={{ backgroundColor: Colors.background }}
+      style={{ backgroundColor: Colors.Onboardingbackground }}
     >
       <View className="flex-row w-full gap-2 mt-12">
         {[1, 2, 3].map((step) => (

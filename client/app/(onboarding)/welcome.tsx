@@ -1,12 +1,14 @@
 import { Image, Text, View, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import Colors from "@/constants/colors";
+import { AppButton } from "@/components/ui";
+import { SimpleGradientButton } from "@/components/ui/GradientButton";
 
 export default function Welcome() {
   return (
     <View
       className="flex-1 items-center justify-center px-6"
-      style={{ backgroundColor: Colors.background }}
+      style={{ backgroundColor: Colors.Onboardingbackground }}
     >
       <Image
         source={require("@/assets/images/logo.png")}
@@ -28,15 +30,12 @@ export default function Welcome() {
         className=" mt-12 h-52 w-screen"
         resizeMode="contain"
       />
-      <TouchableOpacity
-        className="rounded-lg w-full py-4 items-center justify-center mt-1"
-        style={{ backgroundColor: Colors.button.primary }}
-        onPress={() => router.push("/(onboarding)/OnboardingScreen1")}
-      >
-        <Text className="text-white items-center font-extrabold text-lg">
-          Get Started
-        </Text>
-      </TouchableOpacity>
+
+      <SimpleGradientButton
+        title="Get Started"
+        onPress={() => router.push("/(auth)/LoginScreen")}
+      />
+
       <Text
         className="mt-5 capitalize font-gagalin"
         style={{
