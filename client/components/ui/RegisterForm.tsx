@@ -10,27 +10,71 @@ import Checkbox from "expo-checkbox";
 import React, { useState } from "react";
 import Colors from "@/constants/colors";
 import { router } from "expo-router";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import PhoneInput from "react-native-phone-number-input";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
   const [loading, setLoading] = useState(false);
   const [acceptConditions, setAcceptConditions] = useState(false);
 
+  const phoneInputRef = React.useRef<PhoneInput>(null);
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSignup = async () => {
-    if (!firstName || !lastName || !email || !password) {
+    // Check all required fields
+    if (
+      !firstName ||
+      !lastName ||
+      !phoneNumber ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-    if (!email.includes("@") || !email.includes(".")) {
+
+    // Validate email
+    if (!validateEmail(email)) {
       Alert.alert("Error", "Please enter a valid email address");
       return;
     }
+
+    // Validate phone number
+    const isValidPhoneNumber =
+      phoneInputRef.current?.isValidNumber(phoneNumber);
+    if (!isValidPhoneNumber) {
+      Alert.alert("Error", "Please enter a valid international phone number");
+      return;
+    }
+
+    // Validate password strength
     if (password.length < 6) {
       Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    // Check terms acceptance
+    if (!acceptConditions) {
+      Alert.alert("Error", "Please accept the terms and conditions");
       return;
     }
 
@@ -38,8 +82,12 @@ const SignupForm = () => {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      // Navigate to home screen on success
-      // router.replace("/(tabs)");
+      Alert.alert("Success", "Account created successfully! Please login.", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/(auth)/LoginScreen"),
+        },
+      ]);
     }, 1500);
   };
 
@@ -96,6 +144,19 @@ const SignupForm = () => {
             autoCorrect={false}
           />
         </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Phone Number</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your phone number"
+            placeholderTextColor={Colors.text.secondary}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
@@ -113,7 +174,39 @@ const SignupForm = () => {
               style={styles.eyeButton}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Text style={styles.eyeText}>{showPassword ? "👁️" : "👁️‍🗨️"}</Text>
+              <Text style={styles.eyeText}>
+                {showPassword ? (
+                  <AntDesign name="eye" size={24} color="black" />
+                ) : (
+                  <Feather name="eye-off" size={24} color="black" />
+                )}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Confirm Password</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              placeholder="Confirm password"
+              placeholderTextColor={Colors.text.secondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showPassword2}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword2(!showPassword2)}
+            >
+              <Text style={styles.eyeText}>
+                {showPassword2 ? (
+                  <AntDesign name="eye" size={24} color="black" />
+                ) : (
+                  <Feather name="eye-off" size={24} color="black" />
+                )}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -152,7 +245,7 @@ const SignupForm = () => {
       <TouchableOpacity
         style={styles.googleButton}
         onPress={() =>
-          Alert.alert("Google Login", "Google Sign In coming soon!")
+          Alert.alert("Google Signup", "Google Sign In coming soon!")
         }
       >
         <View style={styles.buttonContent}>
@@ -161,7 +254,7 @@ const SignupForm = () => {
             style={styles.googleIcon}
             resizeMode="contain"
           /> */}
-          <Text style={styles.buttonText}>Login with Google</Text>
+          <Text style={styles.buttonText}>Sign up with Google</Text>
         </View>
       </TouchableOpacity>
     </View>

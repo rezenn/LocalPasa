@@ -10,6 +10,8 @@ import Checkbox from "expo-checkbox";
 import React, { useState } from "react";
 import Colors from "@/constants/colors";
 import { router } from "expo-router";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -92,7 +94,13 @@ const LoginForm = () => {
               style={styles.eyeButton}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Text style={styles.eyeText}>{showPassword ? "👁️" : "👁️‍🗨️"}</Text>
+              <Text style={styles.eyeText}>
+                {showPassword ? (
+                  <AntDesign name="eye" size={24} color="black" />
+                ) : (
+                  <Feather name="eye-off" size={24} color="black" />
+                )}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
