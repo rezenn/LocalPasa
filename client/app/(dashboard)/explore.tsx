@@ -1,0 +1,162 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  FlatList,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Colors, Spacing, Typography } from "../../constants/theme";
+import SearchBar from "../../components/common/SearchBar";
+import HiddenGemBanner from "../../components/cards/HiddenGemBanner";
+import SectionHeader from "../../components/common/Header";
+import SiteCard from "../../components/cards/SiteCard";
+import ArtisanCard from "../../components/cards/ArtisansCard";
+import EventCard from "../../components/cards/EventCard";
+import {
+  hiddenGem,
+  nearbySites,
+  localArtisans,
+  upcomingEvents,
+} from "../../constants/data/mockData";
+import { HiddenGem, Site, Artisan, Event } from "../../types";
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSitePress = (site: Site | HiddenGem) => {
+    router.push(`/site/${site.id}` as any);
+  };
+
+  const handleArtisanPress = (artisan: Artisan) => {
+    console.log("Artisan pressed:", artisan);
+  };
+
+  const handleEventPress = (event: Event) => {
+    console.log("Event pressed:", event);
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Hello, User</Text>
+          <Text style={styles.tagline}>Explore Nepal with LocalPasa</Text>
+        </View>
+
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onFilterPress={() => {}}
+        />
+
+        <HiddenGemBanner
+          gem={hiddenGem}
+          onPress={() => handleSitePress(hiddenGem)}
+        />
+
+        <SectionHeader
+          title="Nearby Sites"
+          onSeeAll={() => router.push("/map" as any)}
+        />
+        <FlatList
+          data={nearbySites}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <SiteCard site={item} onPress={() => handleSitePress(item)} />
+          )}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+          style={styles.flatList}
+        />
+
+        <SectionHeader
+          title="Local Artisans"
+          onSeeAll={() => router.push("/profile" as any)}
+        />
+        <FlatList
+          data={localArtisans}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ArtisanCard
+              artisan={item}
+              onPress={() => handleArtisanPress(item)}
+            />
+          )}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+          style={styles.flatList}
+        />
+
+        <SectionHeader
+          title="Upcoming Events"
+          onSeeAll={() => router.push("/calendar" as any)}
+        />
+        <View style={styles.eventsList}>
+          {upcomingEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              onPress={() => handleEventPress(event)}
+            />
+          ))}
+        </View>
+
+        <View style={styles.bottomPad} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    paddingTop: Spacing.sm,
+  },
+  header: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  greeting: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: Colors.text,
+  },
+  tagline: {
+    ...Typography.caption,
+    marginTop: 2,
+    color: Colors.textSecondary,
+  },
+  horizontalList: {
+    paddingLeft: Spacing.lg,
+    paddingRight: Spacing.xs,
+    paddingBottom: Spacing.md,
+  },
+  flatList: {
+    marginBottom: Spacing.md,
+  },
+  eventsList: {
+    marginBottom: Spacing.md,
+  },
+  bottomPad: {
+    height: Spacing.lg,
+  },
+});

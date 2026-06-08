@@ -126,7 +126,7 @@ export default function OnboardingScreen1() {
             if (selectedLanguage) {
               console.log("Selected language:", selectedLanguage.name);
               router.push({
-                pathname: "/(dashboard)/dashboard",
+                pathname: "/(dashboard)/explore",
                 params: { language: selectedLanguage.name },
               });
             } else {
