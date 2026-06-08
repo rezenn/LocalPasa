@@ -32,14 +32,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
           placeholder={placeholder}
           placeholderTextColor={Colors.textMuted}
         />
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={onFilterPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="options-outline" size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.filterButton}
-        onPress={onFilterPress}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="options-outline" size={18} color={Colors.primary} />
-      </TouchableOpacity>
     </View>
   );
 };
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.surface,
-    borderRadius: Radius.full,
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 2,
     borderWidth: 1,
@@ -74,15 +74,10 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    width: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadow.sm,
   },
 });
 

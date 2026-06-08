@@ -17,15 +17,17 @@ const ArtisansCard: React.FC<ArtisanCardProps> = ({ artisan, onPress }) => {
       activeOpacity={0.88}
     >
       <Image source={{ uri: artisan.image }} style={styles.image} />
-      <Text style={styles.name} numberOfLines={1}>
-        {artisan.name}
-      </Text>
-      <Text style={styles.craft} numberOfLines={1}>
-        {artisan.craft} · {artisan.location}
-      </Text>
-      <View style={styles.meta}>
-        <Ionicons name="location-outline" size={10} color={Colors.textMuted} />
-        <Text style={styles.distance}>{artisan.distance}</Text>
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={1}>
+          {artisan.name}
+        </Text>
+        <Text style={styles.craft} numberOfLines={1}>
+          {artisan.craft} · {artisan.location}
+        </Text>
+        <View style={styles.meta}>
+          <Ionicons name="location" size={10} color="#F64447" />
+          <Text style={styles.distance}>{artisan.distance}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -33,23 +35,32 @@ const ArtisansCard: React.FC<ArtisanCardProps> = ({ artisan, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: 110,
+    width: 140,
+    height: 160,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    overflow: "hidden",
+    ...Shadow.sm,
     marginRight: Spacing.md,
   },
   image: {
     width: "100%",
     height: 100,
-    borderRadius: Radius.md,
     backgroundColor: Colors.border,
-    marginBottom: Spacing.xs,
+    marginBottom: -2,
+  },
+  info: {
+    paddingLeft: Spacing.sm,
+    gap: 2,
   },
   name: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 14,
+    fontFamily: "CrimsonBold",
     color: Colors.text,
   },
   craft: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: "inter",
     color: Colors.textSecondary,
     marginBottom: 2,
   },
@@ -60,6 +71,7 @@ const styles = StyleSheet.create({
   },
   distance: {
     fontSize: 10,
+    fontFamily: "inter",
     color: Colors.textMuted,
   },
 });

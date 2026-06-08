@@ -18,6 +18,7 @@ export const Colors = {
   error: "#D32F2F",
   white: "#FFFFFF",
   black: "#000000",
+  brown: "#6B4F3A",
   overlay: "rgba(0,0,0,0.35)",
   gemBadge: "rgba(255,255,255,0.15)",
 } as const;

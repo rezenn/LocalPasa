@@ -33,7 +33,6 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
       >
         {/* LEFT: Text content */}
         <View style={styles.textContent}>
-          {/* Badge */}
           <View style={styles.badge}>
             <Ionicons name="diamond" size={11} color="#002852" />
             <Text style={styles.badgeText}>Hidden gem of the week</Text>
@@ -41,7 +40,6 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
 
           <Text style={styles.title}>{gem.title}</Text>
 
-          {/* Meta */}
           <View style={styles.meta}>
             <View style={styles.metaItem}>
               {/* <Ionicons
@@ -75,7 +73,7 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     borderRadius: Radius.lg,
     overflow: "hidden",
     shadowColor: "#000",
@@ -136,7 +134,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     color: "#BEB2B2",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "500",
     // fontFamily: "CrimsonRegular",
   },
@@ -147,7 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.8)",
   },
   imageWrapper: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     marginRight: Spacing.sm,
     alignItems: "center",
     width: 180,

@@ -20,7 +20,7 @@ export const nearbySites: Site[] = [
     mustVisit: true,
     rating: 4.8,
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Pashupatinath_Temple.jpg/800px-Pashupatinath_Temple.jpg",
+      "https://cms.holidaystonepal.in/media/Blogs/Pashupatinath-Temple-Photos/Pashupatinath-Temple.png",
   },
   {
     id: "2",
@@ -32,7 +32,7 @@ export const nearbySites: Site[] = [
     mustVisit: true,
     rating: 4.7,
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Swayambhunath_stupa.jpg/800px-Swayambhunath_stupa.jpg",
+      "https://cms.holidaystonepal.in/media/Blogs/SwayambhunathStupa/swayambhunath-stupa.png",
   },
   {
     id: "3",
@@ -44,7 +44,7 @@ export const nearbySites: Site[] = [
     mustVisit: false,
     rating: 4.6,
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Kopan_Monastery.jpg/800px-Kopan_Monastery.jpg",
+      "https://res.klook.com/image/upload/w_750,h_469,c_fill,q_85/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/nmaeyoln5wx91n0opuna.jpg",
   },
 ];
 
@@ -56,16 +56,16 @@ export const localArtisans: Artisan[] = [
     location: "Bhaktapur",
     distance: "7.0 Km away",
     image:
-      "https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=200&h=200&fit=crop",
+      "https://media.istockphoto.com/id/458585693/photo/earthenware-at-bhaktapur.jpg?s=612x612&w=0&k=20&c=SSMF5VlhI0NHz5h4ZsV990ShmyVsJlbqSrNXbXmo5kE=",
   },
   {
     id: "2",
-    name: "Khem Bahadur Ma...",
+    name: "Khem Bahadur Maharjan",
     craft: "Thanka Artist",
     location: "Kathmandu",
     distance: "3.5 Km away",
     image:
-      "https://images.unsplash.com/photo-1607346704520-5aac7c9af9af?w=200&h=200&fit=crop",
+      "https://www.globaltimes.cn/Portals/0/attachment/2023/2023-03-26/4144c2a4-1180-4744-b848-055df770a64c.jpeg",
   },
   {
     id: "3",
@@ -74,7 +74,7 @@ export const localArtisans: Artisan[] = [
     location: "Lalitpur",
     distance: "3.2 Km away",
     image:
-      "https://images.unsplash.com/photo-1613979820001-fc6d2ee2d56e?w=200&h=200&fit=crop",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJDs0Bv94LFLuxzgLUtK9PlY5b6juSBEOqPQ&s",
   },
 ];
 

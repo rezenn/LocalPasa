@@ -12,6 +12,7 @@ import Colors from "@/constants/colors";
 import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
+import Toast from "react-native-toast-message";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -39,6 +40,11 @@ const LoginForm = () => {
     setTimeout(() => {
       setLoading(false);
       // Navigate to home screen on success
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Logged in successfully!",
+      });
       router.replace("/(dashboard)/explore");
     }, 1500);
   };

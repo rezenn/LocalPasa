@@ -31,11 +31,12 @@ const styles = StyleSheet.create({
   title: {
     ...Typography.h3,
     fontSize: 17,
+    fontFamily: "CrimsonBold",
   },
   seeAll: {
     fontSize: 13,
-    color: Colors.primary,
-    fontWeight: "500",
+    color: Colors.brown,
+    fontWeight: "800",
   },
 });
 

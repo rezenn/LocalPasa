@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Colors, Spacing, Typography } from "../../constants/theme";
+import { Colors, Radius, Spacing, Typography } from "../../constants/theme";
 import SearchBar from "../../components/common/SearchBar";
 import HiddenGemBanner from "../../components/cards/HiddenGemBanner";
 import SectionHeader from "../../components/common/Header";
@@ -42,22 +42,27 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="{Colors.background}"
+      />
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View style={styles.header}>
-          <Text style={styles.greeting}>Hello, User</Text>
-          <Text style={styles.tagline}>Explore Nepal with LocalPasa</Text>
-        </View>
+        <View style={styles.header1}>
+          <View style={styles.header}>
+            <Text style={styles.greeting}>Hello, User</Text>
+            <Text style={styles.tagline}>Explore Nepal with LocalPasa</Text>
+          </View>
 
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFilterPress={() => {}}
-        />
+          <SearchBar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFilterPress={() => {}}
+          />
+        </View>
 
         <HiddenGemBanner
           gem={hiddenGem}
@@ -122,13 +127,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "Colors.background",
     marginTop: StatusBar.currentHeight || 0,
   },
   scroll: {
     flex: 1,
   },
-
+  header1: {
+    backgroundColor: Colors.brown,
+    marginBottom: Spacing.lg,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
+  },
   header: {
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
@@ -136,13 +146,15 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 22,
-    fontWeight: "800",
-    color: Colors.text,
+    // fontWeight: "800",
+    color: Colors.white,
+    fontFamily: "CrimsonBold",
   },
   tagline: {
     ...Typography.caption,
     marginTop: 2,
-    color: Colors.textSecondary,
+    fontWeight: "500",
+    color: "#E2DBDB",
   },
   horizontalList: {
     paddingLeft: Spacing.lg,
@@ -150,7 +162,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.md,
   },
   flatList: {
-    marginBottom: Spacing.md,
+    marginBottom: -Spacing.xs,
   },
   eventsList: {
     marginBottom: Spacing.md,

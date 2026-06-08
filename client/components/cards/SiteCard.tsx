@@ -1,14 +1,8 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors, Radius, Spacing, Shadow } from '../../constants/theme';
-import { Site } from '../../types';
+import React from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
+import { Site } from "../../types";
 
 interface SiteCardProps {
   site: Site;
@@ -17,7 +11,11 @@ interface SiteCardProps {
 
 const SiteCard: React.FC<SiteCardProps> = ({ site, onPress }) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.88}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.88}
+    >
       <View style={styles.imageWrapper}>
         <Image source={{ uri: site.image }} style={styles.image} />
         {site.mustVisit && (
@@ -28,17 +26,15 @@ const SiteCard: React.FC<SiteCardProps> = ({ site, onPress }) => {
         )}
       </View>
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{site.name}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {site.name}
+        </Text>
         <Text style={styles.type} numberOfLines={1}>
-          {site.type || 'Site'} · {site.location}
+          {site.type || "Site"} · {site.location} · {site.price}
         </Text>
         <View style={styles.meta}>
-          <Ionicons name="location-outline" size={10} color={Colors.textMuted} />
-          <Text style={styles.metaText}>{site.distance}</Text>
-        </View>
-        <View style={styles.meta}>
-          <Ionicons name="ticket-outline" size={10} color={Colors.textMuted} />
-          <Text style={styles.metaText}>{site.price}</Text>
+          <Ionicons name="location" size={11} color="#F64447" />
+          <Text style={styles.metaText}>{site.distance} </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -47,27 +43,28 @@ const SiteCard: React.FC<SiteCardProps> = ({ site, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: 148,
+    width: 170,
+    height: 160,
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    overflow: 'hidden',
+    overflow: "hidden",
     ...Shadow.sm,
     marginRight: Spacing.md,
   },
   imageWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 100,
     backgroundColor: Colors.border,
   },
   mustVisitBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: Spacing.sm,
     left: Spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.mustVisit,
     borderRadius: Radius.full,
     paddingHorizontal: 7,
@@ -77,25 +74,26 @@ const styles = StyleSheet.create({
   mustVisitText: {
     color: Colors.white,
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   info: {
-    padding: Spacing.sm,
+    paddingLeft: Spacing.sm,
     gap: 2,
   },
   name: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 14,
+    fontFamily: "CrimsonBold",
     color: Colors.text,
   },
   type: {
     fontSize: 11,
+    fontFamily: "inter",
     color: Colors.textSecondary,
     marginBottom: 2,
   },
   meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 3,
   },
   metaText: {

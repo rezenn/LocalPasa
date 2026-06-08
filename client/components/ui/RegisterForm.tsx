@@ -85,7 +85,7 @@ const SignupForm = () => {
       Toast.show({
         type: "success",
         text1: "Success",
-        text2: "Account created successfully! Please login.",
+        text2: "Account created successfully!",
       });
       router.replace("/(onboarding)/OnboardingScreen1");
     }, 1500);
