@@ -6,7 +6,7 @@ export const hiddenGem: HiddenGem = {
   distance: "1.4 Km",
   price: "Free Entry",
   image:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Uku_Bahal%2C_Patan.jpg/1280px-Uku_Bahal%2C_Patan.jpg",
+    "https://nepaltraveller.com/images/main/1687762720.sidetrackimageuku-bahal_monastery03.jpg",
 };
 
 export const nearbySites: Site[] = [

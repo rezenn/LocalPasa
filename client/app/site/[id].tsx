@@ -217,7 +217,11 @@ export default function SiteDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
+  },
   scroll: { flex: 1 },
   heroWrapper: { height: 260, position: "relative" },
   heroImage: { width: "100%", height: "100%" },

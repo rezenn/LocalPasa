@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  View,
-  Text,
-  ImageBackground,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Typography } from "../../constants/theme";
+import { Colors, Radius, Spacing } from "../../constants/theme";
 import { HiddenGem } from "../../types";
 
 interface HiddenGemBannerProps {
@@ -22,35 +17,57 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
       onPress={onPress}
       activeOpacity={0.92}
     >
-      <ImageBackground
-        source={{ uri: gem.image }}
-        style={styles.image}
-        imageStyle={{ borderRadius: Radius.lg }}
+      <LinearGradient
+        colors={[
+          "#00C8B3",
+          "#007380",
+          "#004866",
+          "#003259",
+          "#002852",
+          "#001D4C",
+        ]}
+        locations={[0, 0.16, 0.41, 0.6, 0.83, 1]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 0 }}
+        style={styles.gradient}
       >
-        <View style={styles.overlay} />
-        <View style={styles.badge}>
-          <Ionicons name="diamond-outline" size={11} color={Colors.white} />
-          <Text style={styles.badgeText}>Hidden gem of the week</Text>
-        </View>
-        <View style={styles.content}>
+        {/* LEFT: Text content */}
+        <View style={styles.textContent}>
+          {/* Badge */}
+          <View style={styles.badge}>
+            <Ionicons name="diamond" size={11} color="#002852" />
+            <Text style={styles.badgeText}>Hidden gem of the week</Text>
+          </View>
+
           <Text style={styles.title}>{gem.title}</Text>
+
+          {/* Meta */}
           <View style={styles.meta}>
             <View style={styles.metaItem}>
-              <Ionicons
+              {/* <Ionicons
                 name="location-outline"
                 size={12}
                 color={Colors.white}
-              />
+              /> */}
               <Text style={styles.metaText}>{gem.distance}</Text>
             </View>
             <View style={styles.dot} />
             <View style={styles.metaItem}>
-              <Ionicons name="ticket-outline" size={12} color={Colors.white} />
+              {/* <Ionicons name="ticket-outline" size={12} color={Colors.white} /> */}
               <Text style={styles.metaText}>{gem.price}</Text>
             </View>
           </View>
         </View>
-      </ImageBackground>
+
+        {/* RIGHT: Photo panel */}
+        <View style={styles.imageWrapper}>
+          <Image
+            source={{ uri: gem.image }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
@@ -61,61 +78,89 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     borderRadius: Radius.lg,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  image: {
+  gradient: {
     height: 160,
-    justifyContent: "space-between",
-    padding: Spacing.md,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
+    flexDirection: "row",
+    alignItems: "stretch",
     borderRadius: Radius.lg,
-    backgroundColor: "rgba(0,0,0,0.30)",
+  },
+  textContent: {
+    flex: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    justifyContent: "space-between",
   },
   badge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.18)",
+    backgroundColor: "#F8EEBE",
     alignSelf: "flex-start",
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 4,
     gap: 4,
+    borderWidth: 0.5,
+    borderColor: "#002852",
   },
   badgeText: {
-    color: Colors.white,
+    color: "#002852",
     fontSize: 10,
-    fontWeight: "500",
-  },
-  content: {
-    gap: 4,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
   title: {
     color: Colors.white,
-    fontSize: 22,
-    fontWeight: "700",
-    lineHeight: 26,
+
+    fontSize: 30,
+    lineHeight: 35,
+    marginTop: 8,
+    flexShrink: 1,
+    fontFamily: "CrimsonBold",
   },
   meta: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
+    marginTop: -8,
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
+    gap: 4,
   },
   metaText: {
-    color: Colors.white,
+    color: "#BEB2B2",
     fontSize: 12,
-    fontWeight: "400",
+    fontWeight: "500",
+    // fontFamily: "CrimsonRegular",
   },
   dot: {
-    width: 3,
-    height: 3,
+    width: 4,
+    height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.6)",
+    backgroundColor: "rgba(255,255,255,0.8)",
+  },
+  imageWrapper: {
+    marginTop: Spacing.lg,
+    marginRight: Spacing.sm,
+    alignItems: "center",
+    width: 180,
+    height: "80%",
+    borderTopLeftRadius: 60,
+    borderBottomLeftRadius: Radius.md,
+    borderBottomRightRadius: 60,
+    borderTopRightRadius: Radius.md,
+    overflow: "hidden",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
   },
 });
 

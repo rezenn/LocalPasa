@@ -46,7 +46,7 @@ export default function HomeScreen() {
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <View style={styles.header}>
           <Text style={styles.greeting}>Hello, User</Text>
@@ -123,13 +123,12 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
   scroll: {
     flex: 1,
   },
-  content: {
-    paddingTop: Spacing.sm,
-  },
+
   header: {
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
