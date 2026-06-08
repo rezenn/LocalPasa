@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import PhoneInput from "react-native-phone-number-input";
+import Toast from "react-native-toast-message";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -33,61 +34,60 @@ const SignupForm = () => {
   };
 
   const handleSignup = async () => {
-    // Check all required fields
-    if (
-      !firstName ||
-      !lastName ||
-      !phoneNumber ||
-      !email ||
-      !password ||
-      !confirmPassword
-    ) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    // if (
+    //   !firstName ||
+    //   !lastName ||
+    //   !phoneNumber ||
+    //   !email ||
+    //   !password ||
+    //   !confirmPassword
+    // ) {
+    //   Alert.alert("Error", "Please fill in all fields");
+    //   return;
+    // }
 
-    // Validate email
-    if (!validateEmail(email)) {
-      Alert.alert("Error", "Please enter a valid email address");
-      return;
-    }
+    // // Validate email
+    // if (!validateEmail(email)) {
+    //   Alert.alert("Error", "Please enter a valid email address");
+    //   return;
+    // }
 
-    // Validate phone number
-    const isValidPhoneNumber =
-      phoneInputRef.current?.isValidNumber(phoneNumber);
-    if (!isValidPhoneNumber) {
-      Alert.alert("Error", "Please enter a valid international phone number");
-      return;
-    }
+    // // Validate phone number
+    // // const isValidPhoneNumber =
+    // //   phoneInputRef.current?.isValidNumber(phoneNumber);
+    // // if (!isValidPhoneNumber) {
+    // //   Alert.alert("Error", "Please enter a valid international phone number");
+    // //   return;
+    // // }
 
-    // Validate password strength
-    if (password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
-      return;
-    }
+    // // Validate password strength
+    // if (password.length < 6) {
+    //   Alert.alert("Error", "Password must be at least 6 characters");
+    //   return;
+    // }
 
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return;
-    }
+    // // Check if passwords match
+    // if (password !== confirmPassword) {
+    //   Alert.alert("Error", "Passwords do not match");
+    //   return;
+    // }
 
-    // Check terms acceptance
-    if (!acceptConditions) {
-      Alert.alert("Error", "Please accept the terms and conditions");
-      return;
-    }
+    // // Check terms acceptance
+    // if (!acceptConditions) {
+    //   Alert.alert("Error", "Please accept the terms and conditions");
+    //   return;
+    // }
 
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      Alert.alert("Success", "Account created successfully! Please login.", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/(auth)/LoginScreen"),
-        },
-      ]);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Account created successfully! Please login.",
+      });
+      router.replace("/(onboarding)/OnboardingScreen1");
     }, 1500);
   };
 
