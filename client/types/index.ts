@@ -8,8 +8,12 @@ export interface Site {
   mustVisit?: boolean;
   rating?: number;
   image: string;
+  isHiddenGem?: boolean;
 }
 
+export interface HiddenGem extends Site {
+  badge?: string;
+}
 export interface Artisan {
   id: string;
   name: string;
@@ -52,6 +56,7 @@ export interface SiteDetail extends Site {
   didYouKnow: string;
   nearbyArtisans: Artisan[];
   reviews: Review[];
+  // isHiddenGem?: boolean;
 }
 
 export type RootStackParamList = {

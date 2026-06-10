@@ -17,7 +17,7 @@ import SiteCard from "../../components/cards/SiteCard";
 import ArtisanCard from "../../components/cards/ArtisansCard";
 import EventCard from "../../components/cards/EventCard";
 import {
-  hiddenGem,
+  getHiddenGem,
   nearbySites,
   localArtisans,
   upcomingEvents,
@@ -27,6 +27,7 @@ import { HiddenGem, Site, Artisan, Event } from "../../types";
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const hiddenGem = getHiddenGem();
 
   const handleSitePress = (site: Site | HiddenGem) => {
     router.push(`/site/${site.id}` as any);
@@ -39,6 +40,7 @@ export default function HomeScreen() {
   const handleEventPress = (event: Event) => {
     console.log("Event pressed:", event);
   };
+  const regularSites = nearbySites.filter((site) => !site.isHiddenGem);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -64,10 +66,12 @@ export default function HomeScreen() {
           />
         </View>
 
-        <HiddenGemBanner
-          gem={hiddenGem}
-          onPress={() => handleSitePress(hiddenGem)}
-        />
+        {hiddenGem && (
+          <HiddenGemBanner
+            gem={hiddenGem}
+            onPress={() => handleSitePress(hiddenGem)}
+          />
+        )}
 
         <SectionHeader
           title="Nearby Sites"

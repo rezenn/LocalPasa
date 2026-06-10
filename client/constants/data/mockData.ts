@@ -1,13 +1,4 @@
-import { Site, Artisan, Event, HiddenGem, SiteDetail } from "../../types/index";
-
-export const hiddenGem: HiddenGem = {
-  id: "1",
-  title: "Uku Bahal, Lalitpur",
-  distance: "1.4 Km",
-  price: "Free Entry",
-  image:
-    "https://nepaltraveller.com/images/main/1687762720.sidetrackimageuku-bahal_monastery03.jpg",
-};
+import { Site, Artisan, Event, SiteDetail } from "../../types/index";
 
 export const nearbySites: Site[] = [
   {
@@ -31,6 +22,7 @@ export const nearbySites: Site[] = [
     price: "Varied fees",
     mustVisit: true,
     rating: 4.7,
+    // isHiddenGem: true,
     image:
       "https://cms.holidaystonepal.in/media/Blogs/SwayambhunathStupa/swayambhunath-stupa.png",
   },
@@ -43,8 +35,21 @@ export const nearbySites: Site[] = [
     price: "Free Entry",
     mustVisit: false,
     rating: 4.6,
+    isHiddenGem: true,
     image:
       "https://res.klook.com/image/upload/w_750,h_469,c_fill,q_85/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/nmaeyoln5wx91n0opuna.jpg",
+  },
+  {
+    id: "4",
+    name: "Uku Bahal",
+    location: "Lalitpur",
+    distance: "1.4 Km",
+    price: "Free Entry",
+    image:
+      "https://nepaltraveller.com/images/main/1687762720.sidetrackimageuku-bahal_monastery03.jpg",
+    type: "Monastery",
+    rating: 4.5,
+    // isHiddenGem: true,
   },
 ];
 
@@ -111,38 +116,121 @@ export const upcomingEvents: Event[] = [
   },
 ];
 
-export const siteDetail: SiteDetail = {
-  id: "1",
-  name: "Uku Bahal",
-  location: "Lalitpur",
-  distance: "1.4 Km",
-  rating: 4.5,
-  price: "Free Entry",
-  badge: "Hidden gem of the week",
-  summary: `Pashupatinath Temple is one of the most sacred Hindu temples in the world, dedicated to Lord Shiva in his manifestation as Pashupati. Located on the banks of the Bagmati River, it is the holiest of all Shiva temples on Earth.`,
-  didYouKnow:
-    "The temple complex spans 264 hectares and contains over 518 temples and monuments dating from the 5th century onwards.",
-  image:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Uku_Bahal%2C_Patan.jpg/1280px-Uku_Bahal%2C_Patan.jpg",
-  type: "Temple",
-  nearbyArtisans: [
-    {
-      id: "3",
-      name: "Sanjay Shilpakar",
-      craft: "Wood Crafter",
-      location: "Lalitpur",
-      distance: "3.2 Km away",
-      image:
-        "https://images.unsplash.com/photo-1613979820001-fc6d2ee2d56e?w=200&h=200&fit=crop",
-    },
-  ],
-  reviews: [
-    {
-      id: "1",
-      author: "Sunny Shah",
-      date: "22 Jul",
-      rating: 5,
-      text: "Patan is a place full of historical heritage. Many monasteries...",
-    },
-  ],
+// Site details mapping for each site
+export const siteDetailsMap: Record<string, SiteDetail> = {
+  "1": {
+    id: "1",
+    name: "Pashupatinath Temple",
+    location: "Kathmandu",
+    distance: "1.4 Km away",
+    rating: 4.8,
+    price: "Varied fees",
+    summary: `Pashupatinath Temple is one of the most sacred Hindu temples in the world, dedicated to Lord Shiva in his manifestation as Pashupati. Located on the banks of the Bagmati River, it is the holiest of all Shiva temples on Earth.`,
+    didYouKnow:
+      "The temple complex spans 264 hectares and contains over 518 temples and monuments dating from the 5th century onwards.",
+    image:
+      "https://cms.holidaystonepal.in/media/Blogs/Pashupatinath-Temple-Photos/Pashupatinath-Temple.png",
+    type: "Temple",
+    mustVisit: true,
+    nearbyArtisans: [localArtisans[1], localArtisans[2]],
+    reviews: [
+      {
+        id: "1",
+        author: "Sunny Shah",
+        date: "22 Jul",
+        rating: 5,
+        text: "Amazing spiritual experience! The architecture is breathtaking.",
+      },
+    ],
+  },
+  "2": {
+    id: "2",
+    name: "Swayambhunath Temple",
+    location: "Kathmandu",
+    distance: "3.4 Km away",
+    rating: 4.7,
+    price: "Varied fees",
+    summary: `Swayambhunath Stupa, also known as the Monkey Temple, is an ancient religious architecture atop a hill in the Kathmandu Valley. It is one of the most sacred Buddhist sites in Nepal.`,
+    didYouKnow:
+      "The stupa is surrounded by monkeys, which are considered holy. The temple is over 2,000 years old!",
+    image:
+      "https://cms.holidaystonepal.in/media/Blogs/SwayambhunathStupa/swayambhunath-stupa.png",
+    type: "Temple",
+    mustVisit: true,
+    nearbyArtisans: [localArtisans[0], localArtisans[2]],
+    reviews: [
+      {
+        id: "2",
+        author: "Maria Garcia",
+        date: "15 Aug",
+        rating: 4.5,
+        text: "Beautiful views of Kathmandu valley! The monkeys are entertaining.",
+      },
+    ],
+  },
+  "3": {
+    id: "3",
+    name: "Kopan Monastery",
+    location: "Kathmandu",
+    distance: "5.0 Km away",
+    rating: 4.6,
+    price: "Free Entry",
+    summary: `Kopan Monastery is a Tibetan Buddhist monastery located on the outskirts of Kathmandu. It offers meditation courses and breathtaking views of the Kathmandu Valley.`,
+    didYouKnow:
+      "The monastery was established in 1969 and has since become a popular destination for tourists seeking spiritual retreats.",
+    image:
+      "https://res.klook.com/image/upload/w_750,h_469,c_fill,q_85/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/nmaeyoln5wx91n0opuna.jpg",
+    type: "Monastery",
+    mustVisit: false,
+    nearbyArtisans: [localArtisans[1]],
+    reviews: [
+      {
+        id: "3",
+        author: "John Smith",
+        date: "3 Sep",
+        rating: 5,
+        text: "Peaceful atmosphere and great meditation sessions.",
+      },
+    ],
+  },
+  "4": {
+    id: "4",
+    name: "Uku Bahal",
+    location: "Lalitpur",
+    distance: "1.4 Km",
+    rating: 4.5,
+    price: "Free Entry",
+    badge: "Hidden gem of the week",
+    summary: `Uku Bahal is a hidden Buddhist monastery located in the heart of Lalitpur. This serene courtyard offers a peaceful escape from the bustling city streets and showcases exquisite Newari architecture.`,
+    didYouKnow:
+      "Uku Bahal is also known as 'Bahu Bahal' and dates back to the 13th century. It's one of the oldest Buddhist monasteries in the Patan area.",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Uku_Bahal%2C_Patan.jpg/1280px-Uku_Bahal%2C_Patan.jpg",
+    type: "Monastery",
+    isHiddenGem: true,
+    nearbyArtisans: [localArtisans[2]],
+    reviews: [
+      {
+        id: "4",
+        author: "Sunny Shah",
+        date: "22 Jul",
+        rating: 5,
+        text: "A beautiful hidden gem in Patan! The architecture is stunning and the peaceful atmosphere is perfect for meditation.",
+      },
+    ],
+  },
 };
+
+// Get hidden gem from nearbySites
+export const getHiddenGem = (): Site | undefined => {
+  return nearbySites.find((site) => site.isHiddenGem === true);
+};
+
+// Get site details by ID
+export const getSiteById = (id: string): SiteDetail | null => {
+  return siteDetailsMap[id] || null;
+};
+
+// For backward compatibility (if needed)
+export const siteDetail = siteDetailsMap["4"];
+export const hiddenGem = getHiddenGem();

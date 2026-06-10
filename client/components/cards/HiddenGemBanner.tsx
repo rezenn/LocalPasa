@@ -3,10 +3,10 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing } from "../../constants/theme";
-import { HiddenGem } from "../../types";
+import { Site } from "../../types";
 
 interface HiddenGemBannerProps {
-  gem: HiddenGem;
+  gem: Site;
   onPress: () => void;
 }
 
@@ -37,8 +37,12 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
             <Ionicons name="diamond" size={11} color="#002852" />
             <Text style={styles.badgeText}>Hidden gem of the week</Text>
           </View>
-
-          <Text style={styles.title}>{gem.title}</Text>
+          <View style={styles.title}>
+            <Text style={styles.name} numberOfLines={2}>
+              {gem.name}
+            </Text>
+            <Text style={styles.location}>{gem.location}</Text>
+          </View>
 
           <View style={styles.meta}>
             <View style={styles.metaItem}>
@@ -113,12 +117,20 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   title: {
+    rowGap: 2,
+  },
+  name: {
     color: Colors.white,
-
-    fontSize: 30,
-    lineHeight: 35,
-    marginTop: 8,
-    flexShrink: 1,
+    fontSize: 28,
+    lineHeight: 30,
+    // marginTop: 8,
+    fontFamily: "CrimsonBold",
+  },
+  location: {
+    color: Colors.white,
+    fontSize: 26,
+    lineHeight: 30,
+    // marginTop: 1,
     fontFamily: "CrimsonBold",
   },
   meta: {
