@@ -1,3 +1,4 @@
+// app/index.tsx (HomeScreen)
 import React, { useState } from "react";
 import {
   View,
@@ -17,19 +18,19 @@ import SiteCard from "../../components/cards/SiteCard";
 import ArtisanCard from "../../components/cards/ArtisansCard";
 import EventCard from "../../components/cards/EventCard";
 import {
-  getHiddenGem,
-  nearbySites,
+  allSites,
   localArtisans,
   upcomingEvents,
+  getHiddenGem,
 } from "../../constants/data/mockData";
-import { HiddenGem, Site, Artisan, Event } from "../../types";
+import { Site, Artisan, Event } from "../../types";
 
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const hiddenGem = getHiddenGem();
 
-  const handleSitePress = (site: Site | HiddenGem) => {
+  const handleSitePress = (site: Site) => {
     router.push(`/site/${site.id}` as any);
   };
 
@@ -40,14 +41,13 @@ export default function HomeScreen() {
   const handleEventPress = (event: Event) => {
     console.log("Event pressed:", event);
   };
-  const regularSites = nearbySites.filter((site) => !site.isHiddenGem);
+
+  // Filter out hidden gem from regular sites if you don't want duplicates
+  const regularSites = allSites.filter((site) => !site.isHiddenGem);
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="{Colors.background}"
-      />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -66,6 +66,7 @@ export default function HomeScreen() {
           />
         </View>
 
+        {/* Show hidden gem banner */}
         {hiddenGem && (
           <HiddenGemBanner
             gem={hiddenGem}
@@ -78,7 +79,7 @@ export default function HomeScreen() {
           onSeeAll={() => router.push("/map" as any)}
         />
         <FlatList
-          data={nearbySites}
+          data={regularSites}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <SiteCard site={item} onPress={() => handleSitePress(item)} />
@@ -131,7 +132,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "Colors.background",
+    backgroundColor: Colors.background,
     marginTop: StatusBar.currentHeight || 0,
   },
   scroll: {
@@ -150,7 +151,6 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 22,
-    // fontWeight: "800",
     color: Colors.white,
     fontFamily: "CrimsonBold",
   },
