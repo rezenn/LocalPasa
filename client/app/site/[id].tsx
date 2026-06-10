@@ -1,3 +1,5 @@
+// app/site/[id].tsx (SiteDetailScreen) - Complete file with all styles
+
 import React, { useState } from "react";
 import {
   View,
@@ -14,8 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import ArtisanCard from "../../components/cards/ArtisansCard";
 import StarRating from "../../components/common/Ratings";
-import { siteDetail } from "../../constants/data/mockData";
-import { Artisan } from "../../types";
+import { getSiteById } from "../../constants/data/mockData";
+import { Artisan, SiteDetail } from "../../types";
 
 const TABS = ["Summary", "Deep Dive", "Kids Mode"];
 
@@ -23,7 +25,26 @@ export default function SiteDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("Summary");
-  const site = siteDetail;
+
+  // Get site data based on ID
+  const site: SiteDetail | null = getSiteById(id || "");
+
+  // Handle case where site is not found
+  if (!site) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Site not found</Text>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.errorButton}
+          >
+            <Text style={styles.errorButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handleArtisanPress = (artisan: Artisan) => {
     console.log("Artisan pressed:", artisan);
@@ -61,9 +82,24 @@ export default function SiteDetailScreen() {
             </View>
           </View>
 
-          <View style={styles.gemBadge}>
-            <Ionicons name="diamond-outline" size={10} color={Colors.white} />
-            <Text style={styles.gemBadgeText}>Hidden gem of the week</Text>
+          {/* Show hidden gem badge if the site is a hidden gem */}
+          <View style={styles.badgeContainer}>
+            {site.isHiddenGem && (
+              <View style={styles.gemBadge}>
+                <Ionicons name="diamond" size={11} color="#002852" />
+                <Text style={styles.gemBadgeText}>Hidden gem of the week</Text>
+              </View>
+            )}
+            {site.mustVisit && (
+              <View style={styles.mustVisitBadge}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={10}
+                  color={Colors.white}
+                />
+                <Text style={styles.mustVisitText}>Must visit</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -222,9 +258,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     marginTop: StatusBar.currentHeight || 0,
   },
-  scroll: { flex: 1 },
-  heroWrapper: { height: 260, position: "relative" },
-  heroImage: { width: "100%", height: "100%" },
+  scroll: {
+    flex: 1,
+  },
+  heroWrapper: {
+    height: 260,
+    position: "relative",
+  },
+  heroImage: {
+    width: "100%",
+    height: "100%",
+  },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.25)",
@@ -237,6 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    zIndex: 10,
   },
   navBtn: {
     width: 36,
@@ -246,20 +291,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  navRight: { flexDirection: "row", gap: Spacing.sm },
-  gemBadge: {
+  navRight: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  badgeContainer: {
     position: "absolute",
     bottom: Spacing.md,
     left: Spacing.md,
+    right: Spacing.md,
+    flexDirection: "row",
+    gap: Spacing.sm,
+    zIndex: 10,
+  },
+  mustVisitBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.18)",
+    backgroundColor: Colors.mustVisit,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 4,
     gap: 4,
   },
-  gemBadgeText: { color: Colors.white, fontSize: 10, fontWeight: "500" },
+  mustVisitText: {
+    color: Colors.white,
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  gemBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8EEBE",
+    alignSelf: "flex-start",
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    gap: 4,
+    borderWidth: 0.5,
+    borderColor: "#002852",
+  },
+  gemBadgeText: {
+    color: "#002852",
+    fontSize: 10,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
   nameCard: {
     backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.lg,
@@ -273,7 +349,11 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
-  siteMetaRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
+  siteMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
   metaChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -285,9 +365,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  starChip: { backgroundColor: "#FFF8E1", borderColor: "#FFE082" },
-  freeChip: { backgroundColor: Colors.badge, borderColor: "#A5D6A7" },
-  metaChipText: { fontSize: 12, color: Colors.text, fontWeight: "500" },
+  starChip: {
+    backgroundColor: "#FFF8E1",
+    borderColor: "#FFE082",
+  },
+  freeChip: {
+    backgroundColor: Colors.badge,
+    borderColor: "#A5D6A7",
+  },
+  metaChipText: {
+    fontSize: 12,
+    color: Colors.text,
+    fontWeight: "500",
+  },
   tabs: {
     flexDirection: "row",
     backgroundColor: Colors.surface,
@@ -295,11 +385,26 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     paddingHorizontal: Spacing.lg,
   },
-  tab: { paddingVertical: Spacing.md, marginRight: Spacing.xl },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: Colors.primary },
-  tabText: { fontSize: 14, color: Colors.textMuted, fontWeight: "500" },
-  tabTextActive: { color: Colors.primary, fontWeight: "700" },
-  body: { padding: Spacing.lg },
+  tab: {
+    paddingVertical: Spacing.md,
+    marginRight: Spacing.xl,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    fontWeight: "500",
+  },
+  tabTextActive: {
+    color: Colors.primary,
+    fontWeight: "700",
+  },
+  body: {
+    padding: Spacing.lg,
+  },
   summaryText: {
     fontSize: 14,
     lineHeight: 22,
@@ -343,8 +448,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.sm,
   },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
-  openMaps: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.text,
+  },
+  openMaps: {
+    fontSize: 13,
+    color: Colors.primary,
+    fontWeight: "500",
+  },
   mapPlaceholder: {
     height: 150,
     backgroundColor: "#E8F0E8",
@@ -355,7 +468,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  mapText: { color: Colors.textMuted, marginTop: Spacing.xs, fontSize: 12 },
+  mapText: {
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
+    fontSize: 12,
+  },
   didYouKnow: {
     backgroundColor: "#FFF9E6",
     borderRadius: Radius.lg,
@@ -370,14 +487,20 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 4,
   },
-  didYouKnowText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  didYouKnowText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
   sectionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: Spacing.sm,
   },
-  artisanScroll: { marginBottom: Spacing.lg },
+  artisanScroll: {
+    marginBottom: Spacing.lg,
+  },
   review: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -400,9 +523,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { color: Colors.white, fontWeight: "700", fontSize: 14 },
-  reviewMeta: { flex: 1 },
-  reviewAuthor: { fontSize: 13, fontWeight: "700", color: Colors.text },
-  reviewDate: { fontSize: 11, color: Colors.textMuted },
-  reviewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  avatarText: {
+    color: Colors.white,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  reviewMeta: {
+    flex: 1,
+  },
+  reviewAuthor: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.text,
+  },
+  reviewDate: {
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  reviewText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.lg,
+  },
+  errorText: {
+    fontSize: 18,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  errorButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+  },
+  errorButtonText: {
+    color: Colors.white,
+    fontWeight: "600",
+  },
 });

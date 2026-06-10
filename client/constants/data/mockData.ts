@@ -157,6 +157,8 @@ export const siteDetailsMap: Record<string, SiteDetail> = {
       "https://cms.holidaystonepal.in/media/Blogs/SwayambhunathStupa/swayambhunath-stupa.png",
     type: "Temple",
     mustVisit: true,
+    isHiddenGem: true,
+
     nearbyArtisans: [localArtisans[0], localArtisans[2]],
     reviews: [
       {
@@ -207,7 +209,7 @@ export const siteDetailsMap: Record<string, SiteDetail> = {
     image:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Uku_Bahal%2C_Patan.jpg/1280px-Uku_Bahal%2C_Patan.jpg",
     type: "Monastery",
-    isHiddenGem: true,
+    // isHiddenGem: true,
     nearbyArtisans: [localArtisans[2]],
     reviews: [
       {

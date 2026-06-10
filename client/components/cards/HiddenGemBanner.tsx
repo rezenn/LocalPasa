@@ -46,22 +46,16 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
 
           <View style={styles.meta}>
             <View style={styles.metaItem}>
-              {/* <Ionicons
-                name="location-outline"
-                size={12}
-                color={Colors.white}
-              /> */}
+       
               <Text style={styles.metaText}>{gem.distance}</Text>
             </View>
             <View style={styles.dot} />
             <View style={styles.metaItem}>
-              {/* <Ionicons name="ticket-outline" size={12} color={Colors.white} /> */}
               <Text style={styles.metaText}>{gem.price}</Text>
             </View>
           </View>
         </View>
 
-        {/* RIGHT: Photo panel */}
         <View style={styles.imageWrapper}>
           <Image
             source={{ uri: gem.image }}
