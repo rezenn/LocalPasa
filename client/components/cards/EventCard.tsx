@@ -27,23 +27,17 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
         <Text style={styles.title} numberOfLines={1}>
           {event.title}
         </Text>
-        <View style={styles.row}>
-          <Ionicons
-            name="location-outline"
-            size={11}
-            color={Colors.textMuted}
-          />
-          <Text style={styles.meta}>
-            {event.distance} · {event.location}
-          </Text>
-        </View>
-        <View style={styles.tags}>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>{event.type}</Text>
+        <View style={styles.column}>
+          <View style={styles.row}>
+            <Ionicons name="location" size={11} color="#F64447" />
+            <Text style={styles.meta} numberOfLines={1}>
+              {event.distance} · {event.location}
+            </Text>
           </View>
-          <View style={[styles.tag, styles.tagFree]}>
-            <Text style={[styles.tagText, styles.tagFreeText]}>
-              {event.price}
+          <View style={styles.row}>
+            <Ionicons name="flag" size={11} color="#F64447" />
+            <Text style={styles.meta} numberOfLines={1}>
+              {event.type} · {event.price}
             </Text>
           </View>
         </View>
@@ -67,8 +61,8 @@ const styles = StyleSheet.create({
   dateBlock: {
     width: 46,
     height: 46,
-    backgroundColor: Colors.eventDate,
-    borderRadius: Radius.md,
+    backgroundColor: Colors.brown,
+    borderRadius: Radius.lg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -94,6 +88,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.text,
   },
+  column: {
+    flexDirection: "column",
+    rowGap: 4,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -102,15 +100,15 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: 11,
     color: Colors.textMuted,
+    flex: 1,
   },
   tags: {
     flexDirection: "row",
     gap: Spacing.xs,
     marginTop: 2,
+    flexWrap: "wrap",
   },
   tag: {
-    backgroundColor: Colors.border,
-    borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
   },

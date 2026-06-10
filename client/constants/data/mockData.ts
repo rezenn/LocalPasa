@@ -85,7 +85,7 @@ export const upcomingEvents: Event[] = [
     date: "15",
     month: "April",
     location: "Kathmandu",
-    distance: "0.9 Km away",
+    distance: "0.10 Km away",
     type: "Concert",
     price: "Free Entry",
   },
