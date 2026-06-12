@@ -11,7 +11,6 @@ const sanitizeValue = (value: unknown): unknown => {
         if (!key.startsWith("$") && !key.includes(".")) {
           safe[key] = sanitizeValue(child);
         }
-
         return safe;
       },
       {} as Record<string, unknown>,
@@ -29,6 +28,5 @@ export const sanitizeBody = (
   if (req.body) {
     req.body = sanitizeValue(req.body);
   }
-
   next();
 };

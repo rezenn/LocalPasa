@@ -58,39 +58,29 @@ export interface ArtisanProfile {
   contactNumber?: string;
 }
 
+// ─── Core IUser (used by both user.type.ts and user.model.ts) ────────────────
+// This is the FULL interface exposed on req.currentUser so controllers
+// can access _id, role, fullName, etc. without casting.
 export interface IUser extends Document {
   _id: Types.ObjectId;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   password?: string;
-  phoneNumber?: string;
   role: UserRole;
-  provider: AuthProvider;
-  googleId?: string;
   avatar?: string;
-  touristPreferences?: TouristPreferences;
-  artisanProfile?: ArtisanProfile;
-  emailVerified: boolean;
-  emailVerificationToken?: string;
-  emailVerificationExpires?: Date;
-  passwordResetToken?: string;
-  passwordResetExpires?: Date;
+  phone?: string;
+  nationality?: string;
+  preferredLanguage: string;
+  tourismPreferences: string[];
   refreshTokens: string[];
-  twoFactorEnabled: boolean;
-  twoFactorSecret?: string;
-  twoFactorVerified: boolean;
   loginAttempts: number;
   lockUntil?: Date;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
-
   comparePassword(candidatePassword: string): Promise<boolean>;
   isLocked(): boolean;
   incrementLoginAttempts(): Promise<void>;
-  generateEmailVerificationToken(): string;
-  generatePasswordResetToken(): string;
   toPublicJSON(): PublicUser;
 }
 
@@ -105,8 +95,6 @@ export interface PublicUser {
   avatar?: string;
   emailVerified: boolean;
   twoFactorEnabled: boolean;
-  touristPreferences?: TouristPreferences;
-  artisanProfile?: Omit<ArtisanProfile, "verificationDocuments">;
   lastLogin?: Date;
   createdAt: Date;
 }
@@ -115,7 +103,7 @@ export interface AccessTokenPayload {
   userId: string;
   role: UserRole;
   email: string;
-  tokenVersion: number;
+  tokenFamily: string;
 }
 
 export interface RefreshTokenPayload {
@@ -124,59 +112,25 @@ export interface RefreshTokenPayload {
 }
 
 export interface RegisterBody {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   password: string;
-  phoneNumber?: string;
-  role: UserRole;
+  phone?: string;
+  role?: UserRole;
 }
 
 export interface LoginBody {
   email: string;
   password: string;
-  rememberMe?: boolean;
 }
 
-export interface ForgotPasswordBody {
-  email: string;
-}
-
-export interface ResetPasswordBody {
-  token: string;
-  password: string;
-}
-
-export interface ChangePasswordBody {
-  currentPassword: string;
-  newPassword: string;
-}
-
-export interface OnboardingTouristBody {
-  interests: string[];
-  preferredLocations: string[];
-  preferredLanguage: PreferredLanguage;
-}
-
-export interface OnboardingArtisanBody {
-  category: ArtisanCategory;
-  bio: string;
-  specializations: string[];
-  location: string;
-  yearsOfExperience: number;
-  shopName?: string;
-  contactNumber?: string;
-}
-
-export interface TwoFactorVerifyBody {
-  token: string;
-}
-
+// ─── AuthRequest ─────────────────────────────────────────────────────────────
+// currentUser is typed as full IUser so controllers can access
+// _id, role, fullName, save(), toPublicJSON() without any casting.
 export interface AuthRequest extends Request {
-  currentUser?: {
-    toPublicJSON(): PublicUser;
-  };
+  currentUser?: IUser;
   tokenPayload?: AccessTokenPayload;
+  user?: IUser; // alias used in some controllers via (req as any).user
 }
 
 export interface ApiResponse<T = unknown> {

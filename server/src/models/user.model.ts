@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Model, Schema, Document } from "mongoose";
 import { config } from "../configs/env";
 import { AuthProvider, PublicUser, UserRole } from "../types/user.type";
 
+// Define IUser locally to avoid circular dependency
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   fullName: string;
@@ -65,21 +66,24 @@ const userMongooseSchema = new Schema<IUser>(
 
 userMongooseSchema.pre("save", async function hashPassword() {
   if (!this.isModified("password")) return;
-  this.password = await bcrypt.hash(this.password, config.bcrypt.rounds);
+  this.password = await bcrypt.hash(
+    this.password as string,
+    config.bcrypt.rounds,
+  );
 });
 
-userMongooseSchema.methods.comparePassword = function comparePassword(
+userMongooseSchema.methods.comparePassword = function (
   candidatePassword: string,
 ): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, this.password as string);
 };
 
-userMongooseSchema.methods.isLocked = function isLocked(): boolean {
+userMongooseSchema.methods.isLocked = function (): boolean {
   return !!this.lockUntil && this.lockUntil > new Date();
 };
 
 userMongooseSchema.methods.incrementLoginAttempts =
-  async function incrementLoginAttempts(): Promise<void> {
+  async function (): Promise<void> {
     if (this.lockUntil && this.lockUntil < new Date()) {
       this.loginAttempts = 1;
       this.lockUntil = undefined;
@@ -89,12 +93,12 @@ userMongooseSchema.methods.incrementLoginAttempts =
         this.lockUntil = new Date(Date.now() + config.security.lockDurationMs);
       }
     }
-
     await this.save();
   };
 
-userMongooseSchema.methods.toPublicJSON = function toPublicJSON(): PublicUser {
-  const [firstName = this.fullName, ...lastNameParts] = this.fullName.split(" ");
+userMongooseSchema.methods.toPublicJSON = function (): PublicUser {
+  const [firstName = this.fullName, ...lastNameParts] =
+    this.fullName.split(" ");
 
   return {
     id: this._id.toString(),

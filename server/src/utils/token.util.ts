@@ -1,28 +1,39 @@
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { config } from "../configs/env";
-import { AccessTokenPayload, AuthTokens, RefreshTokenPayload } from "../types/user.type";
-
-export const signAccessToken = (
-  payload: Omit<AccessTokenPayload, "tokenVersion">,
-): string => {
-  const options: SignOptions = { expiresIn: config.jwt.accessExpire as SignOptions["expiresIn"] };
-  return jwt.sign({ ...payload, tokenVersion: 1 }, config.jwt.accessSecret, {
-    ...options,
-  });
-};
-
-export const signRefreshToken = (payload: RefreshTokenPayload): string => {
-  const options: SignOptions = { expiresIn: config.jwt.refreshExpire as SignOptions["expiresIn"] };
-  return jwt.sign(payload, config.jwt.refreshSecret, options);
-};
+import {
+  AccessTokenPayload,
+  AuthTokens,
+  RefreshTokenPayload,
+  UserRole,
+} from "../types/user.type";
 
 export const createAuthTokens = (
-  payload: Omit<AccessTokenPayload, "tokenVersion">,
+  payload: { userId: string; role: UserRole; email: string },
   tokenFamily: string,
 ): AuthTokens => {
+  const accessPayload: AccessTokenPayload = {
+    userId: payload.userId,
+    role: payload.role,
+    email: payload.email,
+    tokenFamily,
+  };
+
+  const refreshPayload: RefreshTokenPayload = {
+    userId: payload.userId,
+    tokenFamily,
+  };
+
+  const accessToken = jwt.sign(accessPayload, config.jwt.accessSecret, {
+    expiresIn: config.jwt.accessExpire,
+  } as jwt.SignOptions);
+
+  const refreshToken = jwt.sign(refreshPayload, config.jwt.refreshSecret, {
+    expiresIn: config.jwt.refreshExpire,
+  } as jwt.SignOptions);
+
   return {
-    accessToken: signAccessToken(payload),
-    refreshToken: signRefreshToken({ userId: payload.userId, tokenFamily }),
+    accessToken,
+    refreshToken,
     expiresIn: config.jwt.accessExpireMs,
   };
 };

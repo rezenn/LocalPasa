@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import crypto from "crypto";
-import { userRepository } from "../../repositories/user.repository";
-import { AuthRequest, UserRole } from "../../types/user.type";
-import { AppError, sendCreated, sendSuccess } from "../../utils/response.util";
-import { createAuthTokens, verifyRefreshToken } from "../../utils/token.util";
+import { userRepository } from "../repositories/user.repository";
+import { AuthRequest, UserRole } from "../types/user.type";
+import { AppError, sendCreated, sendSuccess } from "../utils/response.util";
+import { createAuthTokens, verifyRefreshToken } from "../utils/token.util";
+import { IUser } from "../models/user.model";
 
 const buildTokenPayload = (user: {
   _id: { toString(): string };
@@ -15,7 +16,10 @@ const buildTokenPayload = (user: {
   email: user.email,
 });
 
-export const register = async (req: Request, res: Response): Promise<Response> => {
+export const register = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   const exists = await userRepository.exists({ email: req.body.email });
   if (exists) {
     throw new AppError("Email is already registered", 409);
@@ -60,18 +64,32 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
   user.refreshTokens = [...user.refreshTokens.slice(-4), tokens.refreshToken];
   await user.save();
 
-  return sendSuccess(res, { user: user.toPublicJSON(), tokens }, "Login successful");
+  return sendSuccess(
+    res,
+    { user: user.toPublicJSON(), tokens },
+    "Login successful",
+  );
 };
 
-export const me = async (req: AuthRequest, res: Response): Promise<Response> => {
+export const me = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<Response> => {
   if (!req.currentUser) {
     throw new AppError("Authentication required", 401);
   }
 
-  return sendSuccess(res, { user: req.currentUser.toPublicJSON() }, "Profile fetched");
+  return sendSuccess(
+    res,
+    { user: req.currentUser.toPublicJSON() },
+    "Profile fetched",
+  );
 };
 
-export const refresh = async (req: Request, res: Response): Promise<Response> => {
+export const refresh = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   const refreshToken = req.body.refreshToken;
   if (!refreshToken || typeof refreshToken !== "string") {
     throw new AppError("Refresh token is required", 400);
@@ -86,7 +104,7 @@ export const refresh = async (req: Request, res: Response): Promise<Response> =>
 
   const tokens = createAuthTokens(buildTokenPayload(user), payload.tokenFamily);
   user.refreshTokens = user.refreshTokens
-    .filter((token) => token !== refreshToken)
+    .filter((token: string) => token !== refreshToken)
     .concat(tokens.refreshToken)
     .slice(-5);
   await user.save();
@@ -94,16 +112,26 @@ export const refresh = async (req: Request, res: Response): Promise<Response> =>
   return sendSuccess(res, { tokens }, "Token refreshed");
 };
 
-export const logout = async (req: Request, res: Response): Promise<Response> => {
+export const logout = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   const refreshToken = req.body.refreshToken;
 
   if (typeof refreshToken === "string") {
-    const payload = verifyRefreshToken(refreshToken);
-    const user = await userRepository.findById(payload.userId, true);
+    try {
+      const payload = verifyRefreshToken(refreshToken);
+      const user = await userRepository.findById(payload.userId, true);
 
-    if (user) {
-      user.refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
-      await user.save();
+      if (user) {
+        user.refreshTokens = user.refreshTokens.filter(
+          (token: string) => token !== refreshToken,
+        );
+        await user.save();
+      }
+    } catch (error) {
+      // Token might be expired or invalid, still proceed with logout
+      console.error("Error during logout token invalidation:", error);
     }
   }
 

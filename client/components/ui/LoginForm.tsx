@@ -22,18 +22,18 @@ const LoginForm = () => {
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleLogin = async () => {
-    // if (!email || !password) {
-    //   Alert.alert("Error", "Please fill in all fields");
-    //   return;
-    // }
-    // if (!email.includes("@") || !email.includes(".")) {
-    //   Alert.alert("Error", "Please enter a valid email address");
-    //   return;
-    // }
-    // if (password.length < 6) {
-    //   Alert.alert("Error", "Password must be at least 6 characters");
-    //   return;
-    // }
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+    if (!email.includes("@") || !email.includes(".")) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
 
     setLoading(true);
     // Simulate API call

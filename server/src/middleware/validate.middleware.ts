@@ -14,11 +14,9 @@ export const validateBody =
           field: issue.path.join("."),
           message: issue.message,
         }));
-
         sendError(res, "Validation failed", 400, errors);
         return;
       }
-
       next(error);
     }
   };
