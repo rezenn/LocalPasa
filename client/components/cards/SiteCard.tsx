@@ -30,12 +30,14 @@ const SiteCard: React.FC<SiteCardProps> = ({ site, onPress }) => {
           {site.name}
         </Text>
         <Text style={styles.type} numberOfLines={1}>
-          {site.type || "Site"} · {site.location} · {site.price}
+          {site.type || "Site"} · {site.city || site.location} · {site.price}
         </Text>
-        <View style={styles.meta}>
-          <Ionicons name="location" size={11} color="#F64447" />
-          <Text style={styles.metaText}>{site.distance} </Text>
-        </View>
+        {site.distance ? (
+          <View style={styles.meta}>
+            <Ionicons name="location" size={11} color="#F64447" />
+            <Text style={styles.metaText}>{site.distance}</Text>
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
   },
   info: {
     paddingLeft: Spacing.sm,
+    paddingTop: 4,
     gap: 2,
   },
   name: {
@@ -87,7 +90,6 @@ const styles = StyleSheet.create({
   },
   type: {
     fontSize: 11,
-    fontFamily: "inter",
     color: Colors.textSecondary,
     marginBottom: 2,
   },

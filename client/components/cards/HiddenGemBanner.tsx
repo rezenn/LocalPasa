@@ -41,15 +41,16 @@ const HiddenGemBanner: React.FC<HiddenGemBannerProps> = ({ gem, onPress }) => {
             <Text style={styles.name} numberOfLines={2}>
               {gem.name}
             </Text>
-            <Text style={styles.location}>{gem.location}</Text>
+            <Text style={styles.location}>{gem.city || gem.location}</Text>
           </View>
 
-          <View style={styles.meta}>
-            <View style={styles.metaItem}>
-       
-              <Text style={styles.metaText}>{gem.distance}</Text>
-            </View>
-            <View style={styles.dot} />
+          <View style={styles.metaRow}>
+            {gem.distance ? (
+              <View style={styles.metaItem}>
+                <Text style={styles.metaText}>{gem.distance}</Text>
+              </View>
+            ) : null}
+            {gem.distance && gem.price ? <View style={styles.dot} /> : null}
             <View style={styles.metaItem}>
               <Text style={styles.metaText}>{gem.price}</Text>
             </View>
@@ -117,17 +118,15 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 28,
     lineHeight: 30,
-    // marginTop: 8,
     fontFamily: "CrimsonBold",
   },
   location: {
     color: Colors.white,
     fontSize: 26,
     lineHeight: 30,
-    // marginTop: 1,
     fontFamily: "CrimsonBold",
   },
-  meta: {
+  metaRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
@@ -142,7 +141,6 @@ const styles = StyleSheet.create({
     color: "#BEB2B2",
     fontSize: 11,
     fontWeight: "500",
-    // fontFamily: "CrimsonRegular",
   },
   dot: {
     width: 4,

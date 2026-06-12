@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { Stack, useRouter, useSegments, usePathname } from "expo-router";
+import { Stack, useRouter, usePathname } from "expo-router";
 import BottomTabBar from "../../components/navigation/BottomTabBar";
 import { TabScreenName } from "../../types";
 import { Colors } from "../../constants/theme";
 
 export default function DashboardLayout() {
   const router = useRouter();
-  const segments = useSegments();
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabScreenName>("explore");
 
@@ -17,38 +16,38 @@ export default function DashboardLayout() {
 
     switch (tab) {
       case "explore":
-        route = "/";
+        route = "/(dashboard)/explore";
         break;
       case "map":
-        route = "/map";
+        route = "/(dashboard)/map";
         break;
       case "calendar":
-        route = "/calendar";
+        route = "/(dashboard)/calendar";
         break;
       case "save":
-        route = "/saved";
+        route = "/(dashboard)/saved";
         break;
       case "profile":
-        route = "/profile";
+        route = "/(dashboard)/profile";
         break;
       default:
-        route = "/";
+        route = "/(dashboard)/explore";
     }
 
-    router.push(route as any);
+    router.replace(route as any);
   };
 
   // Update active tab based on current route
   useEffect(() => {
-    if (pathname === "/" || pathname === "/index") {
+    if (pathname.includes("explore") || pathname === "/") {
       setActiveTab("explore");
-    } else if (pathname === "/map") {
+    } else if (pathname.includes("map")) {
       setActiveTab("map");
-    } else if (pathname === "/calendar") {
+    } else if (pathname.includes("calendar")) {
       setActiveTab("calendar");
-    } else if (pathname === "/saved") {
+    } else if (pathname.includes("saved")) {
       setActiveTab("save");
-    } else if (pathname === "/profile") {
+    } else if (pathname.includes("profile")) {
       setActiveTab("profile");
     }
   }, [pathname]);
@@ -61,7 +60,7 @@ export default function DashboardLayout() {
           animation: "fade",
         }}
       >
-        <Stack.Screen name="index" />
+        <Stack.Screen name="explore" />
         <Stack.Screen name="map" />
         <Stack.Screen name="calendar" />
         <Stack.Screen name="saved" />

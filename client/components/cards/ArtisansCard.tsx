@@ -22,12 +22,14 @@ const ArtisansCard: React.FC<ArtisanCardProps> = ({ artisan, onPress }) => {
           {artisan.name}
         </Text>
         <Text style={styles.craft} numberOfLines={1}>
-          {artisan.craft} · {artisan.location}
+          {artisan.craft} · {artisan.city || artisan.location}
         </Text>
-        <View style={styles.meta}>
-          <Ionicons name="location" size={10} color="#F64447" />
-          <Text style={styles.distance}>{artisan.distance}</Text>
-        </View>
+        {artisan.distance ? (
+          <View style={styles.meta}>
+            <Ionicons name="location" size={10} color="#F64447" />
+            <Text style={styles.distance}>{artisan.distance}</Text>
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -51,6 +53,7 @@ const styles = StyleSheet.create({
   },
   info: {
     paddingLeft: Spacing.sm,
+    paddingTop: 4,
     gap: 2,
   },
   name: {
@@ -60,7 +63,6 @@ const styles = StyleSheet.create({
   },
   craft: {
     fontSize: 11,
-    fontFamily: "inter",
     color: Colors.textSecondary,
     marginBottom: 2,
   },
@@ -71,7 +73,6 @@ const styles = StyleSheet.create({
   },
   distance: {
     fontSize: 10,
-    fontFamily: "inter",
     color: Colors.textMuted,
   },
 });

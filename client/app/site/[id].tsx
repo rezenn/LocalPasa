@@ -1,5 +1,3 @@
-// app/site/[id].tsx (SiteDetailScreen) - Complete file with all styles
-
 import React, { useState } from "react";
 import {
   View,
@@ -10,14 +8,18 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import ArtisanCard from "../../components/cards/ArtisansCard";
 import StarRating from "../../components/common/Ratings";
-import { getSiteById } from "../../constants/data/mockData";
-import { Artisan, SiteDetail } from "../../types";
+import { useSite } from "../../hooks/useApi";
+import { savedApi } from "../../api/index";
+import { ApiError } from "../../api/client";
+import { Artisan } from "../../types";
 
 const TABS = ["Summary", "Deep Dive", "Kids Mode"];
 
@@ -25,12 +27,53 @@ export default function SiteDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("Summary");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  // Get site data based on ID
-  const site: SiteDetail | null = getSiteById(id || "");
+  // Review form state
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
-  // Handle case where site is not found
-  if (!site) {
+  const { data: site, loading, error } = useSite(id ?? "");
+
+  const handleSave = async () => {
+    if (!id) return;
+    setSaving(true);
+    try {
+      if (saved) {
+        await savedApi.remove(id, "site");
+        setSaved(false);
+      } else {
+        await savedApi.save(id, "site");
+        setSaved(true);
+      }
+    } catch (err) {
+      const msg =
+        err instanceof ApiError ? err.message : "Failed to update saved";
+      Alert.alert("Error", msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleArtisanPress = (artisan: Artisan) => {
+    console.log("Artisan pressed:", artisan._id);
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ActivityIndicator
+          style={styles.loadingCenter}
+          color={Colors.primary}
+          size="large"
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !site) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
@@ -46,14 +89,13 @@ export default function SiteDetailScreen() {
     );
   }
 
-  const handleArtisanPress = (artisan: Artisan) => {
-    console.log("Artisan pressed:", artisan);
-  };
+  const displayRating = site.computedRating ?? site.rating ?? 0;
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Hero */}
         <View style={styles.heroWrapper}>
           <Image source={{ uri: site.image }} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
@@ -66,15 +108,16 @@ export default function SiteDetailScreen() {
               <Ionicons name="arrow-back" size={20} color={Colors.white} />
             </TouchableOpacity>
             <View style={styles.navRight}>
-              <TouchableOpacity style={styles.navBtn}>
+              <TouchableOpacity
+                style={styles.navBtn}
+                onPress={handleSave}
+                disabled={saving}
+              >
                 <Ionicons
-                  name="information-circle-outline"
+                  name={saved ? "heart" : "heart-outline"}
                   size={20}
-                  color={Colors.white}
+                  color={saved ? "#FF6B6B" : Colors.white}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.navBtn}>
-                <Ionicons name="heart-outline" size={20} color={Colors.white} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.navBtn}>
                 <Ionicons name="share-outline" size={20} color={Colors.white} />
@@ -82,7 +125,6 @@ export default function SiteDetailScreen() {
             </View>
           </View>
 
-          {/* Show hidden gem badge if the site is a hidden gem */}
           <View style={styles.badgeContainer}>
             {site.isHiddenGem && (
               <View style={styles.gemBadge}>
@@ -103,20 +145,28 @@ export default function SiteDetailScreen() {
           </View>
         </View>
 
+        {/* Name card */}
         <View style={styles.nameCard}>
           <Text style={styles.siteName}>{site.name}</Text>
           <View style={styles.siteMetaRow}>
             <View style={styles.metaChip}>
               <Ionicons name="location" size={12} color={Colors.error} />
-              <Text style={styles.metaChipText}>{site.location}</Text>
+              <Text style={styles.metaChipText}>
+                {site.city || site.location}
+              </Text>
             </View>
-            <View style={styles.metaChip}>
-              <Ionicons name="navigate" size={12} color={Colors.primary} />
-              <Text style={styles.metaChipText}>{site.distance}</Text>
-            </View>
+            {site.distance ? (
+              <View style={styles.metaChip}>
+                <Ionicons name="navigate" size={12} color={Colors.primary} />
+                <Text style={styles.metaChipText}>{site.distance}</Text>
+              </View>
+            ) : null}
             <View style={[styles.metaChip, styles.starChip]}>
-              <StarRating rating={site.rating || 0} size={12} />
-              <Text style={styles.metaChipText}>{site.rating}</Text>
+              <StarRating rating={displayRating} size={12} />
+              <Text style={styles.metaChipText}>
+                {displayRating.toFixed(1)}
+                {site.reviewCount ? ` (${site.reviewCount})` : ""}
+              </Text>
             </View>
             <View style={[styles.metaChip, styles.freeChip]}>
               <Ionicons
@@ -131,6 +181,7 @@ export default function SiteDetailScreen() {
           </View>
         </View>
 
+        {/* Tabs */}
         <View style={styles.tabs}>
           {TABS.map((tab) => (
             <TouchableOpacity
@@ -151,101 +202,187 @@ export default function SiteDetailScreen() {
           ))}
         </View>
 
+        {/* Body */}
         <View style={styles.body}>
-          <Text style={styles.summaryText}>{site.summary}</Text>
+          {activeTab === "Summary" && (
+            <>
+              <Text style={styles.summaryText}>{site.summary}</Text>
 
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons
-                name="language-outline"
-                size={18}
-                color={Colors.textSecondary}
-              />
-              <Text style={styles.actionBtnText}>Translate</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.actionBtnPrimary]}
-            >
-              <Ionicons name="map-outline" size={18} color={Colors.white} />
-              <Text style={[styles.actionBtnText, { color: Colors.white }]}>
-                Get Directions
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons
-                name="heart-outline"
-                size={18}
-                color={Colors.textSecondary}
-              />
-              <Text style={styles.actionBtnText}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons
-                name="share-social-outline"
-                size={18}
-                color={Colors.textSecondary}
-              />
-              <Text style={styles.actionBtnText}>Share</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.locationHeader}>
-            <Text style={styles.sectionTitle}>Location</Text>
-            <TouchableOpacity>
-              <Text style={styles.openMaps}>Open in Maps</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.mapPlaceholder}>
-            <Ionicons name="map" size={40} color={Colors.border} />
-            <Text style={styles.mapText}>Map View</Text>
-          </View>
-
-          <View style={styles.didYouKnow}>
-            <Text style={styles.didYouKnowTitle}>💡 Did You Know?</Text>
-            <Text style={styles.didYouKnowText}>{site.didYouKnow}</Text>
-          </View>
-
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Nearby Artisans</Text>
-            <TouchableOpacity>
-              <Text style={styles.openMaps}>See all</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.artisanScroll}
-          >
-            {site.nearbyArtisans.map((artisan: Artisan) => (
-              <ArtisanCard
-                key={artisan.id}
-                artisan={artisan}
-                onPress={() => handleArtisanPress(artisan)}
-              />
-            ))}
-          </ScrollView>
-
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Reviews</Text>
-            <TouchableOpacity>
-              <Text style={styles.openMaps}>Write a review</Text>
-            </TouchableOpacity>
-          </View>
-          {site.reviews.map((review) => (
-            <View key={review.id} style={styles.review}>
-              <View style={styles.reviewHeader}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{review.author[0]}</Text>
-                </View>
-                <View style={styles.reviewMeta}>
-                  <Text style={styles.reviewAuthor}>{review.author}</Text>
-                  <Text style={styles.reviewDate}>{review.date}</Text>
-                </View>
-                <StarRating rating={review.rating} size={12} />
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.actionBtn}>
+                  <Ionicons
+                    name="language-outline"
+                    size={18}
+                    color={Colors.textSecondary}
+                  />
+                  <Text style={styles.actionBtnText}>Translate</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.actionBtnPrimary]}
+                >
+                  <Ionicons name="map-outline" size={18} color={Colors.white} />
+                  <Text style={[styles.actionBtnText, { color: Colors.white }]}>
+                    Get Directions
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={handleSave}
+                  disabled={saving}
+                >
+                  <Ionicons
+                    name={saved ? "heart" : "heart-outline"}
+                    size={18}
+                    color={saved ? "#FF6B6B" : Colors.textSecondary}
+                  />
+                  <Text style={styles.actionBtnText}>
+                    {saved ? "Saved" : "Save"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionBtn}>
+                  <Ionicons
+                    name="share-social-outline"
+                    size={18}
+                    color={Colors.textSecondary}
+                  />
+                  <Text style={styles.actionBtnText}>Share</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.reviewText}>{review.text}</Text>
-            </View>
-          ))}
+
+              {/* Map placeholder */}
+              <View style={styles.locationHeader}>
+                <Text style={styles.sectionTitle}>Location</Text>
+                <TouchableOpacity>
+                  <Text style={styles.openMaps}>Open in Maps</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.mapPlaceholder}>
+                <Ionicons name="map" size={40} color={Colors.border} />
+                <Text style={styles.mapText}>Map View</Text>
+              </View>
+
+              {/* Did you know */}
+              {site.didYouKnow ? (
+                <View style={styles.didYouKnow}>
+                  <Text style={styles.didYouKnowTitle}>💡 Did You Know?</Text>
+                  <Text style={styles.didYouKnowText}>{site.didYouKnow}</Text>
+                </View>
+              ) : null}
+
+              {/* Nearby Artisans */}
+              {site.nearbyArtisans.length > 0 && (
+                <>
+                  <View style={styles.sectionRow}>
+                    <Text style={styles.sectionTitle}>Nearby Artisans</Text>
+                    <TouchableOpacity>
+                      <Text style={styles.openMaps}>See all</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.artisanScroll}
+                  >
+                    {site.nearbyArtisans.map((artisan) => (
+                      <ArtisanCard
+                        key={artisan._id}
+                        artisan={artisan}
+                        onPress={() => handleArtisanPress(artisan)}
+                      />
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+
+              {/* Reviews */}
+              <View style={styles.sectionRow}>
+                <Text style={styles.sectionTitle}>
+                  Reviews {site.reviewCount ? `(${site.reviewCount})` : ""}
+                </Text>
+              </View>
+              {site.reviews.length === 0 ? (
+                <Text style={styles.noReviews}>
+                  No reviews yet. Be the first!
+                </Text>
+              ) : (
+                site.reviews.map((review) => (
+                  <View key={review._id} style={styles.review}>
+                    <View style={styles.reviewHeader}>
+                      <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>
+                          {review.author[0]}
+                        </Text>
+                      </View>
+                      <View style={styles.reviewMeta}>
+                        <Text style={styles.reviewAuthor}>{review.author}</Text>
+                        <Text style={styles.reviewDate}>{review.date}</Text>
+                      </View>
+                      <StarRating rating={review.rating} size={12} />
+                    </View>
+                    <Text style={styles.reviewText}>{review.text}</Text>
+                  </View>
+                ))
+              )}
+            </>
+          )}
+
+          {activeTab === "Deep Dive" && (
+            <>
+              {site.history ? (
+                <View style={styles.deepSection}>
+                  <Text style={styles.deepTitle}>🏛 History</Text>
+                  <Text style={styles.summaryText}>{site.history}</Text>
+                </View>
+              ) : null}
+              {site.myth ? (
+                <View style={styles.deepSection}>
+                  <Text style={styles.deepTitle}>📖 Myths & Legends</Text>
+                  <Text style={styles.summaryText}>{site.myth}</Text>
+                </View>
+              ) : null}
+              {site.openingHours ? (
+                <View style={styles.deepSection}>
+                  <Text style={styles.deepTitle}>🕐 Opening Hours</Text>
+                  <Text style={styles.summaryText}>{site.openingHours}</Text>
+                </View>
+              ) : null}
+              {!site.history && !site.myth && !site.openingHours && (
+                <Text style={styles.noReviews}>
+                  No deep dive content available yet.
+                </Text>
+              )}
+            </>
+          )}
+
+          {activeTab === "Kids Mode" && (
+            <>
+              {site.didYouKnow ? (
+                <View style={styles.didYouKnow}>
+                  <Text style={styles.didYouKnowTitle}>💡 Fun Fact!</Text>
+                  <Text style={styles.didYouKnowText}>{site.didYouKnow}</Text>
+                </View>
+              ) : null}
+              {(site.quizzes?.length ?? 0) > 0 ? (
+                <View style={styles.deepSection}>
+                  <Text style={styles.deepTitle}>🎯 Quiz Time!</Text>
+                  {site.quizzes!.map((quiz, i) => (
+                    <View key={i} style={styles.quizItem}>
+                      <Text style={styles.quizQuestion}>
+                        {i + 1}. {quiz.question}
+                      </Text>
+                      {quiz.options.map((opt, j) => (
+                        <Text key={j} style={styles.quizOption}>
+                          {String.fromCharCode(65 + j)}. {opt}
+                        </Text>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.noReviews}>No quizzes available yet.</Text>
+              )}
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -258,20 +395,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     marginTop: StatusBar.currentHeight || 0,
   },
-  scroll: {
-    flex: 1,
-  },
-  heroWrapper: {
-    height: 260,
-    position: "relative",
-  },
-  heroImage: {
-    width: "100%",
-    height: "100%",
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  scroll: { flex: 1 },
+  loadingCenter: { flex: 1 },
+  heroWrapper: { height: 260, position: "relative" },
+  heroImage: { width: "100%", height: "100%" },
+  heroOverlay: { ...StyleSheet.absoluteFillObject },
   topNav: {
     position: "absolute",
     top: Spacing.md,
@@ -290,10 +418,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  navRight: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-  },
+  navRight: { flexDirection: "row", gap: Spacing.sm },
   badgeContainer: {
     position: "absolute",
     bottom: Spacing.md,
@@ -312,11 +437,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 4,
   },
-  mustVisitText: {
-    color: Colors.white,
-    fontSize: 10,
-    fontWeight: "600",
-  },
+  mustVisitText: { color: Colors.white, fontSize: 10, fontWeight: "600" },
   gemBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -348,11 +469,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
-  siteMetaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.sm,
-  },
+  siteMetaRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   metaChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -364,19 +481,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  starChip: {
-    backgroundColor: "#FFF8E1",
-    borderColor: "#FFE082",
-  },
-  freeChip: {
-    backgroundColor: Colors.badge,
-    borderColor: "#A5D6A7",
-  },
-  metaChipText: {
-    fontSize: 12,
-    color: Colors.text,
-    fontWeight: "500",
-  },
+  starChip: { backgroundColor: "#FFF8E1", borderColor: "#FFE082" },
+  freeChip: { backgroundColor: Colors.badge, borderColor: "#A5D6A7" },
+  metaChipText: { fontSize: 12, color: Colors.text, fontWeight: "500" },
   tabs: {
     flexDirection: "row",
     backgroundColor: Colors.surface,
@@ -384,26 +491,11 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     paddingHorizontal: Spacing.xl,
   },
-  tab: {
-    paddingVertical: Spacing.md,
-    marginRight: Spacing.xl,
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
-  },
-  tabText: {
-    fontSize: 14,
-    color: Colors.textMuted,
-    fontWeight: "500",
-  },
-  tabTextActive: {
-    color: Colors.primary,
-    fontWeight: "700",
-  },
-  body: {
-    padding: Spacing.lg,
-  },
+  tab: { paddingVertical: Spacing.md, marginRight: Spacing.xl },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: Colors.primary },
+  tabText: { fontSize: 14, color: Colors.textMuted, fontWeight: "500" },
+  tabTextActive: { color: Colors.primary, fontWeight: "700" },
+  body: { padding: Spacing.lg },
   summaryText: {
     fontSize: 14,
     lineHeight: 22,
@@ -447,16 +539,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.sm,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-  openMaps: {
-    fontSize: 13,
-    color: Colors.primary,
-    fontWeight: "500",
-  },
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
+  openMaps: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
   mapPlaceholder: {
     height: 150,
     backgroundColor: "#E8F0E8",
@@ -467,11 +551,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  mapText: {
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-    fontSize: 12,
-  },
+  mapText: { color: Colors.textMuted, marginTop: Spacing.xs, fontSize: 12 },
   didYouKnow: {
     backgroundColor: "#FFF9E6",
     borderRadius: Radius.lg,
@@ -486,18 +566,17 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 4,
   },
-  didYouKnowText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
+  didYouKnowText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
   sectionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: Spacing.sm,
   },
-  artisanScroll: {
+  artisanScroll: { marginBottom: Spacing.lg },
+  noReviews: {
+    fontSize: 13,
+    color: Colors.textMuted,
     marginBottom: Spacing.lg,
   },
   review: {
@@ -522,47 +601,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: {
-    color: Colors.white,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  reviewMeta: {
-    flex: 1,
-  },
-  reviewAuthor: {
-    fontSize: 13,
+  avatarText: { color: Colors.white, fontWeight: "700", fontSize: 14 },
+  reviewMeta: { flex: 1 },
+  reviewAuthor: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  reviewDate: { fontSize: 11, color: Colors.textMuted },
+  reviewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  deepSection: { marginBottom: Spacing.lg },
+  deepTitle: {
+    fontSize: 16,
     fontWeight: "700",
     color: Colors.text,
+    marginBottom: Spacing.sm,
   },
-  reviewDate: {
-    fontSize: 11,
-    color: Colors.textMuted,
+  quizItem: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  reviewText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 20,
+  quizQuestion: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: Spacing.sm,
   },
+  quizOption: { fontSize: 13, color: Colors.textSecondary, marginBottom: 4 },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing.lg,
   },
-  errorText: {
-    fontSize: 18,
-    color: Colors.text,
-    marginBottom: Spacing.md,
-  },
+  errorText: { fontSize: 18, color: Colors.text, marginBottom: Spacing.md },
   errorButton: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
   },
-  errorButtonText: {
-    color: Colors.white,
-    fontWeight: "600",
-  },
+  errorButtonText: { color: Colors.white, fontWeight: "600" },
 });

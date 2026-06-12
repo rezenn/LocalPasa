@@ -12,8 +12,9 @@ import Colors from "@/constants/colors";
 import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
-import PhoneInput from "react-native-phone-number-input";
 import Toast from "react-native-toast-message";
+import authApi from "@/api/auth.api";
+import { ApiError } from "@/api/client";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -27,68 +28,72 @@ const SignupForm = () => {
   const [loading, setLoading] = useState(false);
   const [acceptConditions, setAcceptConditions] = useState(false);
 
-  const phoneInputRef = React.useRef<PhoneInput>(null);
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
   const handleSignup = async () => {
-    // if (
-    //   !firstName ||
-    //   !lastName ||
-    //   !phoneNumber ||
-    //   !email ||
-    //   !password ||
-    //   !confirmPassword
-    // ) {
-    //   Alert.alert("Error", "Please fill in all fields");
-    //   return;
-    // }
-
-    // // Validate email
-    // if (!validateEmail(email)) {
-    //   Alert.alert("Error", "Please enter a valid email address");
-    //   return;
-    // }
-
-    // // Validate phone number
-    // // const isValidPhoneNumber =
-    // //   phoneInputRef.current?.isValidNumber(phoneNumber);
-    // // if (!isValidPhoneNumber) {
-    // //   Alert.alert("Error", "Please enter a valid international phone number");
-    // //   return;
-    // // }
-
-    // // Validate password strength
-    // if (password.length < 6) {
-    //   Alert.alert("Error", "Password must be at least 6 characters");
-    //   return;
-    // }
-
-    // // Check if passwords match
-    // if (password !== confirmPassword) {
-    //   Alert.alert("Error", "Passwords do not match");
-    //   return;
-    // }
-
-    // // Check terms acceptance
-    // if (!acceptConditions) {
-    //   Alert.alert("Error", "Please accept the terms and conditions");
-    //   return;
-    // }
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+    if (!validateEmail(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+    if (password.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      Alert.alert(
+        "Error",
+        "Password must contain at least one uppercase letter",
+      );
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      Alert.alert(
+        "Error",
+        "Password must contain at least one lowercase letter",
+      );
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      Alert.alert("Error", "Password must contain at least one number");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+    if (!acceptConditions) {
+      Alert.alert("Error", "Please accept the terms and conditions");
+      return;
+    }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await authApi.register({
+        fullName: `${firstName.trim()} ${lastName.trim()}`,
+        email: email.trim().toLowerCase(),
+        password,
+        confirmPassword,
+        phone: phoneNumber || undefined,
+      });
       Toast.show({
         type: "success",
-        text1: "Success",
-        text2: "Account created successfully!",
+        text1: "Account created!",
+        text2: "Welcome to LocalPasa.",
       });
       router.replace("/(onboarding)/OnboardingScreen1");
-    }, 1500);
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Registration failed. Please try again.";
+      Alert.alert("Sign Up Failed", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -112,8 +117,7 @@ const SignupForm = () => {
               placeholderTextColor={Colors.text.secondary}
               value={firstName}
               onChangeText={setFirstName}
-              keyboardType="default"
-              autoCapitalize="none"
+              autoCapitalize="words"
               autoCorrect={false}
             />
           </View>
@@ -125,12 +129,12 @@ const SignupForm = () => {
               placeholderTextColor={Colors.text.secondary}
               value={lastName}
               onChangeText={setLastName}
-              keyboardType="default"
-              autoCapitalize="none"
+              autoCapitalize="words"
               autoCorrect={false}
             />
           </View>
         </View>
+
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -144,8 +148,9 @@ const SignupForm = () => {
             autoCorrect={false}
           />
         </View>
+
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Phone Number</Text>
+          <Text style={styles.label}>Phone Number (optional)</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter your phone number"
@@ -163,7 +168,7 @@ const SignupForm = () => {
           <View style={styles.passwordContainer}>
             <TextInput
               style={[styles.input, styles.passwordInput]}
-              placeholder="Enter your password"
+              placeholder="Min 8 chars, uppercase, number"
               placeholderTextColor={Colors.text.secondary}
               value={password}
               onChangeText={setPassword}
@@ -174,16 +179,15 @@ const SignupForm = () => {
               style={styles.eyeButton}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Text style={styles.eyeText}>
-                {showPassword ? (
-                  <AntDesign name="eye" size={24} color="black" />
-                ) : (
-                  <Feather name="eye-off" size={24} color="black" />
-                )}
-              </Text>
+              {showPassword ? (
+                <AntDesign name="eye" size={24} color="black" />
+              ) : (
+                <Feather name="eye-off" size={24} color="black" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
+
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Confirm Password</Text>
           <View style={styles.passwordContainer}>
@@ -200,13 +204,11 @@ const SignupForm = () => {
               style={styles.eyeButton}
               onPress={() => setShowPassword2(!showPassword2)}
             >
-              <Text style={styles.eyeText}>
-                {showPassword2 ? (
-                  <AntDesign name="eye" size={24} color="black" />
-                ) : (
-                  <Feather name="eye-off" size={24} color="black" />
-                )}
-              </Text>
+              {showPassword2 ? (
+                <AntDesign name="eye" size={24} color="black" />
+              ) : (
+                <Feather name="eye-off" size={24} color="black" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -241,7 +243,6 @@ const SignupForm = () => {
         <View style={styles.divider} />
       </View>
 
-      {/* Google Sign In Button */}
       <TouchableOpacity
         style={styles.googleButton}
         onPress={() =>
@@ -249,11 +250,6 @@ const SignupForm = () => {
         }
       >
         <View style={styles.buttonContent}>
-          {/* <Image
-            source={require("@/assets/images/google-icon.png")}
-            style={styles.googleIcon}
-            resizeMode="contain"
-          /> */}
           <Text style={styles.buttonText}>Sign up with Google</Text>
         </View>
       </TouchableOpacity>
@@ -264,9 +260,7 @@ const SignupForm = () => {
 export default SignupForm;
 
 const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-  },
+  container: { width: "100%" },
   title: {
     fontSize: 32,
     fontWeight: "900",
@@ -274,13 +268,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
   },
-  form: {
-    gap: 20,
-    marginTop: 20,
-  },
-  inputContainer: {
-    gap: 8,
-  },
+  form: { gap: 20, marginTop: 20 },
+  inputContainer: { gap: 8 },
   inputContainer2: {
     gap: 8,
     flexDirection: "row",
@@ -313,36 +302,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border.primary,
   },
-  passwordContainer: {
-    position: "relative",
-  },
-  passwordInput: {
-    paddingRight: 50,
-  },
-  eyeButton: {
-    position: "absolute",
-    right: 14,
-    top: 14,
-  },
-  eyeText: {
-    fontSize: 20,
-  },
+  passwordContainer: { position: "relative" },
+  passwordInput: { paddingRight: 50 },
+  eyeButton: { position: "absolute", right: 14, top: 12 },
   rowContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+  checkboxContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   checkboxLabel: {
     fontSize: 14,
     fontWeight: "500",
     color: Colors.text.primary,
   },
-
   loginButton: {
     backgroundColor: Colors.button.primary,
     borderRadius: 12,
@@ -350,14 +323,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  loginButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+  loginButtonDisabled: { opacity: 0.6 },
+  loginButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
   signupContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -387,11 +354,7 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.border.primary,
   },
-  divText: {
-    marginHorizontal: 12,
-    color: "#888888",
-    fontWeight: "500",
-  },
+  divText: { marginHorizontal: 12, color: "#888888", fontWeight: "500" },
   googleButton: {
     backgroundColor: "#FFFFFF",
     borderRadius: 8,
@@ -407,13 +370,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 12,
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#3C4043",
-  },
+  buttonText: { fontSize: 16, fontWeight: "600", color: "#3C4043" },
 });

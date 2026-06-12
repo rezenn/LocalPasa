@@ -21,7 +21,7 @@ import authApi, {
 import { ApiError } from "../api/client";
 
 // ─── Generic async hook ───────────────────────────────────────────────────────
-function useAsync<T>(
+export function useAsync<T>(
   fn: () => Promise<T>,
   deps: unknown[] = [],
   immediate = true,

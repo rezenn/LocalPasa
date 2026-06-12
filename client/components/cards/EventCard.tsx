@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { Event } from "../../types";
@@ -32,11 +32,12 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
           <View style={styles.row}>
             <Ionicons name="location" size={11} color="#F64447" />
             <Text style={styles.meta} numberOfLines={1}>
-              {event.distance} · {event.location}
+              {event.distance ? `${event.distance} · ` : ""}
+              {event.location}
             </Text>
           </View>
           <View style={styles.row}>
-            <LandmarkIcon width={11} height={11} color="#F64447" />{" "}
+            <LandmarkIcon width={11} height={11} color="#F64447" />
             <Text style={styles.meta} numberOfLines={1}>
               {event.type} · {event.price}
             </Text>
@@ -102,27 +103,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textMuted,
     flex: 1,
-  },
-  tags: {
-    flexDirection: "row",
-    gap: Spacing.xs,
-    marginTop: 2,
-    flexWrap: "wrap",
-  },
-  tag: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-  },
-  tagText: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-  },
-  tagFree: {
-    backgroundColor: Colors.badge,
-  },
-  tagFreeText: {
-    color: Colors.primary,
   },
 });
 

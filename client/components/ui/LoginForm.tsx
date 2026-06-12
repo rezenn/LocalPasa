@@ -13,6 +13,8 @@ import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Toast from "react-native-toast-message";
+import authApi from "@/api/auth.api";
+import { ApiError } from "@/api/client";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -36,17 +38,23 @@ const LoginForm = () => {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      // Navigate to home screen on success
+    try {
+      await authApi.login({ email: email.trim().toLowerCase(), password });
       Toast.show({
         type: "success",
-        text1: "Success",
-        text2: "Logged in successfully!",
+        text1: "Welcome back!",
+        text2: "Logged in successfully.",
       });
       router.replace("/(dashboard)/explore");
-    }, 1500);
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Login failed. Please try again.";
+      Alert.alert("Login Failed", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -54,7 +62,6 @@ const LoginForm = () => {
       "Forgot Password",
       "Password reset link will be sent to your email",
     );
-    // router.push("/(auth)/ForgotPasswordScreen");
   };
 
   return (
@@ -99,13 +106,11 @@ const LoginForm = () => {
               style={styles.eyeButton}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Text style={styles.eyeText}>
-                {showPassword ? (
-                  <AntDesign name="eye" size={24} color="black" />
-                ) : (
-                  <Feather name="eye-off" size={24} color="black" />
-                )}
-              </Text>
+              {showPassword ? (
+                <AntDesign name="eye" size={24} color="black" />
+              ) : (
+                <Feather name="eye-off" size={24} color="black" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -141,7 +146,6 @@ const LoginForm = () => {
         <View style={styles.divider} />
       </View>
 
-      {/* Google Sign In Button */}
       <TouchableOpacity
         style={styles.googleButton}
         onPress={() =>
@@ -149,11 +153,6 @@ const LoginForm = () => {
         }
       >
         <View style={styles.buttonContent}>
-          {/* <Image
-            source={require("@/assets/images/google-icon.png")}
-            style={styles.googleIcon}
-            resizeMode="contain"
-          /> */}
           <Text style={styles.buttonText}>Login with Google</Text>
         </View>
       </TouchableOpacity>
@@ -206,10 +205,7 @@ const styles = StyleSheet.create({
   eyeButton: {
     position: "absolute",
     right: 14,
-    top: 14,
-  },
-  eyeText: {
-    fontSize: 20,
+    top: 12,
   },
   rowContainer: {
     flexDirection: "row",
@@ -294,10 +290,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 12,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
   },
   buttonText: {
     fontSize: 16,

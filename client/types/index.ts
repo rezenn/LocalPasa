@@ -1,63 +1,105 @@
+// ─── Core domain types (aligned with backend _id) ────────────────────────────
+
 export interface Site {
-  id: string;
+  _id: string;
   name: string;
   type?: string;
   location: string;
-  distance: string;
+  city?: string;
+  distance?: string;
   price: string;
   mustVisit?: boolean;
-  rating?: number;
-  image: string;
   isHiddenGem?: boolean;
+  rating?: number;
+  ratingCount?: number;
+  image: string;
+  images?: string[];
+  summary?: string;
 }
 
-export interface HiddenGem extends Site {
-  badge?: string;
-}
 export interface Artisan {
-  id: string;
+  _id: string;
   name: string;
   craft: string;
   location: string;
-  distance: string;
+  city?: string;
+  distance?: string;
   image: string;
+  rating?: number;
+  ratingCount?: number;
 }
 
 export interface Event {
-  id: string;
+  _id: string;
   title: string;
   date: string;
   month: string;
+  fullDate?: string;
   location: string;
-  distance: string;
+  city?: string;
+  distance?: string;
   type: string;
   price: string;
-}
-
-export interface HiddenGem {
-  id: string;
-  title: string;
-  distance: string;
-  price: string;
-  image: string;
+  image?: string;
+  description?: string;
 }
 
 export interface Review {
-  id: string;
+  _id: string;
   author: string;
   date: string;
   rating: number;
   text: string;
+  createdAt?: string;
 }
 
 export interface SiteDetail extends Site {
-  badge?: string;
-  summary: string;
-  didYouKnow: string;
+  longDescription?: string;
+  history?: string;
+  myth?: string;
+  didYouKnow?: string;
+  openingHours?: string;
+  quizzes?: Array<{ question: string; options: string[]; correct: number }>;
   nearbyArtisans: Artisan[];
   reviews: Review[];
-  // isHiddenGem?: boolean;
+  computedRating?: number;
+  reviewCount?: number;
 }
+
+export interface ArtisanDetail extends Artisan {
+  bio?: string;
+  longBio?: string;
+  experience?: number;
+  priceRange?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+    website?: string;
+    instagram?: string;
+    facebook?: string;
+    whatsapp?: string;
+  };
+  products?: Array<{
+    name: string;
+    price: string;
+    description: string;
+    image?: string;
+    inStock?: boolean;
+  }>;
+  workshops?: Array<{
+    name: string;
+    duration: string;
+    price: string;
+    maxParticipants: number;
+    description?: string;
+  }>;
+  associatedSites: Site[];
+  reviews: Review[];
+  computedRating?: number;
+  reviewCount?: number;
+}
+
+export type TabScreenName = "explore" | "map" | "calendar" | "save" | "profile";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -67,5 +109,3 @@ export type RootStackParamList = {
   Saved: undefined;
   Profile: undefined;
 };
-
-export type TabScreenName = "explore" | "map" | "calendar" | "save" | "profile";
