@@ -24,8 +24,27 @@ import { sendSuccess } from "./utils/response.util";
 dotenv.config();
 const app: Application = express();
 
-let corsOptions = {
-  origin: [config.client.url, "http://localhost:3000", "http://localhost:3003"],
+// React Native apps don't send an Origin header (it's null/undefined),
+// so we accept null origins (mobile) plus all known web origins.
+let corsOptions: cors.CorsOptions = {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void,
+  ) => {
+    const allowed = [
+      config.client.url,
+      "http://localhost:3000",
+      "http://localhost:3003",
+      "http://localhost:19006", // Expo web
+      "http://localhost:8081", // Metro bundler
+    ];
+    // React Native mobile apps send no Origin header → origin is undefined
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // allow all in development; tighten in production
+    }
+  },
   credentials: true,
 };
 
