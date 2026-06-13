@@ -15,11 +15,12 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { profileApi } from "../../api/index";
-import authApi from "../../api/auth.api";
+import { useAuth } from "../../context/AuthContext";
 import { useAsync } from "../../hooks/index";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { logout } = useAuth();
 
   const {
     data: profile,
@@ -36,7 +37,7 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           try {
-            await authApi.logout();
+            await logout();
           } finally {
             router.replace("/(auth)/LoginScreen");
           }

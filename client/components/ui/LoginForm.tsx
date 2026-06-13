@@ -13,15 +13,15 @@ import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Toast from "react-native-toast-message";
-import authApi from "@/api/auth.api";
+import { useAuth } from "@/context/AuthContext";
 import { ApiError } from "@/api/client";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const { login, loading } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -37,9 +37,8 @@ const LoginForm = () => {
       return;
     }
 
-    setLoading(true);
     try {
-      await authApi.login({ email: email.trim().toLowerCase(), password });
+      await login({ email: email.trim().toLowerCase(), password });
       Toast.show({
         type: "success",
         text1: "Welcome back!",
@@ -52,8 +51,6 @@ const LoginForm = () => {
           ? err.message
           : "Login failed. Please try again.";
       Alert.alert("Login Failed", message);
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -13,7 +13,7 @@ import { router } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Toast from "react-native-toast-message";
-import authApi from "@/api/auth.api";
+import { useAuth } from "@/context/AuthContext";
 import { ApiError } from "@/api/client";
 
 const SignupForm = () => {
@@ -25,8 +25,8 @@ const SignupForm = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [acceptConditions, setAcceptConditions] = useState(false);
+  const { register, loading } = useAuth();
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -70,9 +70,8 @@ const SignupForm = () => {
       return;
     }
 
-    setLoading(true);
     try {
-      await authApi.register({
+      await register({
         fullName: `${firstName.trim()} ${lastName.trim()}`,
         email: email.trim().toLowerCase(),
         password,
@@ -84,15 +83,13 @@ const SignupForm = () => {
         text1: "Account created!",
         text2: "Welcome to LocalPasa.",
       });
-      router.replace("/(onboarding)/OnboardingScreen1");
+      router.replace("/(dashboard)/explore");
     } catch (err) {
       const message =
         err instanceof ApiError
           ? err.message
           : "Registration failed. Please try again.";
       Alert.alert("Sign Up Failed", message);
-    } finally {
-      setLoading(false);
     }
   };
 

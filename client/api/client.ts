@@ -101,7 +101,16 @@ export async function apiFetch<T>(
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  } catch (networkErr) {
+    // Network error (server unreachable, no internet, wrong IP, etc.)
+    throw new ApiError(
+      "Cannot reach the server. Check your network or server IP in .env.",
+      0,
+    );
+  }
 
   // 401 → attempt token refresh once
   if (res.status === 401 && retry) {
@@ -139,7 +148,12 @@ export async function apiFetch<T>(
 }
 
 async function parseResponse<T>(res: Response): Promise<T> {
-  const data: ApiResponse<T> = await res.json();
+  let data: ApiResponse<T>;
+  try {
+    data = await res.json();
+  } catch {
+    throw new ApiError("Invalid response from server", res.status);
+  }
 
   if (!res.ok || !data.success) {
     throw new ApiError(
@@ -149,6 +163,7 @@ async function parseResponse<T>(res: Response): Promise<T> {
     );
   }
 
+  // data.data can be null (e.g. logout returns null) — that is valid
   return data.data as T;
 }
 

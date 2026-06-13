@@ -1,38 +1,35 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import Toast from "react-native-toast-message";
-import { useEffect, useRef } from "react";
-import { tokenStorage } from "@/api/client";
+import { useEffect } from "react";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
-// Auth guard: watches for 401 events and bounces to login
+// Auth guard: reads from global AuthContext and redirects when appropriate
 function AuthGuard() {
   const router = useRouter();
   const segments = useSegments();
-  const checked = useRef(false);
+  const { user, initializing } = useAuth();
 
   useEffect(() => {
-    // Only run once on mount
-    if (checked.current) return;
-    checked.current = true;
+    // Wait until we've checked AsyncStorage for a token
+    if (initializing) return;
 
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboarding = segments[0] === "(onboarding)";
 
-    // If we are already on auth/onboarding screens, do nothing
-    if (inAuthGroup || inOnboarding) return;
-
-    // Otherwise check if token still exists (dashboard screens)
-    tokenStorage.getAccess().then((token) => {
-      if (!token) {
-        router.replace("/(auth)/LoginScreen");
-      }
-    });
-  }, [segments]);
+    if (!user && !inAuthGroup && !inOnboarding) {
+      // Not logged in and trying to access a protected screen
+      router.replace("/(auth)/LoginScreen");
+    } else if (user && inAuthGroup) {
+      // Already logged in but still on auth screen (e.g. back button)
+      router.replace("/(dashboard)/explore");
+    }
+  }, [user, initializing, segments]);
 
   return null;
 }
 
-export default function RootLayout() {
+function RootLayoutInner() {
   const [fontsLoaded] = useFonts({
     Gagalin: require("@/assets/fonts/Gagalin-Regular.otf"),
     CrimsonRegular: require("@/assets/fonts/CrimsonText-Regular.ttf"),
@@ -49,10 +46,18 @@ export default function RootLayout() {
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(dashboard)" />
-        <Stack.Screen name="site" />
+        <Stack.Screen name="site/[id]" />
       </Stack>
       <AuthGuard />
       <Toast />
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutInner />
+    </AuthProvider>
   );
 }

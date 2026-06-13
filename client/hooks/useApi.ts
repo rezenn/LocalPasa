@@ -13,11 +13,6 @@ import {
   SearchResults,
   ProfileData,
 } from "../api/index";
-import authApi, {
-  AuthResponse,
-  LoginPayload,
-  RegisterPayload,
-} from "../api/auth.api";
 import { ApiError } from "../api/client";
 
 // ─── Generic async hook ───────────────────────────────────────────────────────
@@ -174,47 +169,5 @@ export const useProfile = () => {
 };
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-export const useAuth = () => {
-  const [user, setUser] = useState<AuthResponse["user"] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const login = useCallback(async (payload: LoginPayload) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await authApi.login(payload);
-      setUser(data.user);
-      return data;
-    } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "Login failed";
-      setError(msg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const register = useCallback(async (payload: RegisterPayload) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await authApi.register(payload);
-      setUser(data.user);
-      return data;
-    } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "Registration failed";
-      setError(msg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const logout = useCallback(async () => {
-    await authApi.logout();
-    setUser(null);
-  }, []);
-
-  return { user, loading, error, login, register, logout };
-};
+// useAuth is provided globally via AuthContext — import from there.
+export { useAuth } from "@/context/AuthContext";
