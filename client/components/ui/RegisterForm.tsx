@@ -83,7 +83,7 @@ const SignupForm = () => {
         text1: "Account created!",
         text2: "Welcome to LocalPasa.",
       });
-      router.replace("/(dashboard)/explore");
+      router.replace("/(onboarding)/OnboardingScreen1");
     } catch (err) {
       const message =
         err instanceof ApiError

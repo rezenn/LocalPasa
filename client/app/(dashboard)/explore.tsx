@@ -31,7 +31,7 @@ export default function HomeScreen() {
 
   // ─── Real API data ────────────────────────────────────────────────────────
   const { data: hiddenGems, loading: gemsLoading } = useHiddenGems(1);
-  const { data: mustVisitData, loading: sitesLoading } = useMustVisitSites(10);
+  const { data: mustVisitData, loading: sitesLoading } = useMustVisitSites(100);
   const { data: artisansData, loading: artisansLoading } = useArtisans({
     limit: 10,
     sortBy: "rating",
