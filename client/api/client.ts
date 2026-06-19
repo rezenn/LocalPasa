@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
-const BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://10.0.2.2:5000/api/v1";
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const STORAGE_KEYS = {
   ACCESS_TOKEN: "lp_access_token",
