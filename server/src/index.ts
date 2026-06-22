@@ -6,8 +6,9 @@ import { logger } from "./utils/logger.util";
 async function startServer() {
   await connectDb();
 
-  app.listen(config.port, () => {
-    logger.info(`Server: http://localhost:${config.port}`);
+  app.listen(config.port, "0.0.0.0", () => {
+    logger.info(`Server: http://0.0.0.0:${config.port}`);
+    logger.info(`LAN:    http://192.168.101.4:${config.port}`);
   });
 }
 
