@@ -18,10 +18,52 @@ import { profileApi } from "../../api/index";
 import { useAuth } from "../../context/AuthContext";
 import { useAsync } from "../../hooks/index";
 
+const MENU_ITEMS = [
+  {
+    icon: "heart-outline" as const,
+    label: "My Interests",
+    route: "/screens/notifications",
+  },
+  {
+    icon: "location-outline" as const,
+    label: "Preferred Locations",
+    route: null,
+  },
+  {
+    icon: "language-outline" as const,
+    label: "Language · English",
+    route: "/screens/translate",
+  },
+  {
+    icon: "notifications-outline" as const,
+    label: "Notifications",
+    route: "/screens/notifications",
+  },
+  {
+    icon: "compass-outline" as const,
+    label: "Experiences",
+    route: "/screens/events-list",
+  },
+  {
+    icon: "create-outline" as const,
+    label: "Edit Profile",
+    route: "/screens/edit-profile",
+  },
+  {
+    icon: "globe-outline" as const,
+    label: "Translate",
+    route: "/screens/translate",
+  },
+  {
+    icon: "lock-closed-outline" as const,
+    label: "Change Password",
+    route: null,
+  },
+];
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useAuth();
-
   const {
     data: profile,
     loading,
@@ -50,7 +92,7 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <ActivityIndicator
-          style={styles.loader}
+          style={{ flex: 1 }}
           color={Colors.primary}
           size="large"
         />
@@ -58,107 +100,71 @@ export default function ProfileScreen() {
     );
   }
 
-  if (error || !profile) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>Could not load profile</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={refetch}>
-            <Text style={styles.retryText}>Try again</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.logoutBtnAlt} onPress={handleLogout}>
-            <Text style={styles.logoutBtnAltText}>Log out</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const initials = profile.firstName
+  const initials = profile?.firstName
     ? `${profile.firstName[0]}${profile.lastName?.[0] ?? ""}`.toUpperCase()
-    : profile.email[0].toUpperCase();
+    : (profile?.email?.[0] ?? "U").toUpperCase();
 
-  const stats = [
-    { label: "Saved", value: profile.savedCount ?? 0 },
-    {
-      label: "Language",
-      value: profile.preferredLanguage?.toUpperCase() ?? "EN",
-    },
-    {
-      label: "Role",
-      value: profile.role.charAt(0).toUpperCase() + profile.role.slice(1),
-    },
+  const statsData = [
+    { label: "Sites visited", value: "12" },
+    { label: "Saved", value: "23" },
+    { label: "Reviews", value: "9" },
   ];
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={styles.hero}>
-          <View style={styles.avatarWrapper}>
-            {profile.avatar ? (
+          <View style={styles.avatarCircle}>
+            {profile?.avatar ? (
               <Image
                 source={{ uri: profile.avatar }}
-                style={styles.avatarImage}
+                style={styles.avatarImg}
               />
             ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarText}>{initials}</Text>
-              </View>
+              <Text style={styles.avatarInitials}>{initials}</Text>
             )}
           </View>
-          <Text style={styles.name}>
-            {profile.firstName} {profile.lastName}
+          <Text style={styles.heroName}>
+            {profile?.firstName
+              ? `${profile.firstName} ${profile.lastName ?? ""}`
+              : "LocalPasa User"}
           </Text>
-          <Text style={styles.email}>{profile.email}</Text>
-          {profile.nationality ? (
-            <Text style={styles.nationality}>{profile.nationality}</Text>
-          ) : null}
-        </View>
+          <Text style={styles.heroEmail}>{profile?.email ?? ""}</Text>
 
-        {/* Stats row */}
-        <View style={styles.statsRow}>
-          {stats.map((s) => (
-            <View key={s.label} style={styles.statBox}>
-              <Text style={styles.statValue}>{s.value}</Text>
-              <Text style={styles.statLabel}>{s.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Preferences */}
-        {(profile.tourismPreferences?.length ?? 0) > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Interests</Text>
-            <View style={styles.chips}>
-              {profile.tourismPreferences!.map((pref: any) => (
-                <View key={pref} style={styles.chip}>
-                  <Text style={styles.chipText}>{pref}</Text>
+          {/* Stats */}
+          <View style={styles.statsRow}>
+            {statsData.map((s, i) => (
+              <React.Fragment key={s.label}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{s.value}</Text>
+                  <Text style={styles.statLabel}>{s.label}</Text>
                 </View>
-              ))}
-            </View>
+                {i < statsData.length - 1 && (
+                  <View style={styles.statDivider} />
+                )}
+              </React.Fragment>
+            ))}
           </View>
-        )}
+        </View>
 
-        {/* Menu items */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          {[
-            { icon: "person-outline" as const, label: "Edit Profile" },
-            { icon: "heart-outline" as const, label: "Saved Places" },
-            { icon: "notifications-outline" as const, label: "Notifications" },
-            { icon: "language-outline" as const, label: "Language" },
-            { icon: "shield-outline" as const, label: "Privacy & Security" },
-            { icon: "help-circle-outline" as const, label: "Help & Support" },
-          ].map((item) => (
+        {/* Menu */}
+        <View style={styles.menuCard}>
+          {MENU_ITEMS.map((item, idx) => (
             <TouchableOpacity
               key={item.label}
-              style={styles.menuItem}
+              style={[
+                styles.menuRow,
+                idx < MENU_ITEMS.length - 1 && styles.menuBorder,
+              ]}
+              onPress={() => item.route && router.push(item.route as any)}
               activeOpacity={0.7}
             >
               <View style={styles.menuLeft}>
-                <Ionicons name={item.icon} size={20} color={Colors.primary} />
+                <View style={styles.menuIconBox}>
+                  <Ionicons name={item.icon} size={18} color={Colors.primary} />
+                </View>
                 <Text style={styles.menuLabel}>{item.label}</Text>
               </View>
               <Ionicons
@@ -171,140 +177,94 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity
-          style={styles.logoutBtn}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-          <Text style={styles.logoutText}>Log out</Text>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
-        <View style={styles.bottomPad} />
+        <View style={{ height: 32 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    marginTop: StatusBar.currentHeight || 0,
-  },
-  loader: { flex: 1 },
+  safe: { flex: 1, backgroundColor: Colors.background },
   hero: {
-    backgroundColor: Colors.brown,
+    backgroundColor: Colors.primary,
     alignItems: "center",
     paddingTop: Spacing.xl,
-    paddingBottom: Spacing.xxxl,
-    borderBottomLeftRadius: Radius.xl,
-    borderBottomRightRadius: Radius.xl,
+    paddingBottom: Spacing.xxxl + 8,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  avatarWrapper: {
-    marginBottom: Spacing.md,
-  },
-  avatarImage: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    borderWidth: 3,
-    borderColor: Colors.white,
-  },
-  avatarFallback: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    borderWidth: 3,
-    borderColor: Colors.white,
+  avatarCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: Colors.white + "30",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 3,
+    borderColor: Colors.white + "60",
+    marginBottom: Spacing.md,
   },
-  avatarText: { fontSize: 32, color: Colors.white, fontWeight: "700" },
-  name: { fontSize: 22, color: Colors.white, fontFamily: "CrimsonBold" },
-  email: { fontSize: 13, color: "#E2DBDB", marginTop: 2 },
-  nationality: { fontSize: 12, color: "#D0C5C5", marginTop: 2 },
+  avatarImg: { width: 90, height: 90, borderRadius: 45 },
+  avatarInitials: { fontSize: 32, fontWeight: "700", color: Colors.white },
+  heroName: {
+    fontSize: 22,
+    fontFamily: "CrimsonBold",
+    color: Colors.white,
+    marginBottom: 2,
+  },
+  heroEmail: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    marginBottom: Spacing.lg,
+  },
   statsRow: {
     flexDirection: "row",
-    backgroundColor: Colors.surface,
-    marginHorizontal: Spacing.lg,
-    marginTop: -Spacing.xl,
+    backgroundColor: Colors.white + "20",
     borderRadius: Radius.lg,
-    ...Shadow.md,
-    overflow: "hidden",
-  },
-  statBox: {
-    flex: 1,
-    alignItems: "center",
     paddingVertical: Spacing.md,
-    borderRightWidth: 1,
-    borderRightColor: Colors.border,
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.xl,
   },
-  statValue: { fontSize: 18, fontWeight: "800", color: Colors.text },
-  statLabel: { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
-  section: {
-    marginHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
-  chip: {
+  statItem: { alignItems: "center" },
+  statValue: { fontSize: 20, fontWeight: "700", color: Colors.white },
+  statLabel: { fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 2 },
+  statDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.3)" },
+  menuCard: {
     backgroundColor: Colors.surface,
-    borderRadius: Radius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    margin: Spacing.lg,
+    borderRadius: Radius.xl,
+    ...Shadow.sm,
+    marginTop: Spacing.xl,
   },
-  chipText: { fontSize: 12, color: Colors.textSecondary, fontWeight: "500" },
-  menuItem: {
+  menuRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    marginBottom: Spacing.sm,
-    ...Shadow.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md + 2,
   },
+  menuBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
   menuLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  menuIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.primary + "12",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   menuLabel: { fontSize: 14, color: Colors.text, fontWeight: "500" },
   logoutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
     marginHorizontal: Spacing.lg,
-    marginTop: Spacing.md,
-    backgroundColor: "#FEF2F2",
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-  },
-  logoutText: { fontSize: 15, color: Colors.error, fontWeight: "700" },
-  errorBox: {
-    flex: 1,
+    backgroundColor: Colors.error,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md + 2,
     alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.md,
+    ...Shadow.sm,
   },
-  errorText: { fontSize: 15, color: Colors.textSecondary },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-  },
-  retryText: { color: Colors.white, fontWeight: "600" },
-  logoutBtnAlt: { marginTop: Spacing.sm },
-  logoutBtnAltText: { color: Colors.error, fontWeight: "600", fontSize: 14 },
-  bottomPad: { height: 40 },
+  logoutText: { color: Colors.white, fontWeight: "700", fontSize: 15 },
 });
