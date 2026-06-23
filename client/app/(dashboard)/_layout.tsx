@@ -12,54 +12,28 @@ export default function DashboardLayout() {
 
   const handleTabPress = (tab: TabScreenName) => {
     setActiveTab(tab);
-    let route: string;
-
-    switch (tab) {
-      case "explore":
-        route = "/(dashboard)/explore";
-        break;
-      case "map":
-        route = "/(dashboard)/map";
-        break;
-      case "calendar":
-        route = "/(dashboard)/calendar";
-        break;
-      case "save":
-        route = "/(dashboard)/saved";
-        break;
-      case "profile":
-        route = "/(dashboard)/profile";
-        break;
-      default:
-        route = "/(dashboard)/explore";
-    }
-
-    router.replace(route as any);
+    const routes: Record<TabScreenName, string> = {
+      explore: "/(dashboard)/explore",
+      map: "/(dashboard)/map",
+      calendar: "/(dashboard)/calendar",
+      save: "/(dashboard)/saved",
+      profile: "/(dashboard)/profile",
+    };
+    router.replace(routes[tab] as any);
   };
 
-  // Update active tab based on current route
   useEffect(() => {
-    if (pathname.includes("explore") || pathname === "/") {
+    if (pathname.includes("explore") || pathname === "/")
       setActiveTab("explore");
-    } else if (pathname.includes("map")) {
-      setActiveTab("map");
-    } else if (pathname.includes("calendar")) {
-      setActiveTab("calendar");
-    } else if (pathname.includes("saved")) {
-      setActiveTab("save");
-    } else if (pathname.includes("profile")) {
-      setActiveTab("profile");
-    }
+    else if (pathname.includes("map")) setActiveTab("map");
+    else if (pathname.includes("calendar")) setActiveTab("calendar");
+    else if (pathname.includes("saved")) setActiveTab("save");
+    else if (pathname.includes("profile")) setActiveTab("profile");
   }, [pathname]);
 
   return (
     <View style={styles.container}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "fade",
-        }}
-      >
+      <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
         <Stack.Screen name="explore" />
         <Stack.Screen name="map" />
         <Stack.Screen name="calendar" />
@@ -72,8 +46,5 @@ export default function DashboardLayout() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
 });

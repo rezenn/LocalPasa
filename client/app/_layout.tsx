@@ -4,24 +4,18 @@ import Toast from "react-native-toast-message";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 
-// Auth guard: reads from global AuthContext and redirects when appropriate
 function AuthGuard() {
   const router = useRouter();
   const segments = useSegments();
   const { user, initializing } = useAuth();
 
   useEffect(() => {
-    // Wait until we've checked AsyncStorage for a token
     if (initializing) return;
-
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboarding = segments[0] === "(onboarding)";
-
     if (!user && !inAuthGroup && !inOnboarding) {
-      // Not logged in and trying to access a protected screen
       router.replace("/(auth)/LoginScreen");
     } else if (user && inAuthGroup) {
-      // Already logged in but still on auth screen (e.g. back button)
       router.replace("/(dashboard)/explore");
     }
   }, [user, initializing, segments]);
@@ -46,7 +40,50 @@ function RootLayoutInner() {
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(dashboard)" />
-        <Stack.Screen name="site/[id]" />
+        <Stack.Screen
+          name="site/[id]"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="artisan/[id]"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="event/[id]"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/sites-list"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/artisans-list"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/events-list"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/products-list"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/chat/[artisanId]"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/translate"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/notifications"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="screens/edit-profile"
+          options={{ animation: "slide_from_right" }}
+        />
       </Stack>
       <AuthGuard />
       <Toast />
