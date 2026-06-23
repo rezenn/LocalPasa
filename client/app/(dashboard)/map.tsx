@@ -1,9 +1,16 @@
-
 import React, { useState, useRef } from "react";
 import {
-  View, Text, StyleSheet, SafeAreaView, StatusBar,
-  TouchableOpacity, TextInput, ScrollView, ActivityIndicator,
-  Animated, Dimensions,
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { useRouter } from "expo-router";
@@ -14,34 +21,78 @@ import { Site } from "../../types";
 
 const { width } = Dimensions.get("window");
 
-const CATEGORY_FILTERS = ["All", "Temple", "Monastery", "Stupa", "Palace", "Museum"];
+const CATEGORY_FILTERS = [
+  "All",
+  "Temple",
+  "Monastery",
+  "Stupa",
+  "Palace",
+  "Museum",
+];
 const CITY_FILTERS = ["All", "Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"];
 
-// Leaflet HTML rendered inside WebView
 function buildLeafletHTML(sites: Site[]): string {
-  const markers = sites
-    .filter((s) => s.coordinates?.lat && s.coordinates?.lng)
-    .map((s) => ({
-      lat: s.coordinates!.lat,
-      lng: s.coordinates!.lng,
-      name: s.name,
-      type: s.type || "Site",
-      price: s.price,
-      id: s._id,
-      mustVisit: s.mustVisit,
-    }));
-
-  // Fallback coords for demo if no real coordinates
+  // Site type has no coordinates field — use demo markers until
+  // the backend returns lat/lng and the type is extended
   const demoMarkers = [
-    { lat: 27.7103, lng: 85.3222, name: "Pashupatinath Temple", type: "Temple", price: "Varied", id: "1", mustVisit: true },
-    { lat: 27.7149, lng: 85.2893, name: "Swayambhunath Stupa", type: "Stupa", price: "Varied", id: "2", mustVisit: true },
-    { lat: 27.6727, lng: 85.3244, name: "Patan Durbar Square", type: "Palace", price: "NPR 1000", id: "3", mustVisit: true },
-    { lat: 27.6710, lng: 85.4298, name: "Bhaktapur Durbar Square", type: "Palace", price: "NPR 1500", id: "4", mustVisit: true },
-    { lat: 27.7228, lng: 85.3655, name: "Kopan Monastery", type: "Monastery", price: "Free", id: "5", mustVisit: false },
-    { lat: 27.7041, lng: 85.3130, name: "Boudhanath Stupa", type: "Stupa", price: "NPR 400", id: "6", mustVisit: true },
+    {
+      lat: 27.7103,
+      lng: 85.3222,
+      name: "Pashupatinath Temple",
+      type: "Temple",
+      price: "Varied",
+      id: "1",
+      mustVisit: true,
+    },
+    {
+      lat: 27.7149,
+      lng: 85.2893,
+      name: "Swayambhunath Stupa",
+      type: "Stupa",
+      price: "Varied",
+      id: "2",
+      mustVisit: true,
+    },
+    {
+      lat: 27.6727,
+      lng: 85.3244,
+      name: "Patan Durbar Square",
+      type: "Palace",
+      price: "NPR 1000",
+      id: "3",
+      mustVisit: true,
+    },
+    {
+      lat: 27.671,
+      lng: 85.4298,
+      name: "Bhaktapur Durbar Square",
+      type: "Palace",
+      price: "NPR 1500",
+      id: "4",
+      mustVisit: true,
+    },
+    {
+      lat: 27.7228,
+      lng: 85.3655,
+      name: "Kopan Monastery",
+      type: "Monastery",
+      price: "Free",
+      id: "5",
+      mustVisit: false,
+    },
+    {
+      lat: 27.7041,
+      lng: 85.313,
+      name: "Boudhanath Stupa",
+      type: "Stupa",
+      price: "NPR 400",
+      id: "6",
+      mustVisit: true,
+    },
   ];
 
-  const allMarkers = markers.length > 0 ? markers : demoMarkers;
+  // Use demo markers if no sites provided, otherwise use sites data
+  const allMarkers = sites && sites.length > 0 ? sites : demoMarkers;
 
   return `<!DOCTYPE html>
 <html>
@@ -100,7 +151,10 @@ export default function MapScreen() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedCity, setSelectedCity] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedSite, setSelectedSite] = useState<{ id: string; name: string } | null>(null);
+  const [selectedSite, setSelectedSite] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const filterAnim = useRef(new Animated.Value(0)).current;
 
   const { data, loading } = useSites({
@@ -114,10 +168,17 @@ export default function MapScreen() {
   const toggleFilters = () => {
     const toValue = showFilters ? 0 : 1;
     setShowFilters(!showFilters);
-    Animated.spring(filterAnim, { toValue, useNativeDriver: false, friction: 8 }).start();
+    Animated.spring(filterAnim, {
+      toValue,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
   };
 
-  const filterHeight = filterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 100] });
+  const filterHeight = filterAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 100],
+  });
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -126,7 +187,12 @@ export default function MapScreen() {
       {/* Search bar overlay */}
       <View style={styles.searchOverlay}>
         <View style={styles.searchRow}>
-          <Ionicons name="search" size={18} color={Colors.textMuted} style={styles.searchIcon} />
+          <Ionicons
+            name="search"
+            size={18}
+            color={Colors.textMuted}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Search places, temples, monasteries..."
@@ -140,26 +206,58 @@ export default function MapScreen() {
         </View>
 
         {/* Animated filter row */}
-        <Animated.View style={[styles.filterPanel, { height: filterHeight, overflow: "hidden" }]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipContent}>
+        <Animated.View
+          style={[
+            styles.filterPanel,
+            { height: filterHeight, overflow: "hidden" },
+          ]}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.chipScroll}
+            contentContainerStyle={styles.chipContent}
+          >
             {CATEGORY_FILTERS.map((c) => (
               <TouchableOpacity
                 key={c}
-                style={[styles.chip, selectedCategory === c && styles.chipActive]}
+                style={[
+                  styles.chip,
+                  selectedCategory === c && styles.chipActive,
+                ]}
                 onPress={() => setSelectedCategory(c)}
               >
-                <Text style={[styles.chipText, selectedCategory === c && styles.chipTextActive]}>{c}</Text>
+                <Text
+                  style={[
+                    styles.chipText,
+                    selectedCategory === c && styles.chipTextActive,
+                  ]}
+                >
+                  {c}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipContent}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.chipScroll}
+            contentContainerStyle={styles.chipContent}
+          >
             {CITY_FILTERS.map((c) => (
               <TouchableOpacity
                 key={c}
                 style={[styles.chip, selectedCity === c && styles.chipActive]}
                 onPress={() => setSelectedCity(c)}
               >
-                <Text style={[styles.chipText, selectedCity === c && styles.chipTextActive]}>{c}</Text>
+                <Text
+                  style={[
+                    styles.chipText,
+                    selectedCity === c && styles.chipTextActive,
+                  ]}
+                >
+                  {c}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -224,11 +322,21 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   map: { flex: 1 },
   searchOverlay: {
-    position: "absolute", top: 50, left: Spacing.lg, right: Spacing.lg,
-    zIndex: 100, backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    position: "absolute",
+    top: 50,
+    left: Spacing.lg,
+    right: Spacing.lg,
+    zIndex: 100,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
     ...Shadow.md,
   },
-  searchRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: Spacing.md, height: 48 },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    height: 48,
+  },
   searchIcon: { marginRight: Spacing.sm },
   searchInput: { flex: 1, fontSize: 14, color: Colors.text },
   filterBtn: { padding: 6 },
@@ -236,29 +344,54 @@ const styles = StyleSheet.create({
   chipScroll: { marginBottom: 4 },
   chipContent: { paddingHorizontal: Spacing.md, gap: 8 },
   chip: {
-    paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full,
-    backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipText: { fontSize: 12, color: Colors.textSecondary },
   chipTextActive: { color: Colors.white, fontWeight: "600" },
   siteCard: {
-    position: "absolute", bottom: 24, left: Spacing.lg, right: Spacing.lg,
-    backgroundColor: Colors.surface, borderRadius: Radius.lg, ...Shadow.md,
+    position: "absolute",
+    bottom: 24,
+    left: Spacing.lg,
+    right: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    ...Shadow.md,
   },
-  siteCardInner: { flexDirection: "row", alignItems: "center", padding: Spacing.lg },
-  siteCardName: { fontSize: 15, fontWeight: "700", color: Colors.text, fontFamily: "CrimsonBold" },
+  siteCardInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+  },
+  siteCardName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.text,
+    fontFamily: "CrimsonBold",
+  },
   siteCardSub: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
   siteCardActions: { flexDirection: "row", alignItems: "center", gap: 12 },
   viewBtn: {
-    backgroundColor: Colors.primary, paddingHorizontal: 16, paddingVertical: 8,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: Radius.md,
   },
   viewBtnText: { color: Colors.white, fontWeight: "600", fontSize: 13 },
   legend: {
-    position: "absolute", bottom: 90, right: Spacing.lg,
-    backgroundColor: Colors.surface, borderRadius: Radius.md,
-    padding: 8, ...Shadow.sm, gap: 4,
+    position: "absolute",
+    bottom: 90,
+    right: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    padding: 8,
+    ...Shadow.sm,
+    gap: 4,
   },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   dot: { width: 10, height: 10, borderRadius: 5 },

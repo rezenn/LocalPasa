@@ -8,7 +8,7 @@ async function startServer() {
 
   app.listen(config.port, "0.0.0.0", () => {
     logger.info(`Server: http://0.0.0.0:${config.port}`);
-    logger.info(`LAN:    http://192.168.101.4:${config.port}`);
+    logger.info(`LAN:    http://192.168.101.6:${config.port}`);
   });
 }
 
