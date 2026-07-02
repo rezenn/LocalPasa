@@ -24,7 +24,7 @@ export interface Site {
   quizzes?: Array<{ question: string; options: string[]; correct: number }>;
   translations?: Record<string, string>;
 }
-
+// 
 export interface SiteDetail extends Site {
   nearbyArtisans: import("./artisans.api").Artisan[];
   reviews: Review[];
