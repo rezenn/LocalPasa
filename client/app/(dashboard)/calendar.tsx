@@ -434,3 +434,4 @@ const styles = StyleSheet.create({
   priceText: { fontSize: 10, color: Colors.textSecondary, fontWeight: "600" },
   freeText: { color: "#2C7A3A" },
 });
+// 

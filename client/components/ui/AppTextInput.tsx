@@ -5,7 +5,7 @@ import Colors from "@/constants/colors";
 type AppTextInputProps = TextInputProps & {
   hasError?: boolean;
 };
-
+// 
 export function AppTextInput({
   className = "",
   hasError = false,
