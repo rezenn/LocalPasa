@@ -26,6 +26,7 @@ export interface Site {
 }
 // 
 export interface SiteDetail extends Site {
+  updatedAt: string | number | Date;
   nearbyArtisans: import("./artisans.api").Artisan[];
   reviews: Review[];
   computedRating: number;

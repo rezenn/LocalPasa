@@ -10,6 +10,12 @@ dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || "";
 
+function randomDate(start: Date, end: Date) {
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime()),
+  );
+}
+
 const sites = [
   // Kathmandu Valley Sites
   {
@@ -22,8 +28,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 1245,
-    image:
-      "https://cms.holidaystonepal.in/media/Blogs/Pashupatinath-Temple-Photos/Pashupatinath-Temple.png",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Pashupatinath Temple is one of the most sacred Hindu temples in the world, dedicated to Lord Shiva in his manifestation as Pashupati. Located on the banks of the Bagmati River, it is the holiest of all Shiva temples on Earth.",
     longDescription:
@@ -76,8 +81,7 @@ const sites = [
     mustVisit: true,
     rating: 4.7,
     ratingCount: 1890,
-    image:
-      "https://cms.holidaystonepal.in/media/Blogs/SwayambhunathStupa/swayambhunath-stupa.png",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800",
     summary:
       "Swayambhunath Stupa, also known as the Monkey Temple, is an ancient religious architecture atop a hill in the Kathmandu Valley. It is one of the most sacred Buddhist sites in Nepal.",
     longDescription:
@@ -133,8 +137,7 @@ const sites = [
     mustVisit: true,
     rating: 4.9,
     ratingCount: 2100,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Boudha_stupa.jpg/1200px-Boudha_stupa.jpg",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800",
     summary:
       "Boudhanath Stupa is one of the largest stupas in the world and a UNESCO World Heritage Site. It is the center of Tibetan Buddhism in Nepal.",
     longDescription:
@@ -185,8 +188,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 1750,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Patan_durbar_square.jpg/1200px-Patan_durbar_square.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Patan Durbar Square is a UNESCO World Heritage Site showcasing the finest example of Newari architecture in Nepal. It hosts ancient temples, courtyards, and the Patan Museum.",
     longDescription:
@@ -243,8 +245,7 @@ const sites = [
     mustVisit: true,
     rating: 4.9,
     ratingCount: 1950,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Bhaktapur_Durbar_Square_01.jpg/1280px-Bhaktapur_Durbar_Square_01.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Bhaktapur Durbar Square is the most well-preserved of Nepal's royal squares, featuring the 55-Window Palace, Golden Gate, and numerous temples showcasing medieval Newari architecture.",
     longDescription:
@@ -300,8 +301,7 @@ const sites = [
     mustVisit: true,
     rating: 4.6,
     ratingCount: 890,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Changu_Narayan.jpg/1280px-Changu_Narayan.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Changunarayan Temple is the oldest Hindu temple in the Kathmandu Valley, dating to the 4th century, featuring the oldest known stone inscription in Nepal.",
     longDescription:
@@ -359,8 +359,7 @@ const sites = [
     isHiddenGem: true,
     rating: 4.7,
     ratingCount: 645,
-    image:
-      "https://res.klook.com/image/upload/w_750,h_469,c_fill,q_85/activities/nmaeyoln5wx91n0opuna.jpg",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800",
     summary:
       "Kopan Monastery is a Tibetan Buddhist monastery offering meditation courses and breathtaking views of the Kathmandu Valley.",
     longDescription:
@@ -411,8 +410,7 @@ const sites = [
     mustVisit: true,
     rating: 4.9,
     ratingCount: 1560,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Namche_Bazaar.jpg/1280px-Namche_Bazaar.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Namche Bazaar is a mountain village and the gateway to Mount Everest, serving as the main trading center and acclimatization stop for trekkers in the Khumbu region.",
     longDescription:
@@ -464,8 +462,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 2350,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/FewaLake.jpg/1280px-FewaLake.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Pokhara Lakeside is a vibrant tourist hub along Phewa Lake with stunning views of the Annapurna mountain range.",
     longDescription:
@@ -516,8 +513,7 @@ const sites = [
     mustVisit: false,
     rating: 4.7,
     ratingCount: 1280,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/World_Peace_Pagoda_Pokhara_Nepal.jpg/1280px-World_Peace_Pagoda_Pokhara_Nepal.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "The World Peace Pagoda in Pokhara offers panoramic views of the Annapurna range and Fewa Lake from its hilltop location.",
     longDescription:
@@ -568,8 +564,7 @@ const sites = [
     mustVisit: true,
     rating: 4.9,
     ratingCount: 1890,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Maya_Devi_Temple.jpg/1280px-Maya_Devi_Temple.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Lumbini is the birthplace of Lord Buddha, a UNESCO World Heritage Site and one of the holiest pilgrimage sites for Buddhists worldwide.",
     longDescription:
@@ -620,8 +615,7 @@ const sites = [
     mustVisit: true,
     rating: 4.9,
     ratingCount: 890,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Phoksundo_Lake.jpg/1280px-Phoksundo_Lake.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Shey Phoksundo Lake is Nepal's deepest lake (145m), located in the remote Dolpa region known for its turquoise waters, Tibetan Buddhist culture, and rare wildlife.",
     longDescription:
@@ -672,8 +666,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 720,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Tilicho_Lake_May_2006.jpg/1280px-Tilicho_Lake_May_2006.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Tilicho Lake is one of the world's highest lakes at 4,919 meters, located in the Annapurna region with spectacular mountain views.",
     longDescription:
@@ -724,8 +717,7 @@ const sites = [
     mustVisit: true,
     rating: 4.7,
     ratingCount: 950,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Gosaikunda.jpg/1280px-Gosaikunda.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Gosaikunda is an alpine sacred lake at 4,380m, revered by both Hindus and Buddhists as the abode of Lord Shiva and his consort Gauri.",
     longDescription:
@@ -776,8 +768,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 680,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rara_Lake.jpg/1280px-Rara_Lake.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Rara Lake is Nepal's largest lake (10.8 sq km), located in the remote far-western region within Rara National Park.",
     longDescription:
@@ -828,8 +819,7 @@ const sites = [
     mustVisit: true,
     rating: 4.6,
     ratingCount: 1250,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Manakamana_Temple.jpg/1280px-Manakamana_Temple.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Manakamana Temple is a sacred Hindu pilgrimage site dedicated to Goddess Durga, known as the 'wish-fulfilling' goddess.",
     longDescription:
@@ -885,8 +875,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 1150,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Muktinath_Temple.jpg/1280px-Muktinath_Temple.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Muktinath Temple is one of the world's highest temples (3,710m), sacred to both Hindus as one of 108 Divya Desams and Buddhists as a place of Dakinis.",
     longDescription:
@@ -942,8 +931,7 @@ const sites = [
     mustVisit: true,
     rating: 4.7,
     ratingCount: 1350,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Janaki_Mandir_Janakpur.jpg/1280px-Janaki_Mandir_Janakpur.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Janaki Temple, also known as Naulakha Mandir (Costing 9 Lakhs), is a grand Hindu temple dedicated to Goddess Sita, wife of Lord Rama.",
     longDescription:
@@ -999,8 +987,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 980,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Krishna_Mandir_Patan.jpg/1280px-Krishna_Mandir_Patan.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Krishna Mandir is Nepal's finest Shikhara-style temple, built entirely of stone in 1637 with 21 golden spires and intricate bas-reliefs.",
     longDescription:
@@ -1051,8 +1038,7 @@ const sites = [
     mustVisit: false,
     rating: 4.5,
     ratingCount: 890,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Kailashnath_Mahadev_Statue.jpg/1280px-Kailashnath_Mahadev_Statue.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Kailashnath Mahadev Statue is the world's tallest Shiva statue at 143 feet (43.5m), located on a hilltop near Kathmandu.",
     longDescription:
@@ -1103,8 +1089,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 820,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Tengboche_Monastery.jpg/1280px-Tengboche_Monastery.jpg",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800",
     summary:
       "Tengboche Monastery (3867m) is the largest gompa in the Khumbu region, offering stunning views of Mount Everest and Ama Dablam.",
     longDescription:
@@ -1160,8 +1145,7 @@ const sites = [
     mustVisit: true,
     rating: 4.9,
     ratingCount: 610,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Lo_Manthang.jpg/1280px-Lo_Manthang.jpg",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
     summary:
       "Upper Mustang is the former Kingdom of Lo, a restricted area with preserved 15th-century Tibetan Buddhist culture, caves, and rainbow-colored cliffs.",
     longDescription:
@@ -1212,8 +1196,7 @@ const sites = [
     mustVisit: true,
     rating: 4.8,
     ratingCount: 780,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Bisket_Jatra.jpg/1280px-Bisket_Jatra.jpg",
+    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800",
     summary:
       "Bisket Jatra is Bhaktapur's most important festival, celebrating the Nepali New Year with massive chariot processions and tantric rituals.",
     longDescription:
@@ -1256,6 +1239,136 @@ const sites = [
   },
 ];
 
+// Generate additional sites (60 more to reach 100+)
+const siteNames = [
+  "Dakshinkali Temple",
+  "Gokarna Mahadev",
+  "Budhanilkantha Temple",
+  "Sankhu Bajrayogini",
+  "Pharping Monastery",
+  "Kirtipur Chilancho Stupa",
+  "Kageshwori Temple",
+  "Saptapuri Cave",
+  "Taudaha Lake",
+  "Godawari Botanical Garden",
+  "Nagarkot Viewpoint",
+  "Dhulikhel Hill",
+  "Panauti Temple Complex",
+  "Dolakha Bhimsen Temple",
+  "Palpa Tansen Durbar",
+  "Gorkha Durbar",
+  "Nuwakot Durbar",
+  "Sindhuli Gadhi",
+  "Makwanpur Gadhi",
+  "Chitwan National Park",
+  "Sauraha Village",
+  "Bardia National Park",
+  "Suklaphanta Reserve",
+  "Koshi Tappu Wildlife",
+  "Annapurna Base Camp",
+  "Everest Base Camp",
+  "Gokyo Lakes",
+  "Kanchenjunga Base Camp",
+  "Manaslu Circuit",
+  "Mustang Sky Caves",
+  "Kagbeni Village",
+  "Lomanthang Palace",
+  "Marpha Village",
+  "Jomsom Town",
+  "Muktinath Valley",
+  "Damodar Kunda",
+  "Salpa Pokhari",
+  "Dudhkunda Lake",
+  "Panch Pokhari",
+  "Jal Binayak Temple",
+  "Bindyabasini Temple",
+  "Barahi Temple",
+  "Taumadhi Square",
+  "Pottery Square",
+  "Kumari Ghar",
+  "Kala Bhairav",
+  "Kasthamandap",
+  "Maju Dega",
+  "Dharahara Tower",
+  "Garden of Dreams",
+];
+
+// Add more sites
+for (let i = 0; i < 50; i++) {
+  const name =
+    siteNames[i % siteNames.length] +
+    (i > siteNames.length ? ` ${Math.floor(i / siteNames.length) + 1}` : "");
+  const city = [
+    "Kathmandu",
+    "Lalitpur",
+    "Bhaktapur",
+    "Pokhara",
+    "Chitwan",
+    "Lumbini",
+    "Janakpur",
+  ][i % 7];
+  sites.push({
+    name: name,
+    type: [
+      "Temple",
+      "Stupa",
+      "Heritage Square",
+      "Monastery",
+      "Natural Lake",
+      "Mountain Village",
+      "Sacred Site",
+    ][i % 7],
+    location: city,
+    city: city,
+    coordinates: {
+      lat: 27.7 + Math.random() * 0.5,
+      lng: 85.3 + Math.random() * 0.5,
+    },
+    price: Math.random() > 0.5 ? "NPR 500-2000" : "Free",
+    mustVisit: Math.random() > 0.4,
+    rating: 4 + Math.random() * 0.9,
+    ratingCount: Math.floor(100 + Math.random() * 900),
+    image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+    summary: `A beautiful ${["temple", "stupa", "heritage site", "monastery", "lake", "village", "sacred site"][i % 7]} located in ${city}.`,
+    longDescription: `This ${["temple", "stupa", "heritage square", "monastery", "natural lake", "mountain village", "sacred site"][i % 7]} is one of the most important cultural sites in ${city}. It features stunning architecture, rich history, and is a must-visit for anyone exploring the region.`,
+    history: `The site has a long and storied history dating back to the Licchavi period. It has been an important pilgrimage site for centuries and continues to attract visitors from around the world.`,
+    myth: `Local legends tell of divine origins and miraculous events associated with this site. It is said that the location was chosen by gods and blessed with special powers.`,
+    archeology: `Archaeological excavations have revealed artifacts from various periods, including Licchavi coins, Malla-era sculptures, and medieval pottery.`,
+    quizzes: [
+      {
+        question: `What is the main attraction of ${name}?`,
+        options: ["Architecture", "History", "Culture", "All of the above"],
+        correct: 3,
+      },
+      {
+        question: `Where is ${name} located?`,
+        options: ["Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"],
+        correct: ["Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"].indexOf(
+          city,
+        ),
+      },
+      {
+        question: `When was ${name} built?`,
+        options: ["5th century", "12th century", "17th century", "Unknown"],
+        correct: 1,
+      },
+      {
+        question: `What is the best time to visit ${name}?`,
+        options: ["Spring", "Summer", "Autumn", "Winter"],
+        correct: 2,
+      },
+    ],
+    translations: {
+      nepali: name,
+      chinese: name,
+      japanese: name,
+      korean: name,
+      spanish: name,
+    },
+    openingHours: Math.random() > 0.5 ? "6:00 AM - 6:00 PM" : "All day",
+  });
+}
+
 const artisans = [
   {
     name: "Prem Bahadur Prajapati",
@@ -1263,12 +1376,11 @@ const artisans = [
     location: "Bhaktapur",
     city: "Bhaktapur",
     distance: "Pottery Square, Bhaktapur",
-    image:
-      "https://media.istockphoto.com/id/458585693/photo/earthenware-at-bhaktapur.jpg",
+    image: "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
     images: [
-      "https://media.istockphoto.com/id/458585693/photo/earthenware-at-bhaktapur.jpg",
-      "https://images.pexels.com/photos/1261865/pexels-photo-1261865.jpeg",
-      "https://images.pexels.com/photos/895163/pexels-photo-895163.jpeg",
+      "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
+      "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
+      "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
     ],
     bio: "Seventh-generation master potter from Bhaktapur's historic Pottery Square.",
     longBio:
@@ -1288,27 +1400,26 @@ const artisans = [
         name: "Traditional Newari Grain Jar (Gagri)",
         price: "NPR 2500",
         description:
-          "Hand-thrown terracotta jar for rice/wheat storage, 12-inch height. Perfect for traditional kitchen storage.",
+          "Hand-thrown terracotta jar for rice/wheat storage, 12-inch height.",
         image:
-          "https://images.pexels.com/photos/1261865/pexels-photo-1261865.jpeg",
+          "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
         inStock: true,
       },
       {
         name: "Oil Lamp Set (Pancha Batti)",
         price: "NPR 1500",
-        description:
-          "Set of 5 small oil lamps for daily puja. Each lamp is hand-shaped and fired in traditional kiln.",
+        description: "Set of 5 small oil lamps for daily puja.",
         image:
-          "https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg",
+          "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
         inStock: true,
       },
       {
         name: "Ceremonial Water Pot (Kalash)",
         price: "NPR 3500",
         description:
-          "Used in weddings and festivals, decorated with clay appliqué. 10-inch height with sacred symbols.",
+          "Used in weddings and festivals, decorated with clay appliqué.",
         image:
-          "https://images.pexels.com/photos/895163/pexels-photo-895163.jpeg",
+          "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
         inStock: true,
       },
       {
@@ -1317,7 +1428,7 @@ const artisans = [
         description:
           "8-inch hand-painted terracotta vase with traditional Newari patterns.",
         image:
-          "https://images.pexels.com/photos/993774/pexels-photo-993774.jpeg",
+          "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
         inStock: true,
       },
       {
@@ -1326,7 +1437,7 @@ const artisans = [
         description:
           "Traditional clay cups for chiya (tea), unglazed natural finish.",
         image:
-          "https://images.pexels.com/photos/1381053/pexels-photo-1381053.jpeg",
+          "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800",
         inStock: true,
       },
     ],
@@ -1336,8 +1447,7 @@ const artisans = [
         duration: "2 hours",
         price: "NPR 1000",
         maxParticipants: 5,
-        description:
-          "Learn basic wheel throwing techniques. Make your own small pot to take home.",
+        description: "Learn basic wheel throwing techniques.",
       },
       {
         name: "Clay Sculpture Weekend",
@@ -1345,15 +1455,14 @@ const artisans = [
         price: "NPR 3000",
         maxParticipants: 10,
         description:
-          "Complete pottery experience from clay to finished product. Includes firing and glazing.",
+          "Complete pottery experience from clay to finished product.",
       },
       {
         name: "Family Pottery Session",
         duration: "1.5 hours",
         price: "NPR 1500",
         maxParticipants: 4,
-        description:
-          "Perfect for families with children. Create simple hand-built pieces together.",
+        description: "Perfect for families with children.",
       },
     ],
   },
@@ -1363,16 +1472,15 @@ const artisans = [
     location: "Kathmandu",
     city: "Kathmandu",
     distance: "Swayambhu, Kathmandu",
-    image:
-      "https://www.globaltimes.cn/Portals/0/attachment/2023/2023-03-26/4144c2a4-1180-4744-b848-055df770a64c.jpeg",
+    image: "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
     images: [
-      "https://www.globaltimes.cn/Portals/0/attachment/2023/2023-03-26/4144c2a4-1180-4744-b848-055df770a64c.jpeg",
-      "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
-      "https://images.pexels.com/photos/1211549/pexels-photo-1211549.jpeg",
+      "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
+      "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
+      "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
     ],
     bio: "National award-winning Thanka painter with 30+ years experience.",
     longBio:
-      "Master of the Nyingma tradition of Tibetan Buddhist painting. Has exhibited in Japan, USA, and Germany. Trains students in traditional mineral pigment preparation, gold leaf application, and iconometric proportions. His works are in permanent collections at museums in Japan and Germany.",
+      "Master of the Nyingma tradition of Tibetan Buddhist painting. Has exhibited in Japan, USA, and Germany. Trains students in traditional mineral pigment preparation, gold leaf application, and iconometric proportions.",
     contact: {
       phone: "+977-9851234567",
       email: "khem.thankastudio@gmail.com",
@@ -1387,46 +1495,41 @@ const artisans = [
       {
         name: "Green Tara Thanka",
         price: "USD 250",
-        description:
-          "12x12 inch, mineral pigments on cotton canvas, traditional design. Includes silk brocade border.",
+        description: "12x12 inch, mineral pigments on cotton canvas.",
         image:
-          "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
+          "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
         inStock: true,
       },
       {
         name: "Medicine Buddha Thanka",
         price: "USD 500",
-        description:
-          "18x24 inch, with gold leaf and silk brocade border. Hand-painted with 24k gold details.",
+        description: "18x24 inch, with gold leaf and silk brocade border.",
         image:
-          "https://images.pexels.com/photos/1211549/pexels-photo-1211549.jpeg",
+          "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
         inStock: true,
       },
       {
         name: "Mandala Painting",
         price: "USD 350",
-        description:
-          "24x24 inch, sand mandala style painting on canvas. Perfect for meditation spaces.",
+        description: "24x24 inch, sand mandala style painting on canvas.",
         image:
-          "https://images.pexels.com/photos/1306763/pexels-photo-1306763.jpeg",
+          "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
         inStock: true,
       },
       {
         name: "White Tara Blessing Thanka",
         price: "USD 300",
-        description:
-          "16x20 inch, known for healing and longevity blessings. Fine detail work.",
+        description: "16x20 inch, known for healing and longevity blessings.",
         image:
-          "https://images.pexels.com/photos/1306763/pexels-photo-1306763.jpeg",
+          "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
         inStock: true,
       },
       {
         name: "Wheel of Life Thanka",
         price: "USD 650",
-        description:
-          "24x30 inch, complex painting showing Buddhist cosmology. Museum quality.",
+        description: "24x30 inch, complex painting showing Buddhist cosmology.",
         image:
-          "https://images.pexels.com/photos/1211549/pexels-photo-1211549.jpeg",
+          "https://images.unsplash.com/photo-1602024962766-e8794ae6b922?w=800",
         inStock: false,
       },
     ],
@@ -1436,24 +1539,21 @@ const artisans = [
         duration: "5 days",
         price: "USD 150",
         maxParticipants: 6,
-        description:
-          "Learn traditional Thanka painting techniques including sketching and color application.",
+        description: "Learn traditional Thanka painting techniques.",
       },
       {
         name: "Mineral Pigment Preparation",
         duration: "1 day",
         price: "USD 50",
         maxParticipants: 8,
-        description:
-          "Make natural colors from minerals and plants. Learn traditional grinding methods.",
+        description: "Make natural colors from minerals and plants.",
       },
       {
         name: "Advanced Iconometry",
         duration: "10 days",
         price: "USD 300",
         maxParticipants: 4,
-        description:
-          "Master the proportional systems and sacred geometry of Buddhist deities.",
+        description: "Master the proportional systems of Buddhist deities.",
       },
     ],
   },
@@ -1463,16 +1563,15 @@ const artisans = [
     location: "Lalitpur",
     city: "Lalitpur",
     distance: "Patan, Lalitpur",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJDs0Bv94LFLuxzgLUtK9PlY5b6juSBEOqPQ&s",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
     images: [
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJDs0Bv94LFLuxzgLUtK9PlY5b6juSBEOqPQ&s",
-      "https://images.pexels.com/photos/1814384/pexels-photo-1814384.jpeg",
-      "https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg",
+      "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
+      "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
+      "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
     ],
     bio: "10th generation master woodcarver specializing in traditional Newari window frames.",
     longBio:
-      "Specializes in traditional Newari window frames (Tiki Jhya), temple struts, and decorative panels. Has worked on restoration of Patan Durbar Square and UNESCO heritage sites. His family has been carving for the royal palace for 300 years.",
+      "Specializes in traditional Newari window frames (Tiki Jhya), temple struts, and decorative panels. Has worked on restoration of Patan Durbar Square and UNESCO heritage sites.",
     contact: {
       phone: "+977-9841234567",
       email: "sanjay.carvings@gmail.com",
@@ -1487,46 +1586,41 @@ const artisans = [
       {
         name: "Miniature Peacock Window",
         price: "NPR 8000",
-        description:
-          "12x12 inch carved teak wood, replica of famous Peacock Window from Patan. Exquisite detail.",
+        description: "12x12 inch carved teak wood.",
         image:
-          "https://images.pexels.com/photos/1814384/pexels-photo-1814384.jpeg",
+          "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
         inStock: true,
       },
       {
         name: "Buddhist Prayer Wheel",
         price: "NPR 3500",
-        description:
-          "4-inch carved wooden handle with mantra inscribed in Sanskrit. Includes metal wheel.",
+        description: "4-inch carved wooden handle with mantra.",
         image:
-          "https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg",
+          "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
         inStock: true,
       },
       {
-        name: "Godhuli Tiki Jhya (Sunset Window)",
+        name: "Godhuli Tiki Jhya",
         price: "NPR 25000",
-        description:
-          "36x24 inch carved traditional window. Authentic design used in Newari homes.",
+        description: "36x24 inch carved traditional window.",
         image:
-          "https://images.pexels.com/photos/1814384/pexels-photo-1814384.jpeg",
+          "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
         inStock: true,
       },
       {
         name: "Lotus Wall Panel",
         price: "NPR 4500",
-        description:
-          "12x12 inch carved lotus design, perfect for wall hanging.",
+        description: "12x12 inch carved lotus design.",
         image:
-          "https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg",
+          "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
         inStock: true,
       },
       {
         name: "Ganesh Idol (Wood)",
         price: "NPR 12000",
-        description:
-          "8-inch hand-carved Ganesh statue from seasoned teak wood.",
+        description: "8-inch hand-carved Ganesh statue.",
         image:
-          "https://images.pexels.com/photos/1814384/pexels-photo-1814384.jpeg",
+          "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800",
         inStock: true,
       },
     ],
@@ -1536,24 +1630,21 @@ const artisans = [
         duration: "3 hours",
         price: "NPR 1500",
         maxParticipants: 4,
-        description:
-          "Basic carving techniques with traditional tools. Carve a small pendant to take home.",
+        description: "Basic carving techniques with traditional tools.",
       },
       {
         name: "Weekend Carving Workshop",
         duration: "2 days",
         price: "NPR 5000",
         maxParticipants: 6,
-        description:
-          "Complete a small project from design to finished piece. Learn about traditional Newari motifs.",
+        description: "Complete a small project from design to finished piece.",
       },
       {
         name: "Traditional Tool Making",
         duration: "1 day",
         price: "NPR 2000",
         maxParticipants: 5,
-        description:
-          "Learn to forge and maintain traditional Nepali woodcarving tools.",
+        description: "Learn to forge traditional Nepali woodcarving tools.",
       },
     ],
   },
@@ -1563,14 +1654,14 @@ const artisans = [
     location: "Kathmandu",
     city: "Kathmandu",
     distance: "Asan, Kathmandu",
-    image: "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
     images: [
-      "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
-      "https://images.pexels.com/photos/1306763/pexels-photo-1306763.jpeg",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
     ],
     bio: "Master Paubha painter from a lineage of 15 generations.",
     longBio:
-      "Specializes in traditional Newari religious paintings using mineral colors, vegetable dyes, and genuine gold leaf. Her work is displayed at the National Museum of Nepal and private collections in Europe. One of few female master Paubha painters in Nepal.",
+      "Specializes in traditional Newari religious paintings using mineral colors, vegetable dyes, and genuine gold leaf. Her work is displayed at the National Museum of Nepal and private collections in Europe.",
     contact: {
       phone: "+977-9861234567",
       email: "binita.paubha@gmail.com",
@@ -1583,48 +1674,43 @@ const artisans = [
     ratingCount: 142,
     products: [
       {
-        name: "Astamatrika Paubha (8 Mother Goddesses)",
+        name: "Astamatrika Paubha",
         price: "USD 450",
-        description:
-          "18x24 inch, mineral pigments, detailed border. Depicts the 8 mother goddesses of Newari tradition.",
+        description: "18x24 inch, mineral pigments.",
         image:
-          "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Vajrayogini Mandala",
         price: "USD 600",
-        description:
-          "24x24 inch circular mandala, gold details. Sacred Vajrayana Buddhist meditation aid.",
+        description: "24x24 inch circular mandala.",
         image:
-          "https://images.pexels.com/photos/1306763/pexels-photo-1306763.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Ganesh Paubha",
         price: "USD 200",
-        description:
-          "12x16 inch, for home altar. Bright colors and traditional Newari style.",
+        description: "12x16 inch, for home altar.",
         image:
-          "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Bhairab Mask Painting",
         price: "USD 350",
-        description:
-          "16x20 inch, fierce deity, traditional colors. Powerful protector deity.",
+        description: "16x20 inch, fierce deity.",
         image:
-          "https://images.pexels.com/photos/1306763/pexels-photo-1306763.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Siddhi Laxmi Paubha",
         price: "USD 280",
-        description:
-          "14x18 inch, goddess of prosperity with traditional Newari motifs.",
+        description: "14x18 inch, goddess of prosperity.",
         image:
-          "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
     ],
@@ -1634,24 +1720,21 @@ const artisans = [
         duration: "3 days",
         price: "USD 100",
         maxParticipants: 5,
-        description:
-          "Learn traditional Newari painting techniques including sketching and color theory.",
+        description: "Learn traditional Newari painting techniques.",
       },
       {
         name: "Natural Color Making",
         duration: "1 day",
         price: "USD 40",
         maxParticipants: 8,
-        description:
-          "Create pigments from minerals, plants, and traditional sources.",
+        description: "Create pigments from minerals and plants.",
       },
       {
         name: "Gold Leaf Application",
         duration: "1 day",
         price: "USD 60",
         maxParticipants: 4,
-        description:
-          "Master the art of applying genuine gold leaf to Paubha paintings.",
+        description: "Master the art of applying genuine gold leaf.",
       },
     ],
   },
@@ -1661,14 +1744,14 @@ const artisans = [
     location: "Kathmandu",
     city: "Kathmandu",
     distance: "Boudha, Kathmandu",
-    image: "https://images.pexels.com/photos/1267686/pexels-photo-1267686.jpeg",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
     images: [
-      "https://images.pexels.com/photos/1267686/pexels-photo-1267686.jpeg",
-      "https://images.pexels.com/photos/4124773/pexels-photo-4124773.jpeg",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
     ],
     bio: "Third-generation singing bowl craftsman using traditional techniques.",
     longBio:
-      "Uses traditional techniques to make seven-metal alloy bowls. Specializes in hand-hammered bowls from antique methods used in Tibetan monasteries. Each bowl takes 2-3 weeks to complete. Supplies bowls to monasteries across Nepal and Tibet.",
+      "Uses traditional techniques to make seven-metal alloy bowls. Specializes in hand-hammered bowls from antique methods used in Tibetan monasteries. Each bowl takes 2-3 weeks to complete.",
     contact: {
       phone: "+977-9801234567",
       email: "tashi.bowls@gmail.com",
@@ -1683,46 +1766,41 @@ const artisans = [
       {
         name: "Small Hand-Hammered Bowl",
         price: "USD 80",
-        description:
-          "4 inch, seven-metal alloy, clear frequency. Perfect for personal meditation.",
+        description: "4 inch, seven-metal alloy.",
         image:
-          "https://images.pexels.com/photos/1267686/pexels-photo-1267686.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Meditation Bowl",
         price: "USD 150",
-        description:
-          "6 inch, with cushion and striker, healing sound. Deep resonant tone.",
+        description: "6 inch, with cushion and striker.",
         image:
-          "https://images.pexels.com/photos/4124773/pexels-photo-4124773.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Chakra Tuning Set",
         price: "USD 700",
-        description:
-          "7 bowls, each tuned to a specific chakra frequency. Complete set with cushions and strikers.",
+        description: "7 bowls, each tuned to a specific chakra frequency.",
         image:
-          "https://images.pexels.com/photos/1267686/pexels-photo-1267686.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Antique Style Bowl",
         price: "USD 250",
-        description:
-          "8 inch, aged patina, very deep resonance. Hand-hammered with antique finish.",
+        description: "8 inch, aged patina, very deep resonance.",
         image:
-          "https://images.pexels.com/photos/4124773/pexels-photo-4124773.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Mini Travel Bowl",
         price: "USD 45",
-        description:
-          "3 inch, lightweight, includes carrying pouch. Perfect for travel.",
+        description: "3 inch, lightweight, includes carrying pouch.",
         image:
-          "https://images.pexels.com/photos/1267686/pexels-photo-1267686.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
     ],
@@ -1732,16 +1810,14 @@ const artisans = [
         duration: "3 hours",
         price: "USD 50",
         maxParticipants: 10,
-        description:
-          "Learn sound healing techniques with singing bowls. Includes hands-on practice.",
+        description: "Learn sound healing techniques with singing bowls.",
       },
       {
         name: "Bowl Making Demonstration",
         duration: "2 hours",
         price: "USD 30",
         maxParticipants: 12,
-        description:
-          "Watch live bowl-making demonstration. Learn about seven-metal alloys and hammering techniques.",
+        description: "Watch live bowl-making demonstration.",
       },
     ],
   },
@@ -1751,14 +1827,14 @@ const artisans = [
     location: "Janakpur",
     city: "Janakpur",
     distance: "Janakpur, Madhesh",
-    image: "https://images.pexels.com/photos/1061368/pexels-photo-1061368.jpeg",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
     images: [
-      "https://images.pexels.com/photos/1061368/pexels-photo-1061368.jpeg",
-      "https://images.pexels.com/photos/1337757/pexels-photo-1337757.jpeg",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
     ],
     bio: "Master Mithila artist from the traditional Jitwarpur village.",
     longBio:
-      "Specializes in ritual paintings (Aripana) for weddings and festivals. Uses natural dyes from turmeric, indigo, and rice paste. Her work is in the British Museum's collection. Has trained over 100 women in her community.",
+      "Specializes in ritual paintings (Aripana) for weddings and festivals. Uses natural dyes from turmeric, indigo, and rice paste. Her work is in the British Museum's collection.",
     contact: {
       phone: "+977-9852123456",
       email: "radha.mithila@gmail.com",
@@ -1770,47 +1846,43 @@ const artisans = [
     ratingCount: 98,
     products: [
       {
-        name: "Wedding Godhna (Wall Painting)",
+        name: "Wedding Godhna",
         price: "NPR 5000",
-        description:
-          "2x3 ft on handmade paper, traditional marriage scene. Depicts bride and groom.",
+        description: "2x3 ft on handmade paper, traditional marriage scene.",
         image:
-          "https://images.pexels.com/photos/1061368/pexels-photo-1061368.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
-        name: "Kohbar (Sacred Marriage Chamber)",
+        name: "Kohbar Sacred Chamber",
         price: "NPR 8000",
-        description:
-          "3x4 ft, detailed lotus and bamboo design. Traditional wedding gift.",
+        description: "3x4 ft, detailed lotus and bamboo design.",
         image:
-          "https://images.pexels.com/photos/1337757/pexels-photo-1337757.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Mithila Elephant Painting",
         price: "NPR 2500",
-        description: "12x18 inch, festival scene with elephants and birds.",
+        description: "12x18 inch, festival scene with elephants.",
         image:
-          "https://images.pexels.com/photos/1061368/pexels-photo-1061368.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
-        name: "Aripana Diptych (2 panels)",
+        name: "Aripana Diptych",
         price: "NPR 6000",
-        description:
-          "Set of two 12x24 inch ritual floor paintings on paper. Sacred geometric patterns.",
+        description: "Set of two 12x24 inch ritual floor paintings.",
         image:
-          "https://images.pexels.com/photos/1337757/pexels-photo-1337757.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
       {
         name: "Peacock Mithila Art",
         price: "NPR 3500",
-        description:
-          "18x24 inch, colorful peacock with traditional Mithila patterns.",
+        description: "18x24 inch, colorful peacock with traditional patterns.",
         image:
-          "https://images.pexels.com/photos/1061368/pexels-photo-1061368.jpeg",
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800",
         inStock: true,
       },
     ],
@@ -1820,27 +1892,138 @@ const artisans = [
         duration: "2 days",
         price: "NPR 3000",
         maxParticipants: 8,
-        description:
-          "Learn traditional Mithila painting techniques and patterns.",
+        description: "Learn traditional Mithila painting techniques.",
       },
       {
         name: "Natural Dye Making",
         duration: "1 day",
         price: "NPR 1500",
         maxParticipants: 10,
-        description: "Create natural dyes from local plants and minerals.",
+        description: "Create natural dyes from local plants.",
       },
       {
         name: "Aripana Ritual Painting",
         duration: "1 day",
         price: "NPR 2000",
         maxParticipants: 6,
-        description:
-          "Learn sacred floor painting for festivals and ceremonies.",
+        description: "Learn sacred floor painting for festivals.",
       },
     ],
   },
 ];
+
+// Generate additional artisans (94 more to reach 100+)
+const craftNames = [
+  "Metalwork",
+  "Stone Carving",
+  "Weaving",
+  "Embroidery",
+  "Bamboo Craft",
+  "Leather Work",
+  "Paper Making",
+  "Candle Making",
+  "Jewelry Design",
+  "Pottery",
+  "Wood Carving",
+  "Painting",
+];
+const cityNames = [
+  "Kathmandu",
+  "Lalitpur",
+  "Bhaktapur",
+  "Pokhara",
+  "Janakpur",
+  "Chitwan",
+  "Lumbini",
+];
+
+for (let i = 0; i < 94; i++) {
+  const city = cityNames[i % cityNames.length];
+  const craft = craftNames[i % craftNames.length];
+  artisans.push({
+    name: `${["Ram", "Shyam", "Hari", "Gopal", "Krishna", "Bishnu", "Manju", "Sita", "Gita", "Nita"][i % 10]} ${["Shrestha", "Maharjan", "Pradhan", "Shakya", "Joshi", "Pandey", "Thapa", "Gurung", "Tamang", "Sherpa"][i % 10]}`,
+    craft: `${craft} Master`,
+    location: city,
+    city: city,
+    distance: `${city} area`,
+    image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+    images: [
+      `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+      `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+    ],
+    bio: `${Math.floor(5 + Math.random() * 15)}th generation master ${craft} artisan from ${city}.`,
+    longBio: `Specializes in traditional ${craft} techniques passed down through generations. Has exhibited work internationally and trained numerous apprentices.`,
+    contact: {
+      phone: `+977-98${Math.floor(10000000 + Math.random() * 90000000)}`,
+      email: `${craft.toLowerCase()}.${city.toLowerCase()}@gmail.com`,
+      instagram: `@${craft.toLowerCase()}_${city.toLowerCase()}`,
+    },
+    experience: 15 + Math.floor(Math.random() * 30),
+    priceRange: `NPR ${500 + Math.floor(Math.random() * 1000)} - ${2000 + Math.floor(Math.random() * 8000)}`,
+    rating: 4 + Math.random() * 0.9,
+    ratingCount: 20 + Math.floor(Math.random() * 150),
+    products: [
+      {
+        name: `Traditional ${craft} Item 1`,
+        price: `NPR ${500 + Math.floor(Math.random() * 2000)}`,
+        description: `Handcrafted ${craft} piece with traditional designs.`,
+        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+        inStock: Math.random() > 0.3,
+      },
+      {
+        name: `Decorative ${craft} Item 2`,
+        price: `NPR ${1000 + Math.floor(Math.random() * 3000)}`,
+        description: `Beautiful ${craft} piece for home decoration.`,
+        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+        inStock: Math.random() > 0.3,
+      },
+      {
+        name: `Ceremonial ${craft} Item 3`,
+        price: `NPR ${2000 + Math.floor(Math.random() * 4000)}`,
+        description: `Special ${craft} piece used in festivals and ceremonies.`,
+        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+        inStock: Math.random() > 0.4,
+      },
+      {
+        name: `Modern ${craft} Item 4`,
+        price: `NPR ${1500 + Math.floor(Math.random() * 3500)}`,
+        description: `Contemporary ${craft} piece blending tradition with modern design.`,
+        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+        inStock: Math.random() > 0.5,
+      },
+      {
+        name: `Miniature ${craft} Item 5`,
+        price: `NPR ${300 + Math.floor(Math.random() * 1200)}`,
+        description: `Small ${craft} piece perfect for gifts or travel.`,
+        image: `https://images.unsplash.com/photo-${Math.random() > 0.5 ? "1580582932707-520aed937b7b" : "1506905925346-21bda4d32df4"}?w=800`,
+        inStock: Math.random() > 0.6,
+      },
+    ],
+    workshops: [
+      {
+        name: `Basic ${craft} Workshop`,
+        duration: `${1 + Math.floor(Math.random() * 3)} days`,
+        price: `NPR ${500 + Math.floor(Math.random() * 2000)}`,
+        maxParticipants: 4 + Math.floor(Math.random() * 6),
+        description: `Learn fundamental ${craft} techniques.`,
+      },
+      {
+        name: `Advanced ${craft} Masterclass`,
+        duration: `${3 + Math.floor(Math.random() * 5)} days`,
+        price: `NPR ${3000 + Math.floor(Math.random() * 5000)}`,
+        maxParticipants: 3 + Math.floor(Math.random() * 4),
+        description: `Master advanced ${craft} techniques with expert guidance.`,
+      },
+      {
+        name: `Weekend ${craft} Retreat`,
+        duration: "2 days",
+        price: `NPR ${2000 + Math.floor(Math.random() * 3000)}`,
+        maxParticipants: 5 + Math.floor(Math.random() * 5),
+        description: `Immersive ${craft} experience over a relaxing weekend.`,
+      },
+    ],
+  });
+}
 
 const events = [
   {
@@ -1867,7 +2050,7 @@ const events = [
     type: "Festival",
     price: "Free Entry",
     description:
-      "Nepal's biggest 15-day festival celebrating victory of good over evil. Day 10 (Dashami) involves family gatherings and receiving tika (blessings) from elders. Traditional bamboo swings (ping) are erected in villages.",
+      "Nepal's biggest 15-day festival celebrating victory of good over evil. Day 10 (Dashami) involves family gatherings and receiving tika (blessings) from elders.",
   },
   {
     title: "Tihar Festival of Lights",
@@ -1880,7 +2063,7 @@ const events = [
     type: "Festival",
     price: "Free Entry",
     description:
-      "Five-day festival honoring crows, dogs, cows, oxen, and siblings. Houses are decorated with oil lamps (diyo) and colorful rangoli. The final day Bhai Tika celebrates brother-sister bonds.",
+      "Five-day festival honoring crows, dogs, cows, oxen, and siblings. Houses are decorated with oil lamps (diyo) and colorful rangoli.",
   },
   {
     title: "Holi Festival",
@@ -1893,7 +2076,7 @@ const events = [
     type: "Festival",
     price: "Free Entry",
     description:
-      "Festival of colors celebrating spring. People throw colored powders and water balloons. Traditional music and bhang (cannabis drink) are part of celebrations (legal only during Holi).",
+      "Festival of colors celebrating spring. People throw colored powders and water balloons.",
   },
   {
     title: "Losar (Tibetan New Year)",
@@ -1906,7 +2089,7 @@ const events = [
     type: "Festival",
     price: "Free Entry",
     description:
-      "Tibetan Buddhist New Year with prayers, cham dances, and family feasts. Boudha stupa is decorated with prayer flags. Traditional dough balls (guthuk) are eaten the previous day to cleanse negativity.",
+      "Tibetan Buddhist New Year with prayers, cham dances, and family feasts.",
   },
   {
     title: "Gai Jatra (Cow Festival)",
@@ -1919,7 +2102,7 @@ const events = [
     type: "Cultural",
     price: "Free Entry",
     description:
-      "Procession honoring deceased family members in the past year. Participants dress as cows and perform satirical plays. The festival helps families accept death through humor.",
+      "Procession honoring deceased family members in the past year. Participants dress as cows and perform satirical plays.",
   },
   {
     title: "Rato Machhindranath Jatra",
@@ -1932,7 +2115,7 @@ const events = [
     type: "Festival",
     price: "Free Entry",
     description:
-      "Month-long chariot festival of the rain god. The massive 60-foot chariot is pulled through Patan. The festival's start date is astrologically determined in March/April.",
+      "Month-long chariot festival of the rain god. The massive 60-foot chariot is pulled through Patan.",
   },
   {
     title: "Bisket Jatra",
@@ -1945,7 +2128,7 @@ const events = [
     type: "Festival",
     price: "Free with square entry",
     description:
-      "Nine-day New Year festival featuring chariot pulling, lingam raising, and ritual battles. A 40-foot chariot with 8-foot wheels is dragged through narrow streets.",
+      "Nine-day New Year festival featuring chariot pulling, lingam raising, and ritual battles.",
   },
   {
     title: "Mahashivaratri",
@@ -1958,10 +2141,9 @@ const events = [
     type: "Religious",
     price: "Free for Hindus, NPR 1000 others",
     description:
-      "Night-long festival celebrating Lord Shiva. Over 700,000 devotees visit Pashupatinath. Holi-like ash throwing, all-night chanting, and smoking cannabis (legal this day).",
+      "Night-long festival celebrating Lord Shiva. Over 700,000 devotees visit Pashupatinath.",
   },
   {
-    name: "Patan Art Festival",
     title: "Patan Art Festival",
     date: "5",
     month: "March",
@@ -1972,7 +2154,7 @@ const events = [
     type: "Art",
     price: "NPR 200",
     description:
-      "Annual celebration of Newari arts with 50+ artisans demonstrating traditional crafts: metalwork, painting, wood carving, and paubha. Evening concerts with classical Newari music.",
+      "Annual celebration of Newari arts with 50+ artisans demonstrating traditional crafts.",
   },
   {
     title: "Nepal Mandala Heritage Week",
@@ -1984,171 +2166,129 @@ const events = [
     distance: "All 3 cities",
     type: "Cultural",
     price: "NPR 1000 (heritage pass)",
-    description:
-      "Week-long celebration of Kathmandu Valley's UNESCO sites. Night viewings, guided tours, cultural programs, and heritage conservation talks. Special access to restricted courtyards.",
+    description: "Week-long celebration of Kathmandu Valley's UNESCO sites.",
   },
 ];
 
-const siteReviews = [
-  // Pashupatinath reviews
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Incredible spiritual experience. The evening aarti on the Bagmati river is mesmerizing. Tip: go at sunset.",
-    userName: "Rajesh from India",
-    date: new Date("2024-12-15"),
-  },
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 4,
-    text: "Very sacred but crowded. The temple architecture is stunning. Foreigners can't enter main temple but surrounding area is amazing.",
-    userName: "Sarah from UK",
-    date: new Date("2024-11-20"),
-  },
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Best place for photography at dawn. The cremation ghats are intense but part of life/death cycle.",
-    userName: "Ming from China",
-    date: new Date("2024-12-01"),
-  },
-  // Swayambhunath reviews
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Monkeys everywhere! The 365 steps are worth it for valley views. Go early morning.",
-    userName: "Carlos from Mexico",
-    date: new Date("2024-12-10"),
-  },
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 4,
-    text: "Beautiful stupa with great energy. Sunset views are spectacular.",
-    userName: "Yuki from Japan",
-    date: new Date("2024-11-25"),
-  },
-  // Boudhanath reviews
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "My favorite place in Kathmandu! The Tibetan culture is so vibrant here. Try butter tea at nearby cafe.",
-    userName: "Emma from Australia",
-    date: new Date("2024-12-18"),
-  },
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Incredible at night when lit up. The kora (circumambulation) with monks is meditative.",
-    userName: "Klaus from Germany",
-    date: new Date("2024-11-30"),
-  },
-  // Bhaktapur reviews
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Best preserved square. Eat juju dhau (king curd) at Pottery Square. Amazing woodwork.",
-    userName: "Lisa from Canada",
-    date: new Date("2024-12-12"),
-  },
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Less crowded than Kathmandu. Nyatapola temple is masterpiece. Stay overnight for sunrise.",
-    userName: "Priya from India",
-    date: new Date("2024-11-28"),
-  },
-  // Lumbini reviews
-  {
-    siteId: null,
-    entityType: "Site",
-    rating: 5,
-    text: "Peaceful pilgrimage site. Maya Devi temple has sacred birth marker. The international monasteries are fascinating.",
-    userName: "Thich from Vietnam",
-    date: new Date("2024-12-05"),
-  },
+// Generate additional events (90 more to reach 100+)
+const eventTitles = [
+  "Buddha Jayanti",
+  "Janai Purnima",
+  "Krishna Janmashtami",
+  "Gai Jatra",
+  "Teej Festival",
+  "Mani Rimdu",
+  "Dumji Festival",
+  "Lhosar",
+  "Sakela Dance",
+  "Udhauli Festival",
+  "Shivaratri Puja",
+  "Ratha Yatra",
+  "Maha Snan",
+  "Gokarna Aunsi",
+  "Mata Tirtha Aunsi",
+  "Sita Vivaha",
+  "Ram Navami",
+  "Hanuman Jayanti",
+  "Naga Panchami",
+  "Guru Purnima",
 ];
 
-const artisanReviews = [
-  // Prem Bahadur (Pottery) reviews
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Learned so much at his workshop! Prem is patient and skilled. His grain jars are beautiful.",
-    userName: "Anna from Sweden",
-    date: new Date("2024-12-10"),
-  },
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Bought a water pot - keeps water cool naturally. Authentic traditional craft.",
-    userName: "David from USA",
-    date: new Date("2024-11-15"),
-  },
-  // Khem Bahadur (Thanka) reviews
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Master artist! Bought a Green Tara Thanka. He explained each symbol. Worth every penny.",
-    userName: "Maria from Spain",
-    date: new Date("2024-12-08"),
-  },
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 4,
-    text: "His workshop was intensive but amazing. Learned to prepare mineral colors.",
-    userName: "Tom from UK",
-    date: new Date("2024-11-22"),
-  },
-  // Sanjay (Woodcarving) reviews
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Sanjay's peacock window replica is exquisite. He showed me his tools passed from grandfather.",
-    userName: "Kenji from Japan",
-    date: new Date("2024-12-14"),
-  },
-  // Binita (Paubha) reviews
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Rare female master! Her Vajrayogini Paubha is stunning. Bought small Ganesh for home.",
-    userName: "Sophie from France",
-    date: new Date("2024-12-01"),
-  },
-  // Tashi (Singing Bowls) reviews
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Best quality bowls in Nepal. The sound healing session was transformative.",
-    userName: "Maya from Israel",
-    date: new Date("2024-11-18"),
-  },
-  // Radha (Mithila) reviews
-  {
-    artisanId: null,
-    entityType: "Artisan",
-    rating: 5,
-    text: "Her workshop in Janakpur was highlight of my trip! Learned traditional Aripana patterns.",
-    userName: "Laura from Italy",
-    date: new Date("2024-12-09"),
-  },
+for (let i = 0; i < 90; i++) {
+  const title = eventTitles[i % eventTitles.length];
+  const month = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ][i % 12];
+  const city = cityNames[i % cityNames.length];
+  events.push({
+    title: `${title} Celebration`,
+    date: `${10 + (i % 20)}`,
+    month: month,
+    fullDate: new Date(2025 + Math.floor(i / 12), i % 12, 10 + (i % 20)),
+    location: `${city} area`,
+    city: city,
+    distance: `${city} center`,
+    type: ["Festival", "Religious", "Cultural", "Art"][i % 4],
+    price:
+      Math.random() > 0.6
+        ? `NPR ${200 + Math.floor(Math.random() * 800)}`
+        : "Free Entry",
+    description: `Annual celebration of ${title} with traditional rituals, music, dance, and community gatherings.`,
+  });
+}
+
+// Generate site reviews (100+)
+const siteReviews: { siteId: null; entityType: string; rating: number; text: string; userName: string; date: Date; }[] = [];
+const reviewTexts = [
+  "Amazing experience! The architecture and history here are incredible.",
+  "Beautiful place with so much to see. Highly recommended for anyone visiting Nepal.",
+  "The spiritual atmosphere here is unmatched. A must-visit for cultural travelers.",
+  "Great historical site with lots of interesting stories. Guide was very knowledgeable.",
+  "Absolutely stunning views and peaceful surroundings. Loved every moment here.",
+  "Rich history and beautiful architecture. The craftsmanship is outstanding.",
+  "One of the best places I've visited in Nepal. Will definitely come back.",
+  "The energy here is incredible. You can feel the history in every corner.",
+  "Beautiful location with amazing views. Perfect for photography enthusiasts.",
+  "Very well preserved and maintained. A true gem of Nepali heritage.",
 ];
+
+for (let i = 0; i < 120; i++) {
+  const siteIndex = i % sites.length;
+  siteReviews.push({
+    siteId: null,
+    entityType: "Site",
+    rating:
+      Math.floor(3 + Math.random() * 2) +
+      (Math.random() > 0.7 ? 0 : Math.random() > 0.5 ? 0.5 : 0),
+    text:
+      reviewTexts[i % reviewTexts.length] +
+      ` The ${sites[siteIndex].name} is truly spectacular.`,
+    userName: `${["Raj", "Maya", "Sita", "Gopal", "Krishna", "Anna", "David", "Maria", "Tom", "Yuki"][i % 10]} from ${["Nepal", "India", "USA", "UK", "Japan", "Germany", "France", "Australia", "Canada", "Spain"][i % 10]}`,
+    date: randomDate(new Date("2024-01-01"), new Date("2024-12-31")),
+  });
+}
+
+// Generate artisan reviews (100+)
+const artisanReviews: { artisanId: null; entityType: string; rating: number; text: string; userName: string; date: Date; }[] = [];
+const artisanReviewTexts = [
+  "Incredible craftsmanship! The attention to detail is remarkable.",
+  "Very skilled artisan with deep knowledge of traditional techniques.",
+  "Absolutely beautiful work. Worth every penny for this quality.",
+  "Learned so much from the workshop. Master truly knows their craft.",
+  "The quality of work is outstanding. Highly recommend to anyone.",
+  "Beautiful traditional art with modern appeal. A true master.",
+  "Very patient teacher with excellent teaching skills. Highly recommend.",
+  "The artistry here is breathtaking. A must-visit for art lovers.",
+  "Traditional techniques preserved with great care and skill.",
+  "Amazing experience watching the master at work. So inspiring.",
+];
+
+for (let i = 0; i < 120; i++) {
+  const artisanIndex = i % artisans.length;
+  artisanReviews.push({
+    artisanId: null,
+    entityType: "Artisan",
+    rating:
+      Math.floor(3 + Math.random() * 2) +
+      (Math.random() > 0.7 ? 0 : Math.random() > 0.5 ? 0.5 : 0),
+    text:
+      artisanReviewTexts[i % artisanReviewTexts.length] +
+      ` ${artisans[artisanIndex].name} is a true master of ${artisans[artisanIndex].craft}.`,
+    userName: `${["Raj", "Maya", "Sita", "Gopal", "Krishna", "Anna", "David", "Maria", "Tom", "Yuki"][i % 10]} from ${["Nepal", "India", "USA", "UK", "Japan", "Germany", "France", "Australia", "Canada", "Spain"][i % 10]}`,
+    date: randomDate(new Date("2024-01-01"), new Date("2024-12-31")),
+  });
+}
 
 async function seed() {
   try {
@@ -2174,94 +2314,61 @@ async function seed() {
     console.log(`Inserted ${insertedArtisans.length} artisans`);
     console.log(`Inserted ${events.length} events`);
 
-    // Link artisans to sites - FIXED with correct indexes (0-5 only)
-    const siteArtisanLinks = [
-      // Pashupatinath (index 0)
-      { siteId: insertedSites[0]._id, artisanId: insertedArtisans[1]._id }, // Khem - Thanka
-      { siteId: insertedSites[0]._id, artisanId: insertedArtisans[2]._id }, // Sanjay - Wood
-
-      // Swayambhunath (index 1)
-      { siteId: insertedSites[1]._id, artisanId: insertedArtisans[0]._id }, // Prem - Pottery
-      { siteId: insertedSites[1]._id, artisanId: insertedArtisans[3]._id }, // Binita - Paubha
-
-      // Boudhanath (index 2)
-      { siteId: insertedSites[2]._id, artisanId: insertedArtisans[4]._id }, // Tashi - Bowls
-
-      // Patan Durbar Square (index 3)
-      { siteId: insertedSites[3]._id, artisanId: insertedArtisans[2]._id }, // Sanjay - Wood
-
-      // Bhaktapur Durbar Square (index 4)
-      { siteId: insertedSites[4]._id, artisanId: insertedArtisans[0]._id }, // Prem - Pottery
-
-      // Changunarayan (index 5)
-      { siteId: insertedSites[5]._id, artisanId: insertedArtisans[2]._id }, // Sanjay - Wood
-
-      // Kopan Monastery (index 6)
-      { siteId: insertedSites[6]._id, artisanId: insertedArtisans[1]._id }, // Khem - Thanka
-      { siteId: insertedSites[6]._id, artisanId: insertedArtisans[4]._id }, // Tashi - Bowls
-
-      // Namche Bazaar (index 7)
-      { siteId: insertedSites[7]._id, artisanId: insertedArtisans[4]._id }, // Tashi - Bowls
-
-      // Pokhara Lakeside (index 8)
-      { siteId: insertedSites[8]._id, artisanId: insertedArtisans[0]._id }, // Prem - Pottery
-
-      // Lumbini (index 10)
-      { siteId: insertedSites[10]._id, artisanId: insertedArtisans[5]._id }, // Radha - Mithila
-
-      // Janaki Temple (index 17)
-      { siteId: insertedSites[17]._id, artisanId: insertedArtisans[5]._id }, // Radha - Mithila
-    ];
-
-    // Filter out any links where indexes might be out of bounds
-    const validLinks = siteArtisanLinks.filter(
-      (link) => link.siteId && link.artisanId,
-    );
-
-    if (validLinks.length > 0) {
-      await SiteArtisanModel.insertMany(validLinks);
-      console.log(`✅ Linked: ${validLinks.length} site-artisan relationships`);
+    // Link artisans to sites
+    const siteArtisanLinks = [];
+    for (
+      let i = 0;
+      i < Math.min(insertedSites.length, insertedArtisans.length);
+      i++
+    ) {
+      const siteIndex = i % insertedSites.length;
+      const artisanIndex = (i + 3) % insertedArtisans.length;
+      siteArtisanLinks.push({
+        siteId: insertedSites[siteIndex]._id,
+        artisanId: insertedArtisans[artisanIndex]._id,
+      });
+      // Add additional links
+      if (i % 3 === 0 && i + 1 < insertedArtisans.length) {
+        siteArtisanLinks.push({
+          siteId: insertedSites[siteIndex]._id,
+          artisanId: insertedArtisans[(i + 1) % insertedArtisans.length]._id,
+        });
+      }
     }
 
-    // Add reviews with proper IDs - FIXED to avoid undefined errors
-    const siteReviewDocs = siteReviews
-      .map((review, index) => {
-        const siteIndex = index % insertedSites.length;
-        if (insertedSites[siteIndex] && insertedSites[siteIndex]._id) {
-          return {
-            userId: new mongoose.Types.ObjectId(), // You can replace with actual user ID if needed
-            targetId: insertedSites[siteIndex]._id,
-            targetType: "site" as const,
-            author: review.userName,
-            rating: review.rating,
-            text: review.text,
-            date: review.date.toISOString(),
-          };
-        }
-        return null;
-      })
-      .filter((review) => review !== null);
+    if (siteArtisanLinks.length > 0) {
+      await SiteArtisanModel.insertMany(siteArtisanLinks);
+      console.log(
+        `✅ Linked: ${siteArtisanLinks.length} site-artisan relationships`,
+      );
+    }
 
-    const artisanReviewDocs = artisanReviews
-      .map((review, index) => {
-        const artisanIndex = index % insertedArtisans.length;
-        if (
-          insertedArtisans[artisanIndex] &&
-          insertedArtisans[artisanIndex]._id
-        ) {
-          return {
-            userId: new mongoose.Types.ObjectId(), // You can replace with actual user ID if needed
-            targetId: insertedArtisans[artisanIndex]._id,
-            targetType: "artisan" as const,
-            author: review.userName,
-            rating: review.rating,
-            text: review.text,
-            date: review.date.toISOString(),
-          };
-        }
-        return null;
-      })
-      .filter((review) => review !== null);
+    // Add reviews
+    const siteReviewDocs = siteReviews.map((review, index) => {
+      const siteIndex = index % insertedSites.length;
+      return {
+        userId: new mongoose.Types.ObjectId(),
+        targetId: insertedSites[siteIndex]._id,
+        targetType: "site" as const,
+        author: review.userName,
+        rating: review.rating,
+        text: review.text,
+        date: review.date.toISOString(),
+      };
+    });
+
+    const artisanReviewDocs = artisanReviews.map((review, index) => {
+      const artisanIndex = index % insertedArtisans.length;
+      return {
+        userId: new mongoose.Types.ObjectId(),
+        targetId: insertedArtisans[artisanIndex]._id,
+        targetType: "artisan" as const,
+        author: review.userName,
+        rating: review.rating,
+        text: review.text,
+        date: review.date.toISOString(),
+      };
+    });
 
     if (siteReviewDocs.length > 0) {
       await ReviewModel.insertMany(siteReviewDocs);

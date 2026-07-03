@@ -1,3 +1,4 @@
+// app/(dashboard)/site/[id].tsx
 import React, { useState } from "react";
 import {
   View,
@@ -11,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Linking,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +22,6 @@ import StarRating from "../../components/common/Ratings";
 import { useSite } from "../../hooks/useApi";
 import { savedApi } from "../../api/index";
 import { ApiError } from "../../api/client";
-import { Artisan } from "../../types";
 
 const TABS = ["Summary", "Deep Dive", "Kids Mode"];
 
@@ -231,6 +232,286 @@ const qStyles = StyleSheet.create({
   tryAgainText: { fontSize: 12, color: Colors.primary, fontWeight: "600" },
 });
 
+// ─── Scavenger Hunt Component ───────────────────────────────────────────────
+// ─── Scavenger Hunt Component ───────────────────────────────────────────────
+interface ScavengerHuntItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  found: boolean;
+}
+
+function ScavengerHunt({ siteName }: { siteName: string }) {
+  const [huntItems, setHuntItems] = useState<ScavengerHuntItem[]>([
+    {
+      id: "1",
+      name: "Ancient Treasure",
+      description: "Find an old colourful painting or statue of a deity",
+      icon: "color-palette",
+      found: false,
+    },
+    {
+      id: "2",
+      name: "Colorful Flag",
+      description: "Spot a prayer flag or colorful banner",
+      icon: "flag",
+      found: false,
+    },
+    {
+      id: "3",
+      name: "Sacred Symbol",
+      description: "Find a religious symbol or statue",
+      icon: "flower",
+      found: false,
+    },
+    {
+      id: "4",
+      name: "Small Animal",
+      description: "Find a small dog, cat or goat",
+      icon: "paw",
+      found: false,
+    },
+    {
+      id: "5",
+      name: "Nature's Gift",
+      description: "Find a plant, flower, or tree at the site",
+      icon: "leaf",
+      found: false,
+    },
+    {
+      id: "6",
+      name: "Peaceful Spot",
+      description: "Find a quiet place to sit and reflect",
+      icon: "bonfire",
+      found: false,
+    },
+  ]);
+
+  const toggleFound = (id: string) => {
+    setHuntItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, found: !item.found } : item,
+      ),
+    );
+  };
+
+  const foundCount = huntItems.filter((item) => item.found).length;
+  const totalItems = huntItems.length;
+
+  return (
+    <View style={huntStyles.container}>
+      <View style={huntStyles.header}>
+        <View style={huntStyles.titleRow}>
+          <Ionicons name="compass-outline" size={22} color={Colors.primary} />
+          <Text style={huntStyles.title}>Scavenger Hunt at {siteName}</Text>
+        </View>
+        <View style={huntStyles.progressContainer}>
+          <View style={huntStyles.progressBar}>
+            <View
+              style={[
+                huntStyles.progressFill,
+                { width: `${(foundCount / totalItems) * 100}%` },
+              ]}
+            />
+          </View>
+          <Text style={huntStyles.progressText}>
+            {foundCount}/{totalItems} Found
+          </Text>
+        </View>
+      </View>
+
+      {huntItems.map((item) => (
+        <TouchableOpacity
+          key={item.id}
+          style={[huntStyles.item, item.found && huntStyles.itemFound]}
+          onPress={() => toggleFound(item.id)}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[
+              huntStyles.iconContainer,
+              item.found && huntStyles.iconContainerFound,
+            ]}
+          >
+            <Ionicons
+              name={item.icon}
+              size={28}
+              color={item.found ? "#4CAF50" : Colors.primary}
+            />
+          </View>
+          <View style={huntStyles.itemContent}>
+            <Text
+              style={[
+                huntStyles.itemName,
+                item.found && huntStyles.itemNameFound,
+              ]}
+            >
+              {item.name}
+            </Text>
+            <Text
+              style={[
+                huntStyles.itemDescription,
+                item.found && huntStyles.itemDescriptionFound,
+              ]}
+            >
+              {item.description}
+            </Text>
+          </View>
+          <View style={huntStyles.checkContainer}>
+            {item.found ? (
+              <View style={huntStyles.checkCircle}>
+                <Ionicons name="checkmark" size={16} color={Colors.white} />
+              </View>
+            ) : (
+              <View style={huntStyles.emptyCircle} />
+            )}
+          </View>
+        </TouchableOpacity>
+      ))}
+
+      {foundCount === totalItems && (
+        <View style={huntStyles.completeContainer}>
+          <Ionicons name="trophy" size={32} color={Colors.white} />
+          <Text style={huntStyles.completeText}>
+            Congratulations! You've completed the scavenger hunt! 🎉
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const huntStyles = StyleSheet.create({
+  container: {
+    marginBottom: Spacing.lg,
+  },
+  header: {
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadow.sm,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.text,
+    flex: 1,
+  },
+  progressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  progressBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: Colors.border,
+    borderRadius: Radius.full,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.full,
+  },
+  progressText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: "600",
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadow.sm,
+  },
+  itemFound: {
+    backgroundColor: "#E8F5E9",
+    borderColor: "#4CAF50",
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#EEF2FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  iconContainerFound: {
+    backgroundColor: "#C8E6C9",
+  },
+  itemContent: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.text,
+  },
+  itemNameFound: {
+    color: "#2E7D32",
+  },
+  itemDescription: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  itemDescriptionFound: {
+    color: "#388E3C",
+  },
+  checkContainer: {
+    marginLeft: Spacing.sm,
+  },
+  checkCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#4CAF50",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  completeContainer: {
+    backgroundColor: "#4CAF50",
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    alignItems: "center",
+    marginTop: Spacing.md,
+    flexDirection: "row",
+    gap: Spacing.md,
+    ...Shadow.md,
+  },
+  completeText: {
+    color: Colors.white,
+    fontSize: 15,
+    fontWeight: "700",
+    flex: 1,
+    textAlign: "center",
+  },
+});
+
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function SiteDetailScreen() {
   const router = useRouter();
@@ -259,6 +540,18 @@ export default function SiteDetailScreen() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const openMap = () => {
+    if (site?.coordinates) {
+      const { lat, lng } = site.coordinates;
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      Linking.openURL(url).catch(() => {
+        Alert.alert("Error", "Could not open maps");
+      });
+    } else {
+      Alert.alert("Info", "Location coordinates not available");
     }
   };
 
@@ -297,6 +590,10 @@ export default function SiteDetailScreen() {
 
   const displayRating = site.computedRating ?? site.rating ?? 0;
 
+  // Get translations for the site name
+  const translations = site.translations || {};
+  const translationLanguages = Object.keys(translations);
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
@@ -333,7 +630,7 @@ export default function SiteDetailScreen() {
             {site.isHiddenGem && (
               <View style={styles.gemBadge}>
                 <Ionicons name="diamond" size={11} color="#002852" />
-                <Text style={styles.gemBadgeText}>Hidden Gem</Text>
+                <Text style={styles.gemBadgeText}>Hidden gem of the week</Text>
               </View>
             )}
             {site.mustVisit && (
@@ -434,7 +731,10 @@ export default function SiteDetailScreen() {
                     {saved ? "Saved" : "Save"}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtnSecondary}>
+                <TouchableOpacity
+                  style={styles.actionBtnSecondary}
+                  onPress={openMap}
+                >
                   <Ionicons
                     name="map-outline"
                     size={18}
@@ -452,23 +752,35 @@ export default function SiteDetailScreen() {
                 </TouchableOpacity>
               </View>
 
+              {/* Map Preview */}
+              <View style={styles.mapPreviewContainer}>
+                <View style={styles.mapPreviewHeader}>
+                  <Text style={styles.sectionTitle}>Location</Text>
+                  <TouchableOpacity onPress={() => router.push("/map" as any)}>
+                    <Text style={styles.linkText}>Open Full Map</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={styles.mapPreview}
+                  onPress={() => router.push("/map" as any)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.mapPlaceholder}>
+                    <Ionicons name="map" size={40} color={Colors.border} />
+                    <Text style={styles.mapText}>
+                      {site.city || site.location}
+                    </Text>
+                    <Text style={styles.mapSubText}>Tap to explore on map</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
               {site.didYouKnow ? (
                 <View style={styles.didYouKnow}>
-                  <Text style={styles.didYouKnowTitle}>💡 Did You Know?</Text>
+                  <Text style={styles.didYouKnowTitle}>Did You Know?</Text>
                   <Text style={styles.didYouKnowText}>{site.didYouKnow}</Text>
                 </View>
               ) : null}
-
-              <View style={styles.locationHeader}>
-                <Text style={styles.sectionTitle}>Location</Text>
-                <TouchableOpacity>
-                  <Text style={styles.linkText}>Open in Maps</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.mapPlaceholder}>
-                <Ionicons name="map" size={40} color={Colors.border} />
-                <Text style={styles.mapText}>{site.location}</Text>
-              </View>
 
               {site.nearbyArtisans?.length > 0 && (
                 <>
@@ -532,6 +844,28 @@ export default function SiteDetailScreen() {
           {/* ── DEEP DIVE ── */}
           {activeTab === "Deep Dive" && (
             <>
+              {/* Translations Section */}
+              {translationLanguages.length > 0 && (
+                <View style={styles.translationsSection}>
+                  <View style={styles.deepTitleRow}>
+                    <Text style={styles.deepEmoji}>🌍</Text>
+                    <Text style={styles.deepTitle}>
+                      Name in Different Languages
+                    </Text>
+                  </View>
+                  {translationLanguages.map((lang) => (
+                    <View key={lang} style={styles.translationItem}>
+                      <Text style={styles.translationLang}>
+                        {lang.charAt(0).toUpperCase() + lang.slice(1)}:
+                      </Text>
+                      <Text style={styles.translationText}>
+                        {translations[lang]}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
               {site.history ? (
                 <View style={styles.deepSection}>
                   <View style={styles.deepTitleRow}>
@@ -541,6 +875,7 @@ export default function SiteDetailScreen() {
                   <Text style={styles.summaryText}>{site.history}</Text>
                 </View>
               ) : null}
+
               {site.myth ? (
                 <View style={styles.deepSection}>
                   <View style={styles.deepTitleRow}>
@@ -550,6 +885,7 @@ export default function SiteDetailScreen() {
                   <Text style={styles.summaryText}>{site.myth}</Text>
                 </View>
               ) : null}
+
               {site.openingHours ? (
                 <View style={styles.infoBox}>
                   <Ionicons
@@ -563,15 +899,40 @@ export default function SiteDetailScreen() {
                   </View>
                 </View>
               ) : null}
-              {!site.history && !site.myth && !site.openingHours && (
-                <View style={styles.emptyState}>
+
+              {!site.history &&
+                !site.myth &&
+                !site.openingHours &&
+                translationLanguages.length === 0 && (
+                  <View style={styles.emptyState}>
+                    <Ionicons
+                      name="book-outline"
+                      size={48}
+                      color={Colors.border}
+                    />
+                    <Text style={styles.noContent}>
+                      Deep dive content coming soon.
+                    </Text>
+                  </View>
+                )}
+
+              {/* Last Updated */}
+              {site.updatedAt && (
+                <View style={styles.lastUpdated}>
                   <Ionicons
-                    name="book-outline"
-                    size={48}
-                    color={Colors.border}
+                    name="time-outline"
+                    size={14}
+                    color={Colors.textMuted}
                   />
-                  <Text style={styles.noContent}>
-                    Deep dive content coming soon.
+                  <Text style={styles.lastUpdatedText}>
+                    Last updated:{" "}
+                    {new Date(site.updatedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </Text>
                 </View>
               )}
@@ -582,7 +943,7 @@ export default function SiteDetailScreen() {
           {activeTab === "Kids Mode" && (
             <>
               <View style={styles.kidsHeader}>
-                <Text style={styles.kidsTitle}>🎮 Fun Learning!</Text>
+                <Text style={styles.kidsTitle}>Fun Learning!</Text>
                 <Text style={styles.kidsSubtitle}>
                   Test what you know about {site.name}
                 </Text>
@@ -600,19 +961,21 @@ export default function SiteDetailScreen() {
 
               {(site.quizzes?.length ?? 0) > 0 ? (
                 <View>
-                  <Text style={styles.quizSectionTitle}>🎯 Quiz Time!</Text>
+                  <Text style={styles.quizSectionTitle}>Quiz Time!</Text>
                   {site.quizzes!.map((quiz, i) => (
                     <QuizCard key={i} quiz={quiz} index={i} />
                   ))}
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={{ fontSize: 48 }}>🎯</Text>
+                  <Text style={{ fontSize: 48 }}></Text>
                   <Text style={styles.noContent}>
                     No quizzes available yet.
                   </Text>
                 </View>
               )}
+              {/* Scavenger Hunt */}
+              <ScavengerHunt siteName={site.name} />
             </>
           )}
         </View>
@@ -771,6 +1134,36 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: "500",
   },
+  mapPreviewContainer: {
+    marginBottom: Spacing.lg,
+  },
+  mapPreviewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  mapPreview: {
+    height: 150,
+    borderRadius: Radius.lg,
+    overflow: "hidden",
+  },
+  mapPlaceholder: {
+    flex: 1,
+    backgroundColor: "#E8F0E8",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+  },
+  mapText: {
+    color: Colors.text,
+    marginTop: Spacing.xs,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  mapSubText: { color: Colors.textMuted, fontSize: 11, marginTop: 4 },
   locationHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -779,17 +1172,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
   linkText: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
-  mapPlaceholder: {
-    height: 130,
-    backgroundColor: "#E8F0E8",
-    borderRadius: Radius.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  mapText: { color: Colors.textMuted, marginTop: Spacing.xs, fontSize: 12 },
   didYouKnow: {
     backgroundColor: "#FFF9E6",
     borderRadius: Radius.lg,
@@ -854,6 +1236,45 @@ const styles = StyleSheet.create({
   },
   deepEmoji: { fontSize: 18 },
   deepTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
+  translationsSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadow.sm,
+  },
+  translationItem: {
+    flexDirection: "row",
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  translationLang: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.text,
+    width: 80,
+  },
+  translationText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  lastUpdated: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  lastUpdatedText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
   infoBox: {
     flexDirection: "row",
     gap: Spacing.md,

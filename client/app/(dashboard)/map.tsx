@@ -1,3 +1,4 @@
+// app/(dashboard)/map.tsx
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -13,6 +14,7 @@ import {
   Dimensions,
   Linking,
   Platform,
+  Keyboard,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { useRouter } from "expo-router";
@@ -97,10 +99,12 @@ function buildLeafletHTML(sites: Site[]): string {
     .map((s) => {
       const siteData = s as Site & Record<string, unknown>;
       const lat =
+        (siteData as any).coordinates?.lat ??
         (siteData as any).latitude ??
         (siteData as any).lat ??
         (siteData as any).locationLat;
       const lng =
+        (siteData as any).coordinates?.lng ??
         (siteData as any).longitude ??
         (siteData as any).lng ??
         (siteData as any).locationLng;
@@ -273,11 +277,11 @@ function buildLeafletHTML(sites: Site[]): string {
 </div>
 
 <script>
-  // Initialize map
+  // Initialize map with a default view
   var map = L.map('map', { 
     zoomControl: false,
     center: [27.7103, 85.3222],
-    zoom: 13
+    zoom: 12
   });
   
   // Add tile layer
@@ -335,6 +339,14 @@ function buildLeafletHTML(sites: Site[]): string {
   });
 
   map.addLayer(markerCluster);
+
+  // Fit bounds to show all markers
+  if (markersData.length > 0) {
+    var bounds = L.latLngBounds(markersData.map(function(m) { 
+      return [m.lat, m.lng]; 
+    }));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
 
   // Handle cluster click
   markerCluster.on('clusterclick', function(e) {
@@ -460,9 +472,11 @@ function buildLeafletHTML(sites: Site[]): string {
   }, 500);
 
   // Notify React Native that map is ready
-  window.ReactNativeWebView.postMessage(JSON.stringify({ 
-    type: 'mapReady' 
-  }));
+  setTimeout(function() {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ 
+      type: 'mapReady' 
+    }));
+  }, 1000);
 </script>
 </body>
 </html>`;
@@ -480,10 +494,11 @@ export default function MapScreen() {
   } | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [webViewKey, setWebViewKey] = useState(0);
+  const [webViewError, setWebViewError] = useState(false);
   const filterAnim = useRef(new Animated.Value(0)).current;
   const webViewRef = useRef<WebView>(null);
 
-  const { data, loading } = useSites({
+  const { data, loading, refetch } = useSites({
     type: selectedCategory === "All" ? undefined : selectedCategory,
     city: selectedCity === "All" ? undefined : selectedCity,
     limit: 50,
@@ -495,6 +510,8 @@ export default function MapScreen() {
   useEffect(() => {
     if (sites.length > 0 || !loading) {
       setWebViewKey((prev) => prev + 1);
+      setMapReady(false);
+      setWebViewError(false);
     }
   }, [selectedCategory, selectedCity, sites, loading]);
 
@@ -520,6 +537,7 @@ export default function MapScreen() {
 
       if (msg.type === "mapReady") {
         setMapReady(true);
+        setWebViewError(false);
         console.log("Map is ready");
       } else if (msg.type === "markerClick") {
         setSelectedSite({ id: msg.id, name: msg.name });
@@ -539,6 +557,16 @@ export default function MapScreen() {
     } catch (error) {
       console.warn("Error parsing message:", error);
     }
+  };
+
+  const handleWebViewError = () => {
+    setWebViewError(true);
+    setMapReady(false);
+  };
+
+  const retryLoadMap = () => {
+    setWebViewError(false);
+    setWebViewKey((prev) => prev + 1);
   };
 
   return (
@@ -638,17 +666,30 @@ export default function MapScreen() {
         onLoadEnd={() => {
           console.log("WebView loaded");
         }}
-        onError={(error) => {
-          console.error("WebView error:", error);
-        }}
+        onError={handleWebViewError}
+        onHttpError={handleWebViewError}
         containerStyle={styles.webViewContainer}
+        originWhitelist={["*"]}
+        allowsInlineMediaPlayback={true}
+        mixedContentMode="always"
       />
 
       {/* Loading indicator */}
-      {!mapReady && (
+      {!mapReady && !webViewError && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Loading map...</Text>
+        </View>
+      )}
+
+      {/* Error state */}
+      {webViewError && (
+        <View style={styles.errorContainer}>
+          <Ionicons name="map-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.errorText}>Failed to load map</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={retryLoadMap}>
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -794,6 +835,34 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  errorContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+    gap: 12,
+  },
+  errorText: {
+    fontSize: 16,
+    color: Colors.textMuted,
+    fontWeight: "500",
+  },
+  retryBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: Radius.md,
+  },
+  retryBtnText: {
+    color: Colors.white,
+    fontWeight: "600",
     fontSize: 14,
   },
 });
