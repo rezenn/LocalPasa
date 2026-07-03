@@ -5,395 +5,550 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ScrollView,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   ActivityIndicator,
-  Animated,
+  Platform,
   Dimensions,
 } from "react-native";
-import { WebView } from "react-native-webview";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
-import { useSites } from "../../hooks/useApi";
+import { useSites } from "../../hooks";
 import { Site } from "../../types";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
-const CATEGORY_FILTERS = [
-  "All",
-  "Temple",
-  "Monastery",
-  "Stupa",
-  "Palace",
-  "Museum",
-];
-const CITY_FILTERS = ["All", "Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"];
+const INITIAL_REGION = {
+  latitude: 27.7103,
+  longitude: 85.3222,
+  latitudeDelta: 0.12,
+  longitudeDelta: 0.12,
+};
 
-function buildLeafletHTML(sites: Site[]): string {
-  // Site type has no coordinates field — use demo markers until
-  // the backend returns lat/lng and the type is extended
-  const demoMarkers = [
-    {
-      lat: 27.7103,
-      lng: 85.3222,
-      name: "Pashupatinath Temple",
-      type: "Temple",
-      price: "Varied",
-      id: "1",
-      mustVisit: true,
-    },
-    {
-      lat: 27.7149,
-      lng: 85.2893,
-      name: "Swayambhunath Stupa",
-      type: "Stupa",
-      price: "Varied",
-      id: "2",
-      mustVisit: true,
-    },
-    {
-      lat: 27.6727,
-      lng: 85.3244,
-      name: "Patan Durbar Square",
-      type: "Palace",
-      price: "NPR 1000",
-      id: "3",
-      mustVisit: true,
-    },
-    {
-      lat: 27.671,
-      lng: 85.4298,
-      name: "Bhaktapur Durbar Square",
-      type: "Palace",
-      price: "NPR 1500",
-      id: "4",
-      mustVisit: true,
-    },
-    {
-      lat: 27.7228,
-      lng: 85.3655,
-      name: "Kopan Monastery",
-      type: "Monastery",
-      price: "Free",
-      id: "5",
-      mustVisit: false,
-    },
-    {
-      lat: 27.7041,
-      lng: 85.313,
-      name: "Boudhanath Stupa",
-      type: "Stupa",
-      price: "NPR 400",
-      id: "6",
-      mustVisit: true,
-    },
-  ];
+// Approximate coords for known Kathmandu sites
+const SITE_COORDS: Record<string, { latitude: number; longitude: number }> = {
+  default: { latitude: 27.7103, longitude: 85.3222 },
+};
 
-  // Use demo markers if no sites provided, otherwise use sites data
-  const allMarkers = sites && sites.length > 0 ? sites : demoMarkers;
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body, #map { width: 100%; height: 100%; }
-  .custom-marker { 
-    background: #6B4F3A; border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg); border: 3px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-  .must-visit-marker { background: #2C7A3A; }
-  .popup-title { font-weight: 700; font-size: 14px; color: #1A1A1A; margin-bottom: 4px; }
-  .popup-sub { font-size: 12px; color: #6B6B6B; }
-  .popup-badge { 
-    display: inline-block; background: #E8F5E9; color: #2C7A3A;
-    font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 4px;
-  }
-  .leaflet-popup-content-wrapper { border-radius: 12px; }
-</style>
-</head>
-<body>
-<div id="map"></div>
-<script>
-  var map = L.map('map', { zoomControl: false }).setView([27.7103, 85.3222], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
-  var markers = ${JSON.stringify(allMarkers)};
-  markers.forEach(function(m) {
-    var iconHtml = '<div class="custom-marker ' + (m.mustVisit ? 'must-visit-marker' : '') + '" style="width:16px;height:16px;"></div>';
-    var icon = L.divIcon({ html: iconHtml, iconSize: [22, 22], iconAnchor: [11, 22], className: '' });
-    var popupContent = '<div class="popup-title">' + m.name + '</div>' +
-      '<div class="popup-sub">' + m.type + ' · ' + m.price + '</div>' +
-      (m.mustVisit ? '<div class="popup-badge">Must Visit</div>' : '');
-    L.marker([m.lat, m.lng], { icon: icon })
-      .addTo(map)
-      .bindPopup(popupContent)
-      .on('click', function() {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markerClick', id: m.id, name: m.name }));
-      });
-  });
-</script>
-</body>
-</html>`;
+function getCoords(site: Site, idx: number) {
+  const base = SITE_COORDS[site._id] ?? SITE_COORDS.default;
+  // Spread markers slightly if no specific coords
+  const offset = idx * 0.005;
+  return {
+    latitude: base.latitude + (idx % 3) * 0.008 - 0.008,
+    longitude: base.longitude + (idx % 4) * 0.006 - 0.009,
+  };
 }
+
+const CITIES = ["All", "Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"];
+const TYPES = ["All", "Temple", "Monastery", "Stupa", "Palace", "Museum"];
 
 export default function MapScreen() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const mapRef = useRef<MapView>(null);
+  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [selectedCity, setSelectedCity] = useState("All");
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedSite, setSelectedSite] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
-  const filterAnim = useRef(new Animated.Value(0)).current;
+  const [selectedType, setSelectedType] = useState("All");
+  const [search, setSearch] = useState("");
+  const [mapMode, setMapMode] = useState<"map" | "list">("map");
 
   const { data, loading } = useSites({
-    type: selectedCategory === "All" ? undefined : selectedCategory,
     city: selectedCity === "All" ? undefined : selectedCity,
-    limit: 50,
+    type: selectedType === "All" ? undefined : selectedType,
+    limit: 30,
+    sortBy: "rating",
   });
 
-  const sites = data?.sites ?? [];
+  const sites = (data?.sites ?? []).filter((s) =>
+    search ? s.name.toLowerCase().includes(search.toLowerCase()) : true,
+  );
 
-  const toggleFilters = () => {
-    const toValue = showFilters ? 0 : 1;
-    setShowFilters(!showFilters);
-    Animated.spring(filterAnim, {
-      toValue,
-      useNativeDriver: false,
-      friction: 8,
-    }).start();
+  const handleMarkerPress = (site: Site) => {
+    setSelectedSite(site);
   };
 
-  const filterHeight = filterAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 100],
-  });
+  const handleCardPress = (site: Site) => {
+    router.push(`/site/${site._id}` as any);
+  };
+
+  const focusMarker = (site: Site, idx: number) => {
+    const coords = getCoords(site, idx);
+    mapRef.current?.animateToRegion(
+      { ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 },
+      500,
+    );
+    setSelectedSite(site);
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="dark-content" />
 
-      {/* Search bar overlay */}
-      <View style={styles.searchOverlay}>
-        <View style={styles.searchRow}>
-          <Ionicons
-            name="search"
-            size={18}
-            color={Colors.textMuted}
-            style={styles.searchIcon}
-          />
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Explore Map</Text>
+            <Text style={styles.headerSub}>{sites.length} places nearby</Text>
+          </View>
+          <View style={styles.modeSwitcher}>
+            <TouchableOpacity
+              style={[
+                styles.modeBtn,
+                mapMode === "map" && styles.modeBtnActive,
+              ]}
+              onPress={() => setMapMode("map")}
+            >
+              <Ionicons
+                name="map"
+                size={16}
+                color={mapMode === "map" ? Colors.white : Colors.textSecondary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modeBtn,
+                mapMode === "list" && styles.modeBtnActive,
+              ]}
+              onPress={() => setMapMode("list")}
+            >
+              <Ionicons
+                name="list"
+                size={16}
+                color={mapMode === "list" ? Colors.white : Colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search places, temples, monasteries..."
+            placeholder="Search places..."
             placeholderTextColor={Colors.textMuted}
             value={search}
             onChangeText={setSearch}
           />
-          <TouchableOpacity onPress={toggleFilters} style={styles.filterBtn}>
-            <Ionicons name="options" size={18} color={Colors.primary} />
-          </TouchableOpacity>
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch("")}>
+              <Ionicons
+                name="close-circle"
+                size={16}
+                color={Colors.textMuted}
+              />
+            </TouchableOpacity>
+          )}
         </View>
+      </View>
 
-        {/* Animated filter row */}
-        <Animated.View
-          style={[
-            styles.filterPanel,
-            { height: filterHeight, overflow: "hidden" },
-          ]}
+      {/* Filter chips */}
+      <View style={styles.filtersWrap}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
         >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.chipScroll}
-            contentContainerStyle={styles.chipContent}
-          >
-            {CATEGORY_FILTERS.map((c) => (
-              <TouchableOpacity
-                key={c}
+          {CITIES.map((city) => (
+            <TouchableOpacity
+              key={city}
+              style={[styles.chip, selectedCity === city && styles.chipActive]}
+              onPress={() => setSelectedCity(city)}
+            >
+              <Text
                 style={[
-                  styles.chip,
-                  selectedCategory === c && styles.chipActive,
+                  styles.chipText,
+                  selectedCity === city && styles.chipTextActive,
                 ]}
-                onPress={() => setSelectedCategory(c)}
               >
-                <Text
-                  style={[
-                    styles.chipText,
-                    selectedCategory === c && styles.chipTextActive,
-                  ]}
-                >
-                  {c}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.chipScroll}
-            contentContainerStyle={styles.chipContent}
+                {city}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          <View style={styles.divider} />
+          {TYPES.map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[styles.chip, selectedType === type && styles.chipActive]}
+              onPress={() => setSelectedType(type)}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  selectedType === type && styles.chipTextActive,
+                ]}
+              >
+                {type}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {loading ? (
+        <View style={styles.loaderWrap}>
+          <ActivityIndicator color={Colors.primary} size="large" />
+        </View>
+      ) : mapMode === "map" ? (
+        <View style={styles.mapContainer}>
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
+            initialRegion={INITIAL_REGION}
+            showsUserLocation
+            showsMyLocationButton
+            showsCompass
+            showsScale
           >
-            {CITY_FILTERS.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[styles.chip, selectedCity === c && styles.chipActive]}
-                onPress={() => setSelectedCity(c)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    selectedCity === c && styles.chipTextActive,
-                  ]}
+            {sites.map((site, idx) => {
+              const coords = getCoords(site, idx);
+              const isSelected = selectedSite?._id === site._id;
+              return (
+                <Marker
+                  key={site._id}
+                  coordinate={coords}
+                  onPress={() => handleMarkerPress(site)}
                 >
-                  {c}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      </View>
+                  <View
+                    style={[
+                      styles.markerPin,
+                      isSelected && styles.markerPinActive,
+                    ]}
+                  >
+                    <Ionicons
+                      name="location"
+                      size={isSelected ? 28 : 22}
+                      color={isSelected ? Colors.secondary : Colors.primary}
+                    />
+                  </View>
+                  <Callout onPress={() => handleCardPress(site)}>
+                    <View style={styles.callout}>
+                      <Text style={styles.calloutName}>{site.name}</Text>
+                      <Text style={styles.calloutSub}>{site.location}</Text>
+                      {site.rating ? (
+                        <View style={styles.calloutRating}>
+                          <Ionicons
+                            name="star"
+                            size={12}
+                            color={Colors.secondary}
+                          />
+                          <Text style={styles.calloutRatingText}>
+                            {site.rating.toFixed(1)}
+                          </Text>
+                        </View>
+                      ) : null}
+                      <Text style={styles.calloutCta}>Tap to view →</Text>
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
+          </MapView>
 
-      {/* Map */}
-      <WebView
-        source={{ html: buildLeafletHTML(sites) }}
-        style={styles.map}
-        onMessage={(e) => {
-          try {
-            const msg = JSON.parse(e.nativeEvent.data);
-            if (msg.type === "markerClick") {
-              setSelectedSite({ id: msg.id, name: msg.name });
-            }
-          } catch {}
-        }}
-        javaScriptEnabled
-        domStorageEnabled
-      />
-
-      {/* Bottom card when marker tapped */}
-      {selectedSite && (
-        <View style={styles.siteCard}>
-          <View style={styles.siteCardInner}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.siteCardName}>{selectedSite.name}</Text>
-              <Text style={styles.siteCardSub}>Tap to view full details</Text>
-            </View>
-            <View style={styles.siteCardActions}>
-              <TouchableOpacity
-                style={styles.viewBtn}
-                onPress={() => router.push(`/site/${selectedSite.id}` as any)}
+          {/* Bottom sites strip */}
+          {sites.length > 0 && (
+            <View style={styles.bottomStrip}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.stripContent}
               >
-                <Text style={styles.viewBtnText}>View</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setSelectedSite(null)}>
-                <Ionicons name="close" size={20} color={Colors.textMuted} />
-              </TouchableOpacity>
+                {sites.map((site, idx) => {
+                  const isSelected = selectedSite?._id === site._id;
+                  return (
+                    <TouchableOpacity
+                      key={site._id}
+                      style={[
+                        styles.stripCard,
+                        isSelected && styles.stripCardActive,
+                      ]}
+                      onPress={() => focusMarker(site, idx)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.stripCardInner}>
+                        <Text
+                          style={[
+                            styles.stripName,
+                            isSelected && styles.stripNameActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {site.name}
+                        </Text>
+                        <Text style={styles.stripLoc} numberOfLines={1}>
+                          {site.location}
+                        </Text>
+                        <View style={styles.stripMeta}>
+                          {site.rating ? (
+                            <View style={styles.stripRating}>
+                              <Ionicons
+                                name="star"
+                                size={10}
+                                color={Colors.secondary}
+                              />
+                              <Text style={styles.stripRatingText}>
+                                {site.rating.toFixed(1)}
+                              </Text>
+                            </View>
+                          ) : null}
+                          <Text style={styles.stripPrice}>{site.price}</Text>
+                        </View>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.stripGo}
+                        onPress={() => handleCardPress(site)}
+                      >
+                        <Ionicons
+                          name="arrow-forward"
+                          size={14}
+                          color={Colors.white}
+                        />
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </View>
-          </View>
+          )}
         </View>
+      ) : (
+        // List mode
+        <ScrollView
+          style={styles.listScroll}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        >
+          {sites.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Ionicons name="search-outline" size={48} color={Colors.border} />
+              <Text style={styles.emptyText}>No sites found</Text>
+            </View>
+          ) : (
+            sites.map((site) => (
+              <TouchableOpacity
+                key={site._id}
+                style={styles.listCard}
+                onPress={() => handleCardPress(site)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.listCardIcon}>
+                  <Ionicons name="location" size={20} color={Colors.primary} />
+                </View>
+                <View style={styles.listCardBody}>
+                  <Text style={styles.listCardName}>{site.name}</Text>
+                  <Text style={styles.listCardLoc}>{site.location}</Text>
+                  <View style={styles.listCardMeta}>
+                    {site.rating ? (
+                      <View style={styles.ratingRow}>
+                        <Ionicons
+                          name="star"
+                          size={12}
+                          color={Colors.secondary}
+                        />
+                        <Text style={styles.ratingText}>
+                          {site.rating.toFixed(1)}
+                        </Text>
+                      </View>
+                    ) : null}
+                    <View style={[styles.typeBadge]}>
+                      <Text style={styles.typeBadgeText}>
+                        {site.type ?? "Site"}
+                      </Text>
+                    </View>
+                    <Text style={styles.priceText}>{site.price}</Text>
+                  </View>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={Colors.textMuted}
+                />
+              </TouchableOpacity>
+            ))
+          )}
+          <View style={{ height: 32 }} />
+        </ScrollView>
       )}
-
-      {/* Legend */}
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: "#2C7A3A" }]} />
-          <Text style={styles.legendText}>Must Visit</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: Colors.primary }]} />
-          <Text style={styles.legendText}>Cultural Site</Text>
-        </View>
-      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  map: { flex: 1 },
-  searchOverlay: {
-    position: "absolute",
-    top: 50,
-    left: Spacing.lg,
-    right: Spacing.lg,
-    zIndex: 100,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    ...Shadow.md,
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
-  searchRow: {
+  header: {
+    backgroundColor: Colors.brown,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
+  },
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    height: 48,
+    justifyContent: "space-between",
+    marginBottom: Spacing.sm,
   },
-  searchIcon: { marginRight: Spacing.sm },
-  searchInput: { flex: 1, fontSize: 14, color: Colors.text },
-  filterBtn: { padding: 6 },
-  filterPanel: { paddingBottom: 8 },
-  chipScroll: { marginBottom: 4 },
-  chipContent: { paddingHorizontal: Spacing.md, gap: 8 },
+  headerLeft: {},
+  headerTitle: { fontSize: 22, color: Colors.white, fontFamily: "CrimsonBold" },
+  headerSub: { fontSize: 12, color: "#E2DBDB", marginTop: 2 },
+  modeSwitcher: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: Radius.full,
+    padding: 3,
+  },
+  modeBtn: { padding: 8, borderRadius: Radius.full },
+  modeBtnActive: { backgroundColor: Colors.primary },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.white,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: Colors.text, padding: 0 },
+  filtersWrap: { paddingTop: Spacing.sm, paddingBottom: 2 },
+  filterRow: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.xs,
+    alignItems: "center",
+  },
   chip: {
-    paddingHorizontal: 12,
+    paddingHorizontal: Spacing.md,
     paddingVertical: 5,
     borderRadius: Radius.full,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: 12, color: Colors.textSecondary },
-  chipTextActive: { color: Colors.white, fontWeight: "600" },
-  siteCard: {
-    position: "absolute",
-    bottom: 24,
-    left: Spacing.lg,
-    right: Spacing.lg,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    ...Shadow.md,
+  chipText: { fontSize: 12, color: Colors.textSecondary, fontWeight: "500" },
+  chipTextActive: { color: Colors.white, fontWeight: "700" },
+  divider: {
+    width: 1,
+    height: 20,
+    backgroundColor: Colors.border,
+    marginHorizontal: 4,
   },
-  siteCardInner: {
+  loaderWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
+  mapContainer: { flex: 1 },
+  map: { width, flex: 1 },
+  markerPin: { alignItems: "center" },
+  markerPinActive: { transform: [{ scale: 1.2 }] },
+  callout: { width: 180, padding: Spacing.sm },
+  calloutName: { fontSize: 14, fontWeight: "700", color: Colors.text },
+  calloutSub: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+  calloutRating: {
     flexDirection: "row",
     alignItems: "center",
-    padding: Spacing.lg,
-  },
-  siteCardName: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.text,
-    fontFamily: "CrimsonBold",
-  },
-  siteCardSub: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
-  siteCardActions: { flexDirection: "row", alignItems: "center", gap: 12 },
-  viewBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: Radius.md,
-  },
-  viewBtnText: { color: Colors.white, fontWeight: "600", fontSize: 13 },
-  legend: {
-    position: "absolute",
-    bottom: 90,
-    right: Spacing.lg,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: 8,
-    ...Shadow.sm,
     gap: 4,
+    marginTop: 4,
   },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  legendText: { fontSize: 11, color: Colors.textSecondary },
+  calloutRatingText: { fontSize: 12, color: Colors.text, fontWeight: "600" },
+  calloutCta: {
+    fontSize: 11,
+    color: Colors.primary,
+    marginTop: 6,
+    fontWeight: "600",
+  },
+  bottomStrip: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: Spacing.md,
+    backgroundColor: "transparent",
+  },
+  stripContent: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+    paddingTop: 8,
+  },
+  stripCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.sm,
+    width: 200,
+    ...Shadow.md,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  stripCardActive: { borderColor: Colors.primary },
+  stripCardInner: { flex: 1 },
+  stripName: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  stripNameActive: { color: Colors.primary },
+  stripLoc: { fontSize: 11, color: Colors.textSecondary, marginTop: 1 },
+  stripMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: 4,
+  },
+  stripRating: { flexDirection: "row", alignItems: "center", gap: 2 },
+  stripRatingText: { fontSize: 11, color: Colors.text, fontWeight: "600" },
+  stripPrice: { fontSize: 11, color: Colors.textMuted },
+  stripGo: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: Spacing.sm,
+  },
+  listScroll: { flex: 1 },
+  listContent: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md },
+  listCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: Spacing.md,
+    ...Shadow.sm,
+  },
+  listCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F0EAE2",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  listCardBody: { flex: 1 },
+  listCardName: { fontSize: 14, fontWeight: "700", color: Colors.text },
+  listCardLoc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  listCardMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: 4,
+  },
+  ratingRow: { flexDirection: "row", alignItems: "center", gap: 3 },
+  ratingText: { fontSize: 12, color: Colors.text, fontWeight: "600" },
+  typeBadge: {
+    backgroundColor: "#F0EAE2",
+    borderRadius: Radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  typeBadgeText: { fontSize: 10, color: Colors.primary, fontWeight: "600" },
+  priceText: { fontSize: 11, color: Colors.textMuted },
+  emptyBox: { alignItems: "center", marginTop: 80, gap: Spacing.sm },
+  emptyText: { fontSize: 15, color: Colors.textMuted },
 });

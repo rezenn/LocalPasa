@@ -10,6 +10,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Animated,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,17 +24,220 @@ import { Artisan } from "../../types";
 
 const TABS = ["Summary", "Deep Dive", "Kids Mode"];
 
+// ─── Quiz component ───────────────────────────────────────────────────────────
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct: number;
+}
+
+function QuizCard({ quiz, index }: { quiz: QuizQuestion; index: number }) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  const handleAnswer = (idx: number) => {
+    if (revealed) return;
+    setSelected(idx);
+    setRevealed(true);
+  };
+
+  const reset = () => {
+    setSelected(null);
+    setRevealed(false);
+  };
+
+  return (
+    <View style={qStyles.card}>
+      <View style={qStyles.qHeader}>
+        <View style={qStyles.qNum}>
+          <Text style={qStyles.qNumText}>{index + 1}</Text>
+        </View>
+        <Text style={qStyles.question}>{quiz.question}</Text>
+      </View>
+
+      <View style={qStyles.options}>
+        {quiz.options.map((opt, i) => {
+          const isCorrect = i === quiz.correct;
+          const isSelected = i === selected;
+          let bg: string = Colors.surface;
+          let border: string = Colors.border;
+          let textColor: string = Colors.text;
+          let icon: "checkmark-circle" | "close-circle" | null = null;
+          let iconColor: string = Colors.primary;
+
+          if (revealed) {
+            if (isCorrect) {
+              bg = "#E8F5E9";
+              border = "#4CAF50";
+              textColor = "#1B5E20";
+              icon = "checkmark-circle";
+              iconColor = "#4CAF50";
+            } else if (isSelected && !isCorrect) {
+              bg = "#FFEBEE";
+              border = "#F44336";
+              textColor = "#B71C1C";
+              icon = "close-circle";
+              iconColor = "#F44336";
+            } else {
+              bg = "#FAFAFA";
+              border = Colors.border;
+              textColor = Colors.textMuted;
+            }
+          } else if (isSelected) {
+            bg = "#EEF2FF";
+            border = Colors.primary;
+          }
+
+          return (
+            <TouchableOpacity
+              key={i}
+              style={[
+                qStyles.option,
+                { backgroundColor: bg, borderColor: border },
+              ]}
+              onPress={() => handleAnswer(i)}
+              activeOpacity={revealed ? 1 : 0.75}
+              disabled={revealed}
+            >
+              <View style={qStyles.optionLetter}>
+                <Text
+                  style={[
+                    qStyles.optionLetterText,
+                    revealed && isCorrect && { color: "#4CAF50" },
+                    revealed &&
+                      isSelected &&
+                      !isCorrect && { color: "#F44336" },
+                  ]}
+                >
+                  {String.fromCharCode(65 + i)}
+                </Text>
+              </View>
+              <Text
+                style={[qStyles.optionText, { color: textColor }]}
+                numberOfLines={3}
+              >
+                {opt}
+              </Text>
+              {icon && (
+                <Ionicons
+                  name={icon}
+                  size={20}
+                  color={iconColor}
+                  style={qStyles.optionIcon}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {revealed && (
+        <View style={qStyles.result}>
+          {selected === quiz.correct ? (
+            <View style={qStyles.resultCorrect}>
+              <Ionicons name="trophy" size={18} color="#4CAF50" />
+              <Text style={qStyles.resultCorrectText}>
+                Correct! Well done! 🎉
+              </Text>
+            </View>
+          ) : (
+            <View style={qStyles.resultWrong}>
+              <Ionicons name="information-circle" size={18} color="#F57C00" />
+              <Text style={qStyles.resultWrongText}>
+                The correct answer is{" "}
+                <Text style={{ fontWeight: "800" }}>
+                  {String.fromCharCode(65 + quiz.correct)}
+                </Text>
+              </Text>
+            </View>
+          )}
+          <TouchableOpacity style={qStyles.tryAgain} onPress={reset}>
+            <Ionicons name="refresh" size={14} color={Colors.primary} />
+            <Text style={qStyles.tryAgainText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const qStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadow.sm,
+  },
+  qHeader: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.md },
+  qNum: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.brown,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  qNumText: { color: Colors.white, fontSize: 13, fontWeight: "800" },
+  question: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.text,
+    lineHeight: 22,
+  },
+  options: { gap: Spacing.sm },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  optionLetter: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#F0EAE2",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  optionLetterText: { fontSize: 12, fontWeight: "800", color: Colors.primary },
+  optionText: { flex: 1, fontSize: 14, lineHeight: 20 },
+  optionIcon: { flexShrink: 0 },
+  result: {
+    marginTop: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  resultCorrect: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+  },
+  resultCorrectText: { fontSize: 13, fontWeight: "700", color: "#2E7D32" },
+  resultWrong: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
+  resultWrongText: { fontSize: 13, color: "#E65100" },
+  tryAgain: { flexDirection: "row", alignItems: "center", gap: 4 },
+  tryAgainText: { fontSize: 12, color: Colors.primary, fontWeight: "600" },
+});
+
+// ─── Main screen ─────────────────────────────────────────────────────────────
 export default function SiteDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("Summary");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  // Review form state
-  const [reviewText, setReviewText] = useState("");
-  const [reviewRating, setReviewRating] = useState(5);
-  const [submittingReview, setSubmittingReview] = useState(false);
 
   const { data: site, loading, error } = useSite(id ?? "");
 
@@ -49,23 +253,20 @@ export default function SiteDetailScreen() {
         setSaved(true);
       }
     } catch (err) {
-      const msg =
-        err instanceof ApiError ? err.message : "Failed to update saved";
-      Alert.alert("Error", msg);
+      Alert.alert(
+        "Error",
+        err instanceof ApiError ? err.message : "Failed to update saved",
+      );
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleArtisanPress = (artisan: Artisan) => {
-    console.log("Artisan pressed:", artisan._id);
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
         <ActivityIndicator
-          style={styles.loadingCenter}
+          style={{ flex: 1 }}
           color={Colors.primary}
           size="large"
         />
@@ -77,6 +278,11 @@ export default function SiteDetailScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={56}
+            color={Colors.border}
+          />
           <Text style={styles.errorText}>Site not found</Text>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -99,7 +305,6 @@ export default function SiteDetailScreen() {
         <View style={styles.heroWrapper}>
           <Image source={{ uri: site.image }} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
-
           <View style={styles.topNav}>
             <TouchableOpacity
               style={styles.navBtn}
@@ -124,12 +329,11 @@ export default function SiteDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.badgeContainer}>
+          <View style={styles.heroBadges}>
             {site.isHiddenGem && (
               <View style={styles.gemBadge}>
                 <Ionicons name="diamond" size={11} color="#002852" />
-                <Text style={styles.gemBadgeText}>Hidden gem of the week</Text>
+                <Text style={styles.gemBadgeText}>Hidden Gem</Text>
               </View>
             )}
             {site.mustVisit && (
@@ -139,7 +343,7 @@ export default function SiteDetailScreen() {
                   size={10}
                   color={Colors.white}
                 />
-                <Text style={styles.mustVisitText}>Must visit</Text>
+                <Text style={styles.mustVisitText}>Must Visit</Text>
               </View>
             )}
           </View>
@@ -162,19 +366,15 @@ export default function SiteDetailScreen() {
               </View>
             ) : null}
             <View style={[styles.metaChip, styles.starChip]}>
-              <StarRating rating={displayRating} size={12} />
+              <Ionicons name="star" size={12} color={Colors.secondary} />
               <Text style={styles.metaChipText}>
                 {displayRating.toFixed(1)}
                 {site.reviewCount ? ` (${site.reviewCount})` : ""}
               </Text>
             </View>
             <View style={[styles.metaChip, styles.freeChip]}>
-              <Ionicons
-                name="ticket-outline"
-                size={12}
-                color={Colors.primary}
-              />
-              <Text style={[styles.metaChipText, { color: Colors.primary }]}>
+              <Ionicons name="ticket-outline" size={12} color="#2C7A3A" />
+              <Text style={[styles.metaChipText, { color: "#2C7A3A" }]}>
                 {site.price}
               </Text>
             </View>
@@ -188,7 +388,6 @@ export default function SiteDetailScreen() {
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
-              activeOpacity={0.8}
             >
               <Text
                 style={[
@@ -204,29 +403,25 @@ export default function SiteDetailScreen() {
 
         {/* Body */}
         <View style={styles.body}>
+          {/* ── SUMMARY ── */}
           {activeTab === "Summary" && (
             <>
               <Text style={styles.summaryText}>{site.summary}</Text>
 
               <View style={styles.actions}>
-                <TouchableOpacity style={styles.actionBtn}>
+                <TouchableOpacity
+                  style={styles.actionBtnPrimary}
+                  onPress={() => router.push("/translate" as any)}
+                >
                   <Ionicons
                     name="language-outline"
                     size={18}
-                    color={Colors.textSecondary}
+                    color={Colors.white}
                   />
-                  <Text style={styles.actionBtnText}>Translate</Text>
+                  <Text style={styles.actionBtnPrimaryText}>Translate</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.actionBtnPrimary]}
-                >
-                  <Ionicons name="map-outline" size={18} color={Colors.white} />
-                  <Text style={[styles.actionBtnText, { color: Colors.white }]}>
-                    Get Directions
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.actionBtn}
+                  style={styles.actionBtnSecondary}
                   onPress={handleSave}
                   disabled={saving}
                 >
@@ -235,33 +430,28 @@ export default function SiteDetailScreen() {
                     size={18}
                     color={saved ? "#FF6B6B" : Colors.textSecondary}
                   />
-                  <Text style={styles.actionBtnText}>
+                  <Text style={styles.actionBtnSecondaryText}>
                     {saved ? "Saved" : "Save"}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
+                <TouchableOpacity style={styles.actionBtnSecondary}>
+                  <Ionicons
+                    name="map-outline"
+                    size={18}
+                    color={Colors.textSecondary}
+                  />
+                  <Text style={styles.actionBtnSecondaryText}>Directions</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionBtnSecondary}>
                   <Ionicons
                     name="share-social-outline"
                     size={18}
                     color={Colors.textSecondary}
                   />
-                  <Text style={styles.actionBtnText}>Share</Text>
+                  <Text style={styles.actionBtnSecondaryText}>Share</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Map placeholder */}
-              <View style={styles.locationHeader}>
-                <Text style={styles.sectionTitle}>Location</Text>
-                <TouchableOpacity>
-                  <Text style={styles.openMaps}>Open in Maps</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.mapPlaceholder}>
-                <Ionicons name="map" size={40} color={Colors.border} />
-                <Text style={styles.mapText}>Map View</Text>
-              </View>
-
-              {/* Did you know */}
               {site.didYouKnow ? (
                 <View style={styles.didYouKnow}>
                   <Text style={styles.didYouKnowTitle}>💡 Did You Know?</Text>
@@ -269,13 +459,25 @@ export default function SiteDetailScreen() {
                 </View>
               ) : null}
 
-              {/* Nearby Artisans */}
-              {site.nearbyArtisans.length > 0 && (
+              <View style={styles.locationHeader}>
+                <Text style={styles.sectionTitle}>Location</Text>
+                <TouchableOpacity>
+                  <Text style={styles.linkText}>Open in Maps</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.mapPlaceholder}>
+                <Ionicons name="map" size={40} color={Colors.border} />
+                <Text style={styles.mapText}>{site.location}</Text>
+              </View>
+
+              {site.nearbyArtisans?.length > 0 && (
                 <>
                   <View style={styles.sectionRow}>
                     <Text style={styles.sectionTitle}>Nearby Artisans</Text>
-                    <TouchableOpacity>
-                      <Text style={styles.openMaps}>See all</Text>
+                    <TouchableOpacity
+                      onPress={() => router.push("/artisans-list" as any)}
+                    >
+                      <Text style={styles.linkText}>See all</Text>
                     </TouchableOpacity>
                   </View>
                   <ScrollView
@@ -287,21 +489,22 @@ export default function SiteDetailScreen() {
                       <ArtisanCard
                         key={artisan._id}
                         artisan={artisan}
-                        onPress={() => handleArtisanPress(artisan)}
+                        onPress={() =>
+                          router.push(`/artisan/${artisan._id}` as any)
+                        }
                       />
                     ))}
                   </ScrollView>
                 </>
               )}
 
-              {/* Reviews */}
               <View style={styles.sectionRow}>
                 <Text style={styles.sectionTitle}>
                   Reviews {site.reviewCount ? `(${site.reviewCount})` : ""}
                 </Text>
               </View>
-              {site.reviews.length === 0 ? (
-                <Text style={styles.noReviews}>
+              {!site.reviews?.length ? (
+                <Text style={styles.noContent}>
                   No reviews yet. Be the first!
                 </Text>
               ) : (
@@ -326,60 +529,89 @@ export default function SiteDetailScreen() {
             </>
           )}
 
+          {/* ── DEEP DIVE ── */}
           {activeTab === "Deep Dive" && (
             <>
               {site.history ? (
                 <View style={styles.deepSection}>
-                  <Text style={styles.deepTitle}>🏛 History</Text>
+                  <View style={styles.deepTitleRow}>
+                    <Text style={styles.deepEmoji}>🏛</Text>
+                    <Text style={styles.deepTitle}>History</Text>
+                  </View>
                   <Text style={styles.summaryText}>{site.history}</Text>
                 </View>
               ) : null}
               {site.myth ? (
                 <View style={styles.deepSection}>
-                  <Text style={styles.deepTitle}>📖 Myths & Legends</Text>
+                  <View style={styles.deepTitleRow}>
+                    <Text style={styles.deepEmoji}>📖</Text>
+                    <Text style={styles.deepTitle}>Myths & Legends</Text>
+                  </View>
                   <Text style={styles.summaryText}>{site.myth}</Text>
                 </View>
               ) : null}
               {site.openingHours ? (
-                <View style={styles.deepSection}>
-                  <Text style={styles.deepTitle}>🕐 Opening Hours</Text>
-                  <Text style={styles.summaryText}>{site.openingHours}</Text>
+                <View style={styles.infoBox}>
+                  <Ionicons
+                    name="time-outline"
+                    size={18}
+                    color={Colors.primary}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.infoBoxTitle}>Opening Hours</Text>
+                    <Text style={styles.infoBoxText}>{site.openingHours}</Text>
+                  </View>
                 </View>
               ) : null}
               {!site.history && !site.myth && !site.openingHours && (
-                <Text style={styles.noReviews}>
-                  No deep dive content available yet.
-                </Text>
+                <View style={styles.emptyState}>
+                  <Ionicons
+                    name="book-outline"
+                    size={48}
+                    color={Colors.border}
+                  />
+                  <Text style={styles.noContent}>
+                    Deep dive content coming soon.
+                  </Text>
+                </View>
               )}
             </>
           )}
 
+          {/* ── KIDS MODE ── */}
           {activeTab === "Kids Mode" && (
             <>
+              <View style={styles.kidsHeader}>
+                <Text style={styles.kidsTitle}>🎮 Fun Learning!</Text>
+                <Text style={styles.kidsSubtitle}>
+                  Test what you know about {site.name}
+                </Text>
+              </View>
+
               {site.didYouKnow ? (
-                <View style={styles.didYouKnow}>
-                  <Text style={styles.didYouKnowTitle}>💡 Fun Fact!</Text>
-                  <Text style={styles.didYouKnowText}>{site.didYouKnow}</Text>
+                <View style={styles.funFact}>
+                  <Text style={styles.funFactEmoji}>💡</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.funFactTitle}>Fun Fact!</Text>
+                    <Text style={styles.funFactText}>{site.didYouKnow}</Text>
+                  </View>
                 </View>
               ) : null}
+
               {(site.quizzes?.length ?? 0) > 0 ? (
-                <View style={styles.deepSection}>
-                  <Text style={styles.deepTitle}>🎯 Quiz Time!</Text>
+                <View>
+                  <Text style={styles.quizSectionTitle}>🎯 Quiz Time!</Text>
                   {site.quizzes!.map((quiz, i) => (
-                    <View key={i} style={styles.quizItem}>
-                      <Text style={styles.quizQuestion}>
-                        {i + 1}. {quiz.question}
-                      </Text>
-                      {quiz.options.map((opt, j) => (
-                        <Text key={j} style={styles.quizOption}>
-                          {String.fromCharCode(65 + j)}. {opt}
-                        </Text>
-                      ))}
-                    </View>
+                    <QuizCard key={i} quiz={quiz} index={i} />
                   ))}
                 </View>
               ) : (
-                <Text style={styles.noReviews}>No quizzes available yet.</Text>
+                <View style={styles.emptyState}>
+                  <Text style={{ fontSize: 48 }}>🎯</Text>
+                  <Text style={styles.noContent}>
+                    No quizzes available yet.
+                  </Text>
+                </View>
               )}
             </>
           )}
@@ -396,10 +628,12 @@ const styles = StyleSheet.create({
     marginTop: StatusBar.currentHeight || 0,
   },
   scroll: { flex: 1 },
-  loadingCenter: { flex: 1 },
   heroWrapper: { height: 260, position: "relative" },
   heroImage: { width: "100%", height: "100%" },
-  heroOverlay: { ...StyleSheet.absoluteFillObject },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
   topNav: {
     position: "absolute",
     top: Spacing.md,
@@ -414,12 +648,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.35)",
+    backgroundColor: "rgba(0,0,0,0.4)",
     alignItems: "center",
     justifyContent: "center",
   },
   navRight: { flexDirection: "row", gap: Spacing.sm },
-  badgeContainer: {
+  heroBadges: {
     position: "absolute",
     bottom: Spacing.md,
     left: Spacing.md,
@@ -442,7 +676,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F8EEBE",
-    alignSelf: "flex-start",
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
@@ -450,12 +683,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: "#002852",
   },
-  gemBadgeText: {
-    color: "#002852",
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.3,
-  },
+  gemBadgeText: { color: "#002852", fontSize: 10, fontWeight: "600" },
   nameCard: {
     backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.lg,
@@ -482,7 +710,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   starChip: { backgroundColor: "#FFF8E1", borderColor: "#FFE082" },
-  freeChip: { backgroundColor: Colors.badge, borderColor: "#A5D6A7" },
+  freeChip: { backgroundColor: "#E8F5E9", borderColor: "#A5D6A7" },
   metaChipText: { fontSize: 12, color: Colors.text, fontWeight: "500" },
   tabs: {
     flexDirection: "row",
@@ -495,7 +723,7 @@ const styles = StyleSheet.create({
   tabActive: { borderBottomWidth: 2, borderBottomColor: Colors.primary },
   tabText: { fontSize: 14, color: Colors.textMuted, fontWeight: "500" },
   tabTextActive: { color: Colors.primary, fontWeight: "700" },
-  body: { padding: Spacing.lg },
+  body: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   summaryText: {
     fontSize: 14,
     lineHeight: 22,
@@ -508,27 +736,37 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     flexWrap: "wrap",
   },
-  actionBtn: {
+  actionBtnPrimary: {
+    flex: 1.5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+  },
+  actionBtnPrimaryText: {
+    fontSize: 12,
+    color: Colors.white,
+    fontWeight: "700",
+  },
+  actionBtnSecondary: {
     flex: 1,
-    minWidth: 70,
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadow.sm,
   },
-  actionBtnPrimary: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    flex: 2,
-  },
-  actionBtnText: {
+  actionBtnSecondaryText: {
     fontSize: 11,
     color: Colors.textSecondary,
     fontWeight: "500",
@@ -540,9 +778,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
-  openMaps: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
+  linkText: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
   mapPlaceholder: {
-    height: 150,
+    height: 130,
     backgroundColor: "#E8F0E8",
     borderRadius: Radius.lg,
     alignItems: "center",
@@ -574,10 +812,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   artisanScroll: { marginBottom: Spacing.lg },
-  noReviews: {
-    fontSize: 13,
+  noContent: {
+    fontSize: 14,
     color: Colors.textMuted,
-    marginBottom: Spacing.lg,
+    textAlign: "center",
+    marginTop: Spacing.md,
   },
   review: {
     backgroundColor: Colors.surface,
@@ -607,34 +846,80 @@ const styles = StyleSheet.create({
   reviewDate: { fontSize: 11, color: Colors.textMuted },
   reviewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
   deepSection: { marginBottom: Spacing.lg },
-  deepTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.text,
+  deepTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
     marginBottom: Spacing.sm,
   },
-  quizItem: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
+  deepEmoji: { fontSize: 18 },
+  deepTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
+  infoBox: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    backgroundColor: "#EEF2FF",
+    borderRadius: Radius.lg,
     padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    marginBottom: Spacing.lg,
   },
-  quizQuestion: {
-    fontSize: 14,
-    fontWeight: "600",
+  infoBoxTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  infoBoxText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: Spacing.xxxl,
+    gap: Spacing.sm,
+  },
+  kidsHeader: {
+    backgroundColor: "#FFF9E6",
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    alignItems: "center",
+  },
+  kidsTitle: { fontSize: 22, fontWeight: "800", color: Colors.text },
+  kidsSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 4,
+    textAlign: "center",
+  },
+  funFact: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    backgroundColor: "#E8F5E9",
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: "#4CAF50",
+  },
+  funFactEmoji: { fontSize: 24 },
+  funFactTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2E7D32",
+    marginBottom: 4,
+  },
+  funFactText: { fontSize: 13, color: "#1B5E20", lineHeight: 20 },
+  quizSectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
     color: Colors.text,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  quizOption: { fontSize: 13, color: Colors.textSecondary, marginBottom: 4 },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing.lg,
+    gap: Spacing.md,
   },
-  errorText: { fontSize: 18, color: Colors.text, marginBottom: Spacing.md },
+  errorText: { fontSize: 18, color: Colors.text },
   errorButton: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.lg,

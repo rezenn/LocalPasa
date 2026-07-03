@@ -14,6 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
+import { api } from "../../api/client";
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -82,20 +83,17 @@ export default function TranslateScreen() {
     setLoading(true);
     setTranslatedText("");
     try {
-      const langPair = `${sourceLang.code}|${targetLang.code}`;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(inputText)}&langpair=${langPair}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.responseStatus === 200 && data.responseData?.translatedText) {
-        setTranslatedText(data.responseData.translatedText);
-      } else {
-        Alert.alert(
-          "Translation failed",
-          "Please try again with different text.",
-        );
-      }
-    } catch {
-      Alert.alert("Network error", "Could not connect to translation service.");
+      const data = await api.post<{ translated: string }>("/translate", {
+        q: inputText,
+        source: sourceLang.code,
+        target: targetLang.code,
+      });
+      setTranslatedText(data.translated);
+    } catch (err) {
+      Alert.alert(
+        "Translation failed",
+        err instanceof Error ? err.message : "Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -106,14 +104,14 @@ export default function TranslateScreen() {
     setInputText(phrase);
     setLoading(true);
     try {
-      const langPair = `en|${targetLang.code}`;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(phrase)}&langpair=${langPair}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.responseStatus === 200) {
-        setTranslatedText(data.responseData.translatedText);
-      }
+      const data = await api.post<{ translated: string }>("/translate", {
+        q: phrase,
+        source: "en",
+        target: targetLang.code,
+      });
+      setTranslatedText(data.translated);
     } catch {
+      Alert.alert("Translation failed", "Could not translate the phrase.");
     } finally {
       setLoading(false);
     }

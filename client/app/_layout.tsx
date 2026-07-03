@@ -35,54 +35,68 @@ function RootLayoutInner() {
 
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "none",
+          gestureEnabled: false,
+        }}
+      >
         <Stack.Screen name="index" />
         <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(dashboard)" />
         <Stack.Screen
           name="site/[id]"
-          options={{ animation: "slide_from_right" }}
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
           name="artisan/[id]"
-          options={{ animation: "slide_from_right" }}
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
           name="event/[id]"
-          options={{ animation: "slide_from_right" }}
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/sites-list"
-          options={{ animation: "slide_from_right" }}
+          name="artisans-list/index"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/artisans-list"
-          options={{ animation: "slide_from_right" }}
+          name="events-list/index"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/events-list"
-          options={{ animation: "slide_from_right" }}
+          name="sites-list/index"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/products-list"
-          options={{ animation: "slide_from_right" }}
+          name="products-list/index"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/chat/[artisanId]"
-          options={{ animation: "slide_from_right" }}
+          name="translate/index"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/translate"
-          options={{ animation: "slide_from_right" }}
+          name="chat/[artisanId]"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/notifications"
-          options={{ animation: "slide_from_right" }}
+          name="profile/edit"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="screens/edit-profile"
-          options={{ animation: "slide_from_right" }}
+          name="profile/saved"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/language"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/notifications"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
       </Stack>
       <AuthGuard />

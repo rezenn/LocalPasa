@@ -13,8 +13,9 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api } from "../../../api/client";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
+import { Colors, Radius, Spacing, Shadow } from "../../../constants/theme";
 
 type ChatMessage = {
   id: string;
@@ -38,17 +39,42 @@ export default function ChatScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(storageKey);
-        if (raw) setMessages(JSON.parse(raw));
-        else {
-          // seed a greeting from artisan
-          const seed: ChatMessage = {
-            id: `s_${Date.now()}`,
-            author: "them",
-            text: "Hello — thanks for reaching out! How can I help with my work or products?",
-            ts: Date.now(),
-          };
-          setMessages([seed]);
+        // try load from server first
+        if (artisanId) {
+          try {
+            const resp = await api.get<{ message: string }>(
+              `/chat/${artisanId}`,
+            );
+            // server returns array in data, but api.get parses data.data — here we expect array
+            // The api client returns data directly; adjust if shape differs
+            // Fallback to local storage if server call fails
+            // @ts-ignore
+            const serverMessages = resp as unknown as Array<any>;
+            if (serverMessages && serverMessages.length) {
+              const mapped = serverMessages.map((m: any) => ({
+                id: m._id || String(m.createdAt),
+                author: m.userId ? "them" : "them",
+                text: m.text,
+                ts: new Date(m.createdAt).getTime(),
+              }));
+              setMessages(mapped as ChatMessage[]);
+            } else {
+              const raw = await AsyncStorage.getItem(storageKey);
+              if (raw) setMessages(JSON.parse(raw));
+              else {
+                const seed: ChatMessage = {
+                  id: `s_${Date.now()}`,
+                  author: "them",
+                  text: "Hello — thanks for reaching out! How can I help with my work or products?",
+                  ts: Date.now(),
+                };
+                setMessages([seed]);
+              }
+            }
+          } catch {
+            const raw = await AsyncStorage.getItem(storageKey);
+            if (raw) setMessages(JSON.parse(raw));
+          }
         }
       } catch {
         setMessages([]);
@@ -75,18 +101,11 @@ export default function ChatScreen() {
     setText("");
     setSending(true);
 
-    // optimistic UI — try to notify backend (if available)
+    // optimistic UI — notify backend via API client which handles tokens
     try {
-      const resp = await fetch(`/api/chat/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artisanId, text: trimmed }),
-      });
-      if (resp.ok) {
-        // optionally handle server-sent reply — omitted here
-      }
+      await api.post(`/chat/send`, { artisanId, text: trimmed });
     } catch {
-      // network failed — keep local copy and show as pending
+      // network failed — keep local copy
     } finally {
       setSending(false);
     }

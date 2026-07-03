@@ -37,7 +37,7 @@ const MENU_ITEMS = [
   {
     icon: "notifications-outline" as const,
     label: "Notifications",
-    route: "/screens/notifications",
+    route: "/screens/settings",
   },
   {
     icon: "compass-outline" as const,

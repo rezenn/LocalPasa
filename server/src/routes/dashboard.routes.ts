@@ -9,7 +9,7 @@ import { UserRole } from "../types/user.type";
 const router = Router();
 
 // Only admin can access dashboard
-router.use(authenticate, authorize([UserRole.ADMIN]));
+router.use(authenticate, authorize(UserRole.ADMIN));
 
 router.get("/stats", getDashboardStats);
 router.get("/top-rated", getTopRated);

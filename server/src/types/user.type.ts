@@ -130,7 +130,7 @@ export interface LoginBody {
 export interface AuthRequest extends Request {
   currentUser?: IUser;
   tokenPayload?: AccessTokenPayload;
-  user?: IUser; // alias used in some controllers via (req as any).user
+  user?: Express.User | IUser; // alias used in some controllers via (req as any).user
 }
 
 export interface ApiResponse<T = unknown> {

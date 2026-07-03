@@ -16,6 +16,8 @@ import eventRoutes from "./routes/event.routes";
 import savedRoutes from "./routes/saved.routes";
 import searchRoutes from "./routes/search.routes";
 import profileRoutes from "./routes/profile.routes";
+import chatRoutes from "./routes/chat.routes";
+import translateRoutes from "./routes/translate.routes";
 import dashboardRoutes from "./routes/dashboard.routes";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import { sanitizeBody } from "./middleware/security.middleware";
@@ -109,6 +111,8 @@ app.use(`/api/${config.apiVersion}/saved`, savedRoutes);
 app.use(`/api/${config.apiVersion}/search`, searchRoutes);
 app.use(`/api/${config.apiVersion}/profile`, profileRoutes);
 app.use(`/api/${config.apiVersion}/dashboard`, dashboardRoutes);
+app.use(`/api/${config.apiVersion}/chat`, chatRoutes);
+app.use(`/api/${config.apiVersion}/translate`, translateRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

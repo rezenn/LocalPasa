@@ -25,7 +25,7 @@ export default function DashboardLayout() {
   useEffect(() => {
     if (pathname.includes("explore") || pathname === "/")
       setActiveTab("explore");
-    else if (pathname.includes("map")) setActiveTab("map");
+    else if (pathname.includes("/map")) setActiveTab("map");
     else if (pathname.includes("calendar")) setActiveTab("calendar");
     else if (pathname.includes("saved")) setActiveTab("save");
     else if (pathname.includes("profile")) setActiveTab("profile");
@@ -33,7 +33,13 @@ export default function DashboardLayout() {
 
   return (
     <View style={styles.container}>
-      <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "none",
+          gestureEnabled: false,
+        }}
+      >
         <Stack.Screen name="explore" />
         <Stack.Screen name="map" />
         <Stack.Screen name="calendar" />
