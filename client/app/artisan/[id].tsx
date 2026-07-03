@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   avatarWrap: {
-    marginTop: -40,
+    marginTop: 0,
   },
   avatar: {
     width: 72,
