@@ -138,7 +138,7 @@ function QuizCard({ quiz, index }: { quiz: QuizQuestion; index: number }) {
             <View style={qStyles.resultCorrect}>
               <Ionicons name="trophy" size={18} color="#4CAF50" />
               <Text style={qStyles.resultCorrectText}>
-                Correct! Well done! 🎉
+                Correct! Well done!
               </Text>
             </View>
           ) : (
@@ -232,7 +232,6 @@ const qStyles = StyleSheet.create({
   tryAgainText: { fontSize: 12, color: Colors.primary, fontWeight: "600" },
 });
 
-// ─── Scavenger Hunt Component ───────────────────────────────────────────────
 // ─── Scavenger Hunt Component ───────────────────────────────────────────────
 interface ScavengerHuntItem {
   id: string;
@@ -512,6 +511,77 @@ const huntStyles = StyleSheet.create({
   },
 });
 
+// ─── Generate Did You Know Fact ─────────────────────────────────────────────
+function generateDidYouKnow(site: any): string | null {
+  // If site has didYouKnow field, use it
+  if (site.didYouKnow) {
+    return site.didYouKnow;
+  }
+
+  // Generate facts based on site data
+  const facts = [];
+
+  // Fact about rating
+  if (site.rating && site.rating > 4.5) {
+    facts.push(
+      `${site.name} has an impressive ${site.rating} star rating from ${site.ratingCount || "many"} visitors!`,
+    );
+  }
+
+  // Fact about history
+  if (site.history) {
+    const historyMatch = site.history.match(
+      /\b\d{3,4}\s*AD\b|\b\d{3,4}\s*BCE\b|\b\d{3,4}\s*CE\b/i,
+    );
+    if (historyMatch) {
+      facts.push(
+        `This site dates back to ${historyMatch[0]}, making it over ${new Date().getFullYear() - parseInt(historyMatch[0])} years old!`,
+      );
+    }
+  }
+
+  // Fact about UNESCO
+  if (site.longDescription && site.longDescription.includes("UNESCO")) {
+    facts.push(`${site.name} is a UNESCO World Heritage Site!`);
+  }
+
+  // Fact about visitors
+  if (site.longDescription) {
+    const visitorMatch = site.longDescription.match(
+      /(\d+[,]?\d*)\s*(?:devotees|visitors|pilgrims|people)/i,
+    );
+    if (visitorMatch) {
+      facts.push(`Over ${visitorMatch[1]} people visit this site annually!`);
+    }
+  }
+
+  // Fact about price
+  if (site.price && site.price.includes("Free")) {
+    facts.push(`Good news! Entry to ${site.name} is free!`);
+  }
+
+  // Fact about location
+  if (site.city) {
+    facts.push(
+      `${site.name} is located in the beautiful city of ${site.city}, Nepal.`,
+    );
+  }
+
+  // General fact if no specific facts found
+  if (facts.length === 0) {
+    const randomFacts = [
+      `${site.name} is one of the most significant cultural sites in Nepal.`,
+      `${site.name} attracts photographers from all over the world.`,
+      `${site.name} is an important part of Nepal's rich cultural heritage.`,
+      `Many visitors describe ${site.name} as a truly magical place.`,
+    ];
+    return randomFacts[Math.floor(Math.random() * randomFacts.length)];
+  }
+
+  // Return a random fact
+  return facts[Math.floor(Math.random() * facts.length)];
+}
+
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function SiteDetailScreen() {
   const router = useRouter();
@@ -543,16 +613,29 @@ export default function SiteDetailScreen() {
     }
   };
 
+  const handleReport = () => {
+    Alert.alert(
+      "Report Content",
+      "Are you sure you want to report this content?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Thank You",
+              "Your report has been submitted. We'll review it shortly.",
+            );
+          },
+        },
+      ],
+    );
+  };
+
   const openMap = () => {
-    if (site?.coordinates) {
-      const { lat, lng } = site.coordinates;
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-      Linking.openURL(url).catch(() => {
-        Alert.alert("Error", "Could not open maps");
-      });
-    } else {
-      Alert.alert("Info", "Location coordinates not available");
-    }
+    // Navigate to the map screen in the app
+    router.push("/map" as any);
   };
 
   if (loading) {
@@ -594,6 +677,9 @@ export default function SiteDetailScreen() {
   const translations = site.translations || {};
   const translationLanguages = Object.keys(translations);
 
+  // Generate Did You Know fact
+  const didYouKnowFact = generateDidYouKnow(site);
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
@@ -620,6 +706,9 @@ export default function SiteDetailScreen() {
                   size={20}
                   color={saved ? "#FF6B6B" : Colors.white}
                 />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.navBtn} onPress={handleReport}>
+                <Ionicons name="flag-outline" size={20} color={Colors.white} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.navBtn}>
                 <Ionicons name="share-outline" size={20} color={Colors.white} />
@@ -740,7 +829,7 @@ export default function SiteDetailScreen() {
                     size={18}
                     color={Colors.textSecondary}
                   />
-                  <Text style={styles.actionBtnSecondaryText}>Directions</Text>
+                  <Text style={styles.actionBtnSecondaryText}>Map</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtnSecondary}>
                   <Ionicons
@@ -756,13 +845,13 @@ export default function SiteDetailScreen() {
               <View style={styles.mapPreviewContainer}>
                 <View style={styles.mapPreviewHeader}>
                   <Text style={styles.sectionTitle}>Location</Text>
-                  <TouchableOpacity onPress={() => router.push("/map" as any)}>
+                  <TouchableOpacity onPress={openMap}>
                     <Text style={styles.linkText}>Open Full Map</Text>
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   style={styles.mapPreview}
-                  onPress={() => router.push("/map" as any)}
+                  onPress={openMap}
                   activeOpacity={0.8}
                 >
                   <View style={styles.mapPlaceholder}>
@@ -775,12 +864,13 @@ export default function SiteDetailScreen() {
                 </TouchableOpacity>
               </View>
 
-              {site.didYouKnow ? (
-                <View style={styles.didYouKnow}>
+              {/* Did You Know - Always show in Summary */}
+              <View style={styles.didYouKnow}>
+                <View style={styles.didYouKnowHeader}>
                   <Text style={styles.didYouKnowTitle}>Did You Know?</Text>
-                  <Text style={styles.didYouKnowText}>{site.didYouKnow}</Text>
                 </View>
-              ) : null}
+                <Text style={styles.didYouKnowText}>{didYouKnowFact}</Text>
+              </View>
 
               {site.nearbyArtisans?.length > 0 && (
                 <>
@@ -848,7 +938,6 @@ export default function SiteDetailScreen() {
               {translationLanguages.length > 0 && (
                 <View style={styles.translationsSection}>
                   <View style={styles.deepTitleRow}>
-                    <Text style={styles.deepEmoji}>🌍</Text>
                     <Text style={styles.deepTitle}>
                       Name in Different Languages
                     </Text>
@@ -869,7 +958,6 @@ export default function SiteDetailScreen() {
               {site.history ? (
                 <View style={styles.deepSection}>
                   <View style={styles.deepTitleRow}>
-                    <Text style={styles.deepEmoji}>🏛</Text>
                     <Text style={styles.deepTitle}>History</Text>
                   </View>
                   <Text style={styles.summaryText}>{site.history}</Text>
@@ -879,7 +967,6 @@ export default function SiteDetailScreen() {
               {site.myth ? (
                 <View style={styles.deepSection}>
                   <View style={styles.deepTitleRow}>
-                    <Text style={styles.deepEmoji}>📖</Text>
                     <Text style={styles.deepTitle}>Myths & Legends</Text>
                   </View>
                   <Text style={styles.summaryText}>{site.myth}</Text>
@@ -943,21 +1030,19 @@ export default function SiteDetailScreen() {
           {activeTab === "Kids Mode" && (
             <>
               <View style={styles.kidsHeader}>
-                <Text style={styles.kidsTitle}>Fun Learning!</Text>
+                <Text style={styles.kidsTitle}>🎮 Fun Learning!</Text>
                 <Text style={styles.kidsSubtitle}>
                   Test what you know about {site.name}
                 </Text>
               </View>
 
-              {site.didYouKnow ? (
-                <View style={styles.funFact}>
-                  <Text style={styles.funFactEmoji}>💡</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.funFactTitle}>Fun Fact!</Text>
-                    <Text style={styles.funFactText}>{site.didYouKnow}</Text>
-                  </View>
+              {/* Did You Know in Kids Mode */}
+              <View style={styles.funFact}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.funFactTitle}>Fun Fact!</Text>
+                  <Text style={styles.funFactText}>{didYouKnowFact}</Text>
                 </View>
-              ) : null}
+              </View>
 
               {(site.quizzes?.length ?? 0) > 0 ? (
                 <View>
@@ -968,7 +1053,6 @@ export default function SiteDetailScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={{ fontSize: 48 }}></Text>
                   <Text style={styles.noContent}>
                     No quizzes available yet.
                   </Text>
@@ -1180,11 +1264,17 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: Colors.secondary,
   },
+  didYouKnowHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: 4,
+  },
+
   didYouKnowTitle: {
     fontSize: 13,
     fontWeight: "700",
     color: Colors.text,
-    marginBottom: 4,
   },
   didYouKnowText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
   sectionRow: {
@@ -1234,7 +1324,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginBottom: Spacing.sm,
   },
-  deepEmoji: { fontSize: 18 },
   deepTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
   translationsSection: {
     backgroundColor: Colors.surface,
@@ -1319,7 +1408,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: "#4CAF50",
   },
-  funFactEmoji: { fontSize: 24 },
   funFactTitle: {
     fontSize: 13,
     fontWeight: "700",

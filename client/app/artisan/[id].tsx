@@ -115,37 +115,45 @@ export default function ArtisanDetailScreen() {
 
         {/* Identity card */}
         <View style={styles.idCard}>
-          <View style={styles.avatarWrap}>
-            <Image source={{ uri: artisan.image }} style={styles.avatar} />
-          </View>
-          <View style={styles.idInfo}>
-            <Text style={styles.name}>{artisan.name}</Text>
-            <Text style={styles.craft}>{artisan.craft}</Text>
-            <View style={styles.metaRow}>
-              <View style={styles.chip}>
-                <Ionicons name="location" size={11} color={Colors.error} />
-                <Text style={styles.chipText}>
-                  {artisan.city || artisan.location}
-                </Text>
-              </View>
-              {artisan.experience ? (
+          <View style={styles.idCardTop}>
+            <View style={styles.avatarWrap}>
+              <Image source={{ uri: artisan.image }} style={styles.avatar} />
+            </View>
+            <View style={styles.idInfo}>
+              <Text style={styles.name}>{artisan.name}</Text>
+              <Text style={styles.craft}>{artisan.craft}</Text>
+              <View style={styles.metaRow}>
                 <View style={styles.chip}>
-                  <Ionicons
-                    name="time-outline"
-                    size={11}
-                    color={Colors.primary}
-                  />
+                  <Ionicons name="location" size={11} color={Colors.error} />
                   <Text style={styles.chipText}>
-                    {artisan.experience} yrs exp
+                    {artisan.city || artisan.location}
                   </Text>
                 </View>
-              ) : null}
-              <View style={[styles.chip, styles.starChip]}>
-                <Ionicons name="star" size={11} color={Colors.secondary} />
-                <Text style={styles.chipText}>{rating.toFixed(1)}</Text>
+                {artisan.experience ? (
+                  <View style={styles.chip}>
+                    <Ionicons
+                      name="time-outline"
+                      size={11}
+                      color={Colors.primary}
+                    />
+                    <Text style={styles.chipText}>
+                      {artisan.experience} yrs exp
+                    </Text>
+                  </View>
+                ) : null}
+                <View style={[styles.chip, styles.starChip]}>
+                  <Ionicons name="star" size={11} color={Colors.secondary} />
+                  <Text style={styles.chipText}>{rating.toFixed(1)}</Text>
+                </View>
               </View>
             </View>
           </View>
+
+          {artisan.bio ? (
+            <View style={styles.bioSection}>
+              <Text style={styles.bodyText}>{artisan.bio}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* CTA buttons */}
@@ -185,6 +193,29 @@ export default function ArtisanDetailScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Map Preview */}
+        <View style={styles.mapPreviewContainer}>
+          <View style={styles.mapPreviewHeader}>
+            <Text style={styles.sectionTitle}>Location</Text>
+            <TouchableOpacity onPress={() => router.push("/map" as any)}>
+              <Text style={styles.linkText}>Open Full Map</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.mapPreview}
+            onPress={() => router.push("/map" as any)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.mapPlaceholder}>
+              <Ionicons name="map" size={40} color={Colors.border} />
+              <Text style={styles.mapText}>
+                {artisan?.city || artisan?.location || "Location available"}
+              </Text>
+              <Text style={styles.mapSubText}>Tap to explore on map</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Tabs */}
         <View style={styles.tabs}>
           {TABS.map((t) => (
@@ -209,14 +240,11 @@ export default function ArtisanDetailScreen() {
           {/* ── PROFILE ── */}
           {activeTab === "Profile" && (
             <>
-              {artisan.bio ? (
+              {artisan.longBio ? (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>About</Text>
-                  <Text style={styles.bodyText}>{artisan.bio}</Text>
+                  <Text style={styles.bodyText}>{artisan.longBio}</Text>
                 </View>
-              ) : null}
-              {artisan.longBio ? (
-                <Text style={styles.bodyText}>{artisan.longBio}</Text>
               ) : null}
 
               {artisan.priceRange ? (
@@ -459,44 +487,80 @@ const styles = StyleSheet.create({
   },
   navRight: { flexDirection: "row", gap: Spacing.sm },
   idCard: {
-    flexDirection: "row",
-    gap: Spacing.md,
+    flexDirection: "column",
     padding: Spacing.lg,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingTop: Spacing.md,
+    backgroundColor: Colors.background,
   },
-  avatarWrap: { marginTop: -40 },
+  idCardTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.md,
+  },
+  avatarWrap: {
+    marginTop: -40,
+  },
   avatar: {
     width: 72,
     height: 72,
     borderRadius: 36,
     borderWidth: 3,
     borderColor: Colors.surface,
+    backgroundColor: Colors.surface,
   },
-  idInfo: { flex: 1, paddingTop: 4 },
-  name: { fontSize: 20, fontWeight: "800", color: Colors.text },
-  craft: { fontSize: 14, color: Colors.textSecondary, marginTop: 2 },
+  idInfo: {
+    flex: 1,
+    paddingTop: 0,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  craft: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
   metaRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.xs,
-    marginTop: Spacing.sm,
+    marginTop: 2,
   },
   chip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  starChip: { backgroundColor: "#FFF8E1", borderColor: "#FFE082" },
-  chipText: { fontSize: 11, color: Colors.text, fontWeight: "500" },
-  ctaRow: { flexDirection: "row", gap: Spacing.sm, padding: Spacing.lg },
+  starChip: {
+    backgroundColor: "#FFE082",
+    borderColor: Colors.secondary,
+  },
+  chipText: {
+    fontSize: 11,
+    color: Colors.text,
+    fontWeight: "500",
+  },
+  bioSection: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  ctaRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
   ctaPrimary: {
     flex: 2,
     flexDirection: "row",
@@ -522,26 +586,88 @@ const styles = StyleSheet.create({
     ...Shadow.sm,
   },
   ctaSecondaryText: { fontSize: 11, color: Colors.primary, fontWeight: "600" },
-  tabs: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    paddingHorizontal: Spacing.xl,
+  linkText: {
+    fontSize: 13,
+    color: Colors.primary,
+    fontWeight: "500",
   },
-  tab: { paddingVertical: Spacing.md, marginRight: Spacing.xl },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: Colors.primary },
-  tabText: { fontSize: 14, color: Colors.textMuted, fontWeight: "500" },
-  tabTextActive: { color: Colors.primary, fontWeight: "700" },
-  body: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
-  section: { marginBottom: Spacing.lg },
+  mapPreviewContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  mapPreviewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  mapPreview: {
+    height: 150,
+    borderRadius: Radius.lg,
+    overflow: "hidden",
+  },
+  mapPlaceholder: {
+    flex: 1,
+    backgroundColor: "#E8F0E8",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+  },
+  mapText: {
+    color: Colors.text,
+    marginTop: Spacing.xs,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  mapSubText: {
+    color: Colors.textMuted,
+    fontSize: 11,
+    marginTop: 4,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
-  bodyText: { fontSize: 14, color: Colors.textSecondary, lineHeight: 22 },
+  tabs: {
+    flexDirection: "row",
+    backgroundColor: Colors.background,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.border,
+    paddingHorizontal: Spacing.xl,
+  },
+  tab: {
+    paddingVertical: Spacing.md,
+    marginRight: Spacing.xl,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    fontWeight: "500",
+  },
+  tabTextActive: {
+    color: Colors.primary,
+    fontWeight: "700",
+  },
+  body: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxl,
+  },
+  section: {
+    marginBottom: Spacing.lg,
+  },
+  bodyText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+  },
   infoBox: {
     flexDirection: "row",
     gap: Spacing.md,
@@ -556,8 +682,13 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginBottom: 2,
   },
-  infoBoxText: { fontSize: 13, color: Colors.textSecondary },
-  contactGrid: { gap: Spacing.sm },
+  infoBoxText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  contactGrid: {
+    gap: Spacing.sm,
+  },
   contactItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -576,7 +707,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  contactText: { flex: 1, fontSize: 13, color: Colors.text },
+  contactText: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.text,
+  },
   workshopCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -598,7 +733,11 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
   },
-  workshopPrice: { fontSize: 14, fontWeight: "800", color: Colors.primary },
+  workshopPrice: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: Colors.primary,
+  },
   workshopMeta: {
     flexDirection: "row",
     alignItems: "center",
@@ -622,8 +761,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignItems: "center",
   },
-  bookBtnText: { color: Colors.white, fontSize: 13, fontWeight: "700" },
-  productsGrid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.md },
+  bookBtnText: {
+    color: Colors.white,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  productsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.md,
+  },
   productCard: {
     width: "47%",
     backgroundColor: Colors.surface,
@@ -633,7 +780,10 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     ...Shadow.sm,
   },
-  productImg: { width: "100%", height: 120 },
+  productImg: {
+    width: "100%",
+    height: 120,
+  },
   productImgPlaceholder: {
     width: "100%",
     height: 120,
@@ -641,7 +791,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  productInfo: { padding: Spacing.sm },
+  productInfo: {
+    padding: Spacing.sm,
+  },
   productName: {
     fontSize: 13,
     fontWeight: "700",
@@ -654,14 +806,22 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginBottom: 6,
   },
-  outOfStock: { fontSize: 11, color: Colors.error, fontWeight: "500" },
+  outOfStock: {
+    fontSize: 11,
+    color: Colors.error,
+    fontWeight: "500",
+  },
   orderBtn: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.sm,
     paddingVertical: 6,
     alignItems: "center",
   },
-  orderBtnText: { color: Colors.white, fontSize: 12, fontWeight: "700" },
+  orderBtnText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: "700",
+  },
   review: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -684,28 +844,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  reviewAvatarText: { color: Colors.white, fontWeight: "700", fontSize: 14 },
-  reviewAuthor: { fontSize: 13, fontWeight: "700", color: Colors.text },
-  reviewDate: { fontSize: 11, color: Colors.textMuted },
-  reviewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  reviewAvatarText: {
+    color: Colors.white,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  reviewAuthor: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.text,
+  },
+  reviewDate: {
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  reviewText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
   emptyState: {
     alignItems: "center",
     paddingVertical: Spacing.xxxl,
     gap: Spacing.sm,
   },
-  emptyText: { fontSize: 14, color: Colors.textMuted },
+  emptyText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+  },
   errBox: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.md,
   },
-  errText: { fontSize: 16, color: Colors.text },
+  errText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
   errBtn: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
   },
-  errBtnText: { color: Colors.white, fontWeight: "600" },
+  errBtnText: {
+    color: Colors.white,
+    fontWeight: "600",
+  },
 });
