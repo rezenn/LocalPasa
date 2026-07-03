@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import Toast from "react-native-toast-message";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { PreferencesProvider } from "@/context/PreferencesContext";
 
 function AuthGuard() {
   const router = useRouter();
@@ -18,7 +19,8 @@ function AuthGuard() {
     } else if (user && inAuthGroup) {
       router.replace("/(dashboard)/explore");
     }
-  }, [user, initializing, segments]);
+    // router is stable from expo-router, but include it for exhaustive deps.
+  }, [user, initializing, segments, router]);
 
   return null;
 }
@@ -87,15 +89,31 @@ function RootLayoutInner() {
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
-          name="profile/saved"
-          options={{ animation: "slide_from_right", gestureEnabled: true }}
-        />
-        <Stack.Screen
           name="profile/language"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
+          name="profile/interests"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/locations"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/saved"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
           name="profile/notifications"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/help"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/privacy"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
       </Stack>
@@ -107,8 +125,10 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutInner />
-    </AuthProvider>
+    <PreferencesProvider>
+      <AuthProvider>
+        <RootLayoutInner />
+      </AuthProvider>
+    </PreferencesProvider>
   );
 }

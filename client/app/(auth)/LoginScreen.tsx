@@ -1,6 +1,5 @@
 import {
   StyleSheet,
-  Text,
   View,
   Image,
   KeyboardAvoidingView,
@@ -10,7 +9,6 @@ import {
 import React from "react";
 import Colors from "@/constants/colors";
 import LoginForm from "@/components/ui/LoginForm";
-
 
 const LoginScreen = () => {
   return (
@@ -49,7 +47,7 @@ const LoginScreen = () => {
     </KeyboardAvoidingView>
   );
 };
-// 
+//
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -3,15 +3,16 @@ import { Image, Text, View, TouchableOpacity, FlatList } from "react-native";
 import Colors from "@/constants/colors";
 import { router } from "expo-router";
 import { SimpleGradientButton } from "@/components/ui/GradientButton";
+import { usePreferences } from "@/context/PreferencesContext";
 
-// Define the type for an interest item
 interface Interest {
   id: string;
   title: string;
-  image: any; // or use `require` type: ReturnType<typeof require>
+  image: any;
 }
 
 export default function OnboardingScreen1() {
+  const { setInterests } = usePreferences();
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>([]);
 
   const interests: Interest[] = [
@@ -57,9 +58,8 @@ export default function OnboardingScreen1() {
     }
   };
 
-  const isSelected = (id: string) => {
-    return selectedInterests.some((item) => item.id === id);
-  };
+  const isSelected = (id: string) =>
+    selectedInterests.some((item) => item.id === id);
 
   return (
     <View
@@ -132,9 +132,10 @@ export default function OnboardingScreen1() {
       <View className="px-1 mb-6 mt-4">
         <SimpleGradientButton
           title="Next"
-          onPress={() => {
+          onPress={async () => {
             const selectedTitles = selectedInterests.map((i) => i.title);
-            console.log("Selected:", selectedTitles);
+            // Persist to context
+            await setInterests(selectedTitles);
             router.push({
               pathname: "/(onboarding)/OnboardingScreen2",
               params: { interests: JSON.stringify(selectedTitles) },

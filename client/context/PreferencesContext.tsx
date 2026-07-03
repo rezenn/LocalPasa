@@ -14,6 +14,7 @@ export interface AppPreferences {
   interests: string[]; // e.g. ["Temples & Heritages", "Local Food"]
   preferredLocations: string[]; // e.g. ["Kathmandu Valley", "Pokhara"]
   notificationsEnabled: boolean;
+  hasCompletedOnboarding: boolean;
 }
 
 interface PreferencesContextValue {
@@ -21,6 +22,7 @@ interface PreferencesContextValue {
   setLanguage: (name: string, code: string) => Promise<void>;
   setInterests: (interests: string[]) => Promise<void>;
   setLocations: (locations: string[]) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   toggleNotifications: () => Promise<void>;
   loading: boolean;
 }
@@ -32,6 +34,7 @@ const DEFAULTS: AppPreferences = {
   interests: [],
   preferredLocations: [],
   notificationsEnabled: true,
+  hasCompletedOnboarding: false,
 };
 
 const STORAGE_KEY = "localpasa_prefs";
@@ -88,6 +91,10 @@ export function PreferencesProvider({
     [prefs, persist],
   );
 
+  const completeOnboarding = useCallback(async () => {
+    await persist({ ...prefs, hasCompletedOnboarding: true });
+  }, [prefs, persist]);
+
   const toggleNotifications = useCallback(async () => {
     await persist({
       ...prefs,
@@ -102,6 +109,7 @@ export function PreferencesProvider({
         setLanguage,
         setInterests,
         setLocations,
+        completeOnboarding,
         toggleNotifications,
         loading,
       }}

@@ -1,60 +1,45 @@
 import { useState } from "react";
-import { Image, Text, View, TouchableOpacity, FlatList } from "react-native";
+import { Text, View, TouchableOpacity, FlatList } from "react-native";
 import Colors from "@/constants/colors";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
-
 import { SimpleGradientButton } from "@/components/ui/GradientButton";
+import { usePreferences } from "@/context/PreferencesContext";
 
-// Define the type for a language item
+const LANGUAGE_MAP: Record<string, string> = {
+  English: "en",
+  नेपाली: "ne",
+  हिन्दी: "hi",
+  中文: "zh",
+  日本語: "ja",
+  Deutsch: "de",
+};
+
 interface Language {
   id: string;
   name: string;
 }
 
-export default function OnboardingScreen1() {
+export default function OnboardingScreen3() {
+  const { setLanguage, completeOnboarding } = usePreferences();
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(
     null,
   );
 
   const languages: Language[] = [
-    {
-      id: "1",
-      name: "English",
-    },
-    {
-      id: "2",
-      name: "नेपाली",
-    },
-    {
-      id: "3",
-      name: "हिन्दी",
-    },
-    {
-      id: "4",
-      name: "中文",
-    },
-    {
-      id: "5",
-      name: "日本語",
-    },
-    {
-      id: "6",
-      name: "Deutsch",
-    },
+    { id: "1", name: "English" },
+    { id: "2", name: "नेपाली" },
+    { id: "3", name: "हिन्दी" },
+    { id: "4", name: "中文" },
+    { id: "5", name: "日本語" },
+    { id: "6", name: "Deutsch" },
   ];
 
   const selectLanguage = (language: Language) => {
-    if (selectedLanguage?.id === language.id) {
-      setSelectedLanguage(null);
-    } else {
-      setSelectedLanguage(language);
-    }
+    setSelectedLanguage(selectedLanguage?.id === language.id ? null : language);
   };
 
-  const isSelected = (id: string) => {
-    return selectedLanguage?.id === id;
-  };
+  const isSelected = (id: string) => selectedLanguage?.id === id;
 
   return (
     <View
@@ -121,14 +106,13 @@ export default function OnboardingScreen1() {
 
       <View className="px-1 mb-6 mt-4">
         <SimpleGradientButton
-          title="Next"
-          onPress={() => {
+          title="Get Started"
+          onPress={async () => {
             if (selectedLanguage) {
-              console.log("Selected language:", selectedLanguage.name);
-              router.push({
-                pathname: "/(dashboard)/explore",
-                params: { language: selectedLanguage.name },
-              });
+              const code = LANGUAGE_MAP[selectedLanguage.name] ?? "en";
+              await setLanguage(selectedLanguage.name, code);
+              await completeOnboarding();
+              router.replace("/(dashboard)/explore");
             } else {
               Toast.show({
                 type: "info",
