@@ -20,7 +20,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
       {/* Date Block */}
       <View style={styles.dateBlock}>
         <Text style={styles.dateNum}>{event.date}</Text>
-        <Text style={styles.dateMonth}>{event.month}</Text>
+        <Text style={styles.dateMonth}>{event.month?.slice(0, 3)}</Text>
       </View>
 
       {/* Info */}
@@ -30,7 +30,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
         </Text>
         <View style={styles.column}>
           <View style={styles.row}>
-            <Ionicons name="location" size={11} color="#F64447" />
+            <Ionicons name="location" size={10} color="#F64447" />
             <Text style={styles.meta} numberOfLines={1}>
               {event.distance ? `${event.distance} · ` : ""}
               {event.location}
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   dateBlock: {
     width: 46,
     height: 46,
-    backgroundColor: Colors.brown,
+    backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
     alignItems: "center",
     justifyContent: "center",
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   dateMonth: {
     color: Colors.white,
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -107,4 +107,4 @@ const styles = StyleSheet.create({
 });
 
 export default EventCard;
-// 
+//

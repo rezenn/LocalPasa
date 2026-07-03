@@ -1,4 +1,3 @@
-// app/(dashboard)/site/[id].tsx
 import React, { useState } from "react";
 import {
   View,
@@ -137,9 +136,7 @@ function QuizCard({ quiz, index }: { quiz: QuizQuestion; index: number }) {
           {selected === quiz.correct ? (
             <View style={qStyles.resultCorrect}>
               <Ionicons name="trophy" size={18} color="#4CAF50" />
-              <Text style={qStyles.resultCorrectText}>
-                Correct! Well done!
-              </Text>
+              <Text style={qStyles.resultCorrectText}>Correct! Well done!</Text>
             </View>
           ) : (
             <View style={qStyles.resultWrong}>
@@ -1283,7 +1280,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.sm,
   },
-  artisanScroll: { marginBottom: Spacing.lg },
+  artisanScroll: { marginBottom: Spacing.lg, paddingBottom: 4 },
   noContent: {
     fontSize: 14,
     color: Colors.textMuted,

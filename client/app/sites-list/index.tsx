@@ -27,7 +27,7 @@ export default function SitesList() {
   const { data, loading, error, refetch } = useSites({
     city: city === "All" ? undefined : city,
     type: type === "All" ? undefined : type,
-    limit: 50,
+    limit: 5000,
     sortBy: "rating",
   });
   const sites: Site[] = data?.sites ?? [];

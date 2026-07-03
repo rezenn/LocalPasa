@@ -35,7 +35,7 @@ export default function EventsList() {
     upcoming: true,
     type: type === "All" ? undefined : type,
     city: city === "All" ? undefined : city,
-    limit: 50,
+    limit: 5000,
   });
   const events: Event[] = data?.events ?? [];
 

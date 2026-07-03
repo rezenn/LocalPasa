@@ -35,7 +35,7 @@ export default function ArtisansList() {
   const { data, loading, error, refetch } = useArtisans({
     city: city === "All" ? undefined : city,
     craft: craft === "All" ? undefined : craft,
-    limit: 50,
+    limit: 5000,
     sortBy: "rating",
   });
   const artisans: Artisan[] = data?.artisans ?? [];

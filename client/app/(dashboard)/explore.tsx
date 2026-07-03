@@ -51,21 +51,11 @@ export default function HomeScreen() {
         <View style={styles.headerWrap}>
           <View style={styles.headerInner}>
             <View>
-              <Text style={styles.greeting}>Hello, Explorer! 👋</Text>
+              <Text style={styles.greeting}>Hello, Explorer!</Text>
               <Text style={styles.tagline}>
                 Discover Nepal's cultural heritage
               </Text>
             </View>
-            <TouchableOpacity
-              style={styles.translateBtn}
-              onPress={() => router.push("/translate" as any)}
-            >
-              <Ionicons
-                name="language-outline"
-                size={20}
-                color={Colors.white}
-              />
-            </TouchableOpacity>
           </View>
           <SearchBar
             value={searchQuery}
