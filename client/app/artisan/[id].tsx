@@ -2,51 +2,81 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ScrollView,
+  TouchableOpacity,
+  Image,
   ActivityIndicator,
   Alert,
+  Dimensions,
+  FlatList,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
-import StarRating from "../../components/common/Ratings";
 import { useArtisan } from "../../hooks/useApi";
 import { savedApi } from "../../api/index";
-import { ApiError } from "../../api/client";
+
+const { width } = Dimensions.get("window");
+
+const StarRating = ({ rating }: { rating: number }) => (
+  <View style={{ flexDirection: "row", gap: 2 }}>
+    {[1, 2, 3, 4, 5].map((s) => (
+      <Ionicons
+        key={s}
+        name={s <= Math.round(rating) ? "star" : "star-outline"}
+        size={12}
+        color="#F5A623"
+      />
+    ))}
+  </View>
+);
 
 export default function ArtisanDetailScreen() {
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("Profile");
 
   const { data: artisan, loading, error } = useArtisan(id ?? "");
 
-  const handleSave = async () => {
-    if (!id) return;
-    setSaving(true);
+  const toggleSave = async () => {
     try {
       if (saved) {
-        await savedApi.remove(id, "artisan");
+        await savedApi.remove(id!, "artisan");
         setSaved(false);
       } else {
-        await savedApi.save(id, "artisan");
+        await savedApi.save(id!, "artisan");
         setSaved(true);
       }
-    } catch (err) {
-      Alert.alert("Error", err instanceof ApiError ? err.message : "Failed");
-    } finally {
-      setSaving(false);
+    } catch {
+      Alert.alert("Error", "Could not update saved items.");
     }
   };
 
-  if (loading) {
+  const handleReport = () => {
+    Alert.alert(
+      "Report Artisan",
+      "Are you sure you want to report this artisan?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () => {
+            // Implement report logic here
+            Alert.alert(
+              "Report Submitted",
+              "Thank you for your report. We'll review it shortly.",
+            );
+          },
+        },
+      ],
+    );
+  };
+
+  if (loading)
     return (
       <SafeAreaView style={styles.safe}>
         <ActivityIndicator
@@ -56,428 +86,271 @@ export default function ArtisanDetailScreen() {
         />
       </SafeAreaView>
     );
-  }
 
-  if (error || !artisan) {
+  if (error || !artisan)
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.errBox}>
+        <View style={styles.errorBox}>
           <Ionicons
             name="alert-circle-outline"
-            size={56}
-            color={Colors.border}
+            size={40}
+            color={Colors.error}
           />
-          <Text style={styles.errText}>Artisan not found</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.errBtn}>
-            <Text style={styles.errBtnText}>Go Back</Text>
+          <Text style={styles.errorText}>Could not load artisan details</Text>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.retryText}>Go back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
-  }
 
-  const rating = artisan.computedRating ?? artisan.rating ?? 0;
-  const TABS = ["Profile", "Products", "Reviews"];
+  const renderProductItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.productCard}
+      activeOpacity={0.85}
+      onPress={() =>
+        router.push(`/screens/product-detail?id=${item._id}` as any)
+      }
+    >
+      <Image
+        source={{
+          uri: item.image || "https://via.placeholder.com/120",
+        }}
+        style={styles.productImg}
+      />
+      <View style={styles.productInfo}>
+        <Text style={styles.productName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.productPrice}>{item.price}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderReviewItem = ({ item }: { item: any }) => (
+    <View style={styles.reviewCard}>
+      <View style={styles.reviewTop}>
+        <View style={styles.reviewAvatar}>
+          <Text style={styles.reviewAvatarText}>{item.author[0]}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.reviewAuthor}>{item.author}</Text>
+          <Text style={styles.reviewDate}>{item.date}</Text>
+        </View>
+        <StarRating rating={item.rating} />
+      </View>
+      <Text style={styles.reviewText}>{item.text}</Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero */}
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
+      <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+        {/* Hero image */}
         <View style={styles.hero}>
-          <Image source={{ uri: artisan.image }} style={styles.heroImg} />
+          <Image
+            source={{
+              uri: artisan.image || "https://via.placeholder.com/400x240",
+            }}
+            style={styles.heroImage}
+          />
           <View style={styles.heroOverlay} />
-          <View style={styles.topNav}>
+
+          {/* Top bar */}
+          <View style={styles.topBar}>
             <TouchableOpacity
-              style={styles.navBtn}
+              style={styles.backBtn}
               onPress={() => router.back()}
             >
               <Ionicons name="arrow-back" size={20} color={Colors.white} />
             </TouchableOpacity>
-            <View style={styles.navRight}>
-              <TouchableOpacity
-                style={styles.navBtn}
-                onPress={handleSave}
-                disabled={saving}
-              >
+            <View style={styles.topActions}>
+              <TouchableOpacity style={styles.topBtn} onPress={toggleSave}>
                 <Ionicons
                   name={saved ? "heart" : "heart-outline"}
                   size={20}
                   color={saved ? "#FF6B6B" : Colors.white}
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.navBtn}>
+              <TouchableOpacity style={styles.topBtn} onPress={handleReport}>
+                <Ionicons name="flag-outline" size={20} color={Colors.white} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.topBtn}>
                 <Ionicons name="share-outline" size={20} color={Colors.white} />
               </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        {/* Identity card */}
-        <View style={styles.idCard}>
-          <View style={styles.idCardTop}>
-            <View style={styles.avatarWrap}>
-              <Image source={{ uri: artisan.image }} style={styles.avatar} />
-            </View>
-            <View style={styles.idInfo}>
-              <Text style={styles.name}>{artisan.name}</Text>
-              <Text style={styles.craft}>{artisan.craft}</Text>
-              <View style={styles.metaRow}>
-                <View style={styles.chip}>
-                  <Ionicons name="location" size={11} color={Colors.error} />
-                  <Text style={styles.chipText}>
-                    {artisan.city || artisan.location}
-                  </Text>
-                </View>
-                {artisan.experience ? (
-                  <View style={styles.chip}>
-                    <Ionicons
-                      name="time-outline"
-                      size={11}
-                      color={Colors.primary}
-                    />
-                    <Text style={styles.chipText}>
-                      {artisan.experience} yrs exp
-                    </Text>
-                  </View>
-                ) : null}
-                <View style={[styles.chip, styles.starChip]}>
-                  <Ionicons name="star" size={11} color={Colors.secondary} />
-                  <Text style={styles.chipText}>{rating.toFixed(1)}</Text>
-                </View>
-              </View>
-            </View>
+          {/* Avatar */}
+          <View style={styles.avatarWrapper}>
+            <Image source={{ uri: artisan.image }} style={styles.avatar} />
           </View>
-
-          {artisan.bio ? (
-            <View style={styles.bioSection}>
-              <Text style={styles.bodyText}>{artisan.bio}</Text>
-            </View>
-          ) : null}
         </View>
 
-        {/* CTA buttons */}
-        <View style={styles.ctaRow}>
+        {/* Name + rating */}
+        <View style={styles.nameBlock}>
+          <Text style={styles.artisanName}>{artisan.name}</Text>
+          <View style={styles.craftRow}>
+            <Text style={styles.craftLabel}>{artisan.craft}</Text>
+            {artisan.city && (
+              <View style={styles.locationRow}>
+                <Ionicons name="location" size={12} color={Colors.primary} />
+                <Text style={styles.locationText}>{artisan.city}</Text>
+              </View>
+            )}
+          </View>
+          {artisan.rating != null && (
+            <View style={styles.ratingRow}>
+              <StarRating rating={artisan.rating} />
+              <Text style={styles.ratingText}>
+                {artisan.rating.toFixed(1)} ({artisan.reviewCount ?? 0} reviews)
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Action buttons */}
+        <View style={styles.actionRow}>
           <TouchableOpacity
-            style={styles.ctaPrimary}
+            style={styles.chatBtn}
             onPress={() => router.push(`/chat/${artisan._id}` as any)}
           >
             <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={18}
-              color={Colors.white}
-            />
-            <Text style={styles.ctaPrimaryText}>Chat with Artisan</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.ctaSecondary}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            <Ionicons
-              name={saved ? "heart" : "heart-outline"}
-              size={18}
-              color={saved ? "#FF6B6B" : Colors.primary}
-            />
-            <Text style={styles.ctaSecondaryText}>
-              {saved ? "Saved" : "Save"}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.ctaSecondary}>
-            <Ionicons
-              name="share-social-outline"
+              name="chatbubble-ellipses"
               size={18}
               color={Colors.primary}
             />
-            <Text style={styles.ctaSecondaryText}>Share</Text>
+            <Text style={styles.chatBtnText}>Message</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dirBtn}>
+            <Ionicons name="navigate" size={18} color={Colors.white} />
+            <Text style={styles.dirBtnText}>Directions</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.chatBtn} onPress={toggleSave}>
+            <Ionicons
+              name={saved ? "heart" : "heart-outline"}
+              size={20}
+              color={saved ? "#FF6B6B" : Colors.textSecondary}
+            />{" "}
+            <Text style={styles.chatBtnText}>Save</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Map Preview */}
-        <View style={styles.mapPreviewContainer}>
-          <View style={styles.mapPreviewHeader}>
-            <Text style={styles.sectionTitle}>Location</Text>
-            <TouchableOpacity onPress={() => router.push("/map" as any)}>
-              <Text style={styles.linkText}>Open Full Map</Text>
+        {/* About Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.bodyText}>
+            {artisan.longBio ||
+              artisan.bio ||
+              "A skilled local artisan dedicated to preserving Nepal's rich cultural heritage through traditional craftsmanship."}
+          </Text>
+          {artisan.experience && (
+            <View style={styles.infoRow}>
+              <Ionicons name="time-outline" size={14} color={Colors.primary} />
+              <Text style={styles.infoText}>
+                {artisan.experience} years of experience
+              </Text>
+            </View>
+          )}
+          {artisan.priceRange && (
+            <View style={styles.infoRow}>
+              <Ionicons
+                name="pricetag-outline"
+                size={14}
+                color={Colors.primary}
+              />
+              <Text style={styles.infoText}>
+                Price range: {artisan.priceRange}
+              </Text>
+            </View>
+          )}
+          {artisan.contact?.email && (
+            <View style={styles.infoRow}>
+              <Ionicons name="mail-outline" size={14} color={Colors.primary} />
+              <Text style={styles.infoText}>{artisan.contact.email}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Products Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Products & Works</Text>
+            {(artisan.products ?? []).length > 0 && (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(
+                    `/screens/products-list?artisanId=${artisan._id}` as any,
+                  )
+                }
+              >
+                <Text style={styles.seeAll}>See all</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {(artisan.products ?? []).length > 0 ? (
+            <FlatList
+              data={artisan.products}
+              renderItem={renderProductItem}
+              keyExtractor={(item, index) => item.name || index.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.productsList}
+            />
+          ) : (
+            <Text style={styles.emptyText}>No products listed yet.</Text>
+          )}
+        </View>
+
+        {/* Reviews Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Reviews</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Write a review</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.mapPreview}
-            onPress={() => router.push("/map" as any)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.mapPlaceholder}>
-              <Ionicons name="map" size={40} color={Colors.border} />
-              <Text style={styles.mapText}>
-                {artisan?.city || artisan?.location || "Location available"}
-              </Text>
-              <Text style={styles.mapSubText}>Tap to explore on map</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tabs */}
-        <View style={styles.tabs}>
-          {TABS.map((t) => (
-            <TouchableOpacity
-              key={t}
-              style={[styles.tab, activeTab === t && styles.tabActive]}
-              onPress={() => setActiveTab(t)}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === t && styles.tabTextActive,
-                ]}
-              >
-                {t}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.body}>
-          {/* ── PROFILE ── */}
-          {activeTab === "Profile" && (
-            <>
-              {artisan.longBio ? (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>About</Text>
-                  <Text style={styles.bodyText}>{artisan.longBio}</Text>
-                </View>
-              ) : null}
-
-              {artisan.priceRange ? (
-                <View style={styles.infoBox}>
-                  <Ionicons
-                    name="pricetag-outline"
-                    size={18}
-                    color={Colors.primary}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.infoBoxTitle}>Price Range</Text>
-                    <Text style={styles.infoBoxText}>{artisan.priceRange}</Text>
-                  </View>
-                </View>
-              ) : null}
-
-              {artisan.contact && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Contact</Text>
-                  <View style={styles.contactGrid}>
-                    {artisan.contact.email ? (
-                      <View style={styles.contactItem}>
-                        <View style={styles.contactIcon}>
-                          <Ionicons
-                            name="mail-outline"
-                            size={16}
-                            color={Colors.primary}
-                          />
-                        </View>
-                        <Text style={styles.contactText} numberOfLines={1}>
-                          {artisan.contact.email}
-                        </Text>
-                      </View>
-                    ) : null}
-                    {artisan.contact.website ? (
-                      <View style={styles.contactItem}>
-                        <View style={styles.contactIcon}>
-                          <Ionicons
-                            name="globe-outline"
-                            size={16}
-                            color={Colors.primary}
-                          />
-                        </View>
-                        <Text style={styles.contactText} numberOfLines={1}>
-                          {artisan.contact.website}
-                        </Text>
-                      </View>
-                    ) : null}
-                    {artisan.contact.instagram ? (
-                      <View style={styles.contactItem}>
-                        <View style={styles.contactIcon}>
-                          <Ionicons
-                            name="logo-instagram"
-                            size={16}
-                            color="#E1306C"
-                          />
-                        </View>
-                        <Text style={styles.contactText}>
-                          {artisan.contact.instagram}
-                        </Text>
-                      </View>
-                    ) : null}
-                    {artisan.contact.whatsapp ? (
-                      <View style={styles.contactItem}>
-                        <View style={styles.contactIcon}>
-                          <Ionicons
-                            name="logo-whatsapp"
-                            size={16}
-                            color="#25D366"
-                          />
-                        </View>
-                        <Text style={styles.contactText}>
-                          {artisan.contact.whatsapp}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              )}
-
-              {artisan.workshops?.length ? (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Workshops</Text>
-                  {artisan.workshops.map((w, i) => (
-                    <View key={i} style={styles.workshopCard}>
-                      <View style={styles.workshopHeader}>
-                        <Text style={styles.workshopName}>{w.name}</Text>
-                        <Text style={styles.workshopPrice}>{w.price}</Text>
-                      </View>
-                      <View style={styles.workshopMeta}>
-                        <Ionicons
-                          name="time-outline"
-                          size={12}
-                          color={Colors.textMuted}
-                        />
-                        <Text style={styles.workshopMetaText}>
-                          {w.duration}
-                        </Text>
-                        <Ionicons
-                          name="people-outline"
-                          size={12}
-                          color={Colors.textMuted}
-                        />
-                        <Text style={styles.workshopMetaText}>
-                          Max {w.maxParticipants}
-                        </Text>
-                      </View>
-                      {w.description ? (
-                        <Text style={styles.workshopDesc}>{w.description}</Text>
-                      ) : null}
-                      <TouchableOpacity style={styles.bookBtn}>
-                        <Text style={styles.bookBtnText}>Book Workshop</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-            </>
-          )}
-
-          {/* ── PRODUCTS ── */}
-          {activeTab === "Products" && (
-            <>
-              {!artisan.products?.length ? (
-                <View style={styles.emptyState}>
-                  <Ionicons
-                    name="basket-outline"
-                    size={48}
-                    color={Colors.border}
-                  />
-                  <Text style={styles.emptyText}>No products listed yet.</Text>
-                </View>
-              ) : (
-                <View style={styles.productsGrid}>
-                  {artisan.products.map((p, i) => (
-                    <View key={i} style={styles.productCard}>
-                      {p.image ? (
-                        <Image
-                          source={{ uri: p.image }}
-                          style={styles.productImg}
-                        />
-                      ) : (
-                        <View style={styles.productImgPlaceholder}>
-                          <Ionicons
-                            name="image-outline"
-                            size={28}
-                            color={Colors.border}
-                          />
-                        </View>
-                      )}
-                      <View style={styles.productInfo}>
-                        <Text style={styles.productName} numberOfLines={2}>
-                          {p.name}
-                        </Text>
-                        <Text style={styles.productPrice}>{p.price}</Text>
-                        {!p.inStock && (
-                          <Text style={styles.outOfStock}>Out of stock</Text>
-                        )}
-                        {p.inStock && (
-                          <TouchableOpacity style={styles.orderBtn}>
-                            <Text style={styles.orderBtnText}>Enquire</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </>
-          )}
-
-          {/* ── REVIEWS ── */}
-          {activeTab === "Reviews" && (
-            <>
-              {!artisan.reviews?.length ? (
-                <View style={styles.emptyState}>
-                  <Ionicons
-                    name="star-outline"
-                    size={48}
-                    color={Colors.border}
-                  />
-                  <Text style={styles.emptyText}>No reviews yet.</Text>
-                </View>
-              ) : (
-                artisan.reviews.map((review) => (
-                  <View key={review._id} style={styles.review}>
-                    <View style={styles.reviewHeader}>
-                      <View style={styles.reviewAvatar}>
-                        <Text style={styles.reviewAvatarText}>
-                          {review.author[0]}
-                        </Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.reviewAuthor}>{review.author}</Text>
-                        <Text style={styles.reviewDate}>{review.date}</Text>
-                      </View>
-                      <StarRating rating={review.rating} size={12} />
-                    </View>
-                    <Text style={styles.reviewText}>{review.text}</Text>
-                  </View>
-                ))
-              )}
-            </>
+          {(artisan.reviews ?? []).length > 0 ? (
+            <FlatList
+              data={artisan.reviews}
+              renderItem={renderReviewItem}
+              keyExtractor={(item, index) => item._id || index.toString()}
+              scrollEnabled={false}
+            />
+          ) : (
+            <Text style={styles.emptyText}>No reviews yet. Be the first!</Text>
           )}
         </View>
+
+        <View style={{ height: 32 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    marginTop: StatusBar.currentHeight || 0,
-  },
+  safe: { flex: 1, backgroundColor: Colors.background },
   hero: { height: 220, position: "relative" },
-  heroImg: { width: "100%", height: "100%" },
+  heroImage: { width: "100%", height: 220 },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
-  topNav: {
+  topBar: {
     position: "absolute",
-    top: Spacing.md,
-    left: Spacing.md,
-    right: Spacing.md,
+    top: 16,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    zIndex: 10,
+    paddingHorizontal: Spacing.lg,
   },
-  navBtn: {
+  backBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -485,352 +358,141 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  navRight: { flexDirection: "row", gap: Spacing.sm },
-  idCard: {
-    flexDirection: "column",
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
-    backgroundColor: Colors.background,
+  topActions: { flexDirection: "row", gap: Spacing.sm },
+  topBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  idCardTop: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: Spacing.md,
-  },
-  avatarWrap: {
-    marginTop: 0,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 3,
+  avatarWrapper: {
+    position: "absolute",
+    bottom: -30,
+    left: "50%",
+    transform: [{ translateX: -30 }],
+    borderWidth: 4,
     borderColor: Colors.surface,
-    backgroundColor: Colors.surface,
+    borderRadius: 40,
   },
-  idInfo: {
-    flex: 1,
-    paddingTop: 0,
+  avatar: { width: 72, height: 72, borderRadius: 36 },
+  body: { flex: 1, backgroundColor: Colors.background, marginTop: 40 },
+  nameBlock: {
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
   },
-  name: {
-    fontSize: 20,
-    fontWeight: "800",
+  artisanName: {
+    fontSize: 22,
+    fontFamily: "CrimsonBold",
     color: Colors.text,
-    marginBottom: 2,
+    textAlign: "center",
   },
-  craft: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  metaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.xs,
-    marginTop: 2,
-  },
-  chip: {
+  craftRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    backgroundColor: Colors.surface,
+    gap: Spacing.sm,
+    marginTop: 4,
+  },
+  craftLabel: {
+    fontSize: 12,
+    color: Colors.white,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    fontWeight: "600",
   },
-  starChip: {
-    backgroundColor: "#FFE082",
-    borderColor: Colors.secondary,
+  locationRow: { flexDirection: "row", alignItems: "center", gap: 2 },
+  locationText: { fontSize: 12, color: Colors.textMuted },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
   },
-  chipText: {
-    fontSize: 11,
-    color: Colors.text,
-    fontWeight: "500",
-  },
-  bioSection: {
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  ctaRow: {
+  ratingText: { fontSize: 12, color: Colors.textSecondary },
+  actionRow: {
     flexDirection: "row",
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingVertical: Spacing.md,
   },
-  ctaPrimary: {
-    flex: 2,
+  chatBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
+  chatBtnText: { color: Colors.primary, fontWeight: "700", fontSize: 14 },
+  dirBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
     backgroundColor: Colors.primary,
     borderRadius: Radius.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
   },
-  ctaPrimaryText: { fontSize: 13, color: Colors.white, fontWeight: "700" },
-  ctaSecondary: {
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 3,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadow.sm,
-  },
-  ctaSecondaryText: { fontSize: 11, color: Colors.primary, fontWeight: "600" },
-  linkText: {
-    fontSize: 13,
-    color: Colors.primary,
-    fontWeight: "500",
-  },
-  mapPreviewContainer: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  mapPreviewHeader: {
+  dirBtnText: { color: Colors.white, fontWeight: "700", fontSize: 14 },
+  section: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
+  sectionHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  mapPreview: {
-    height: 150,
-    borderRadius: Radius.lg,
-    overflow: "hidden",
-  },
-  mapPlaceholder: {
-    flex: 1,
-    backgroundColor: "#E8F0E8",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.lg,
-  },
-  mapText: {
-    color: Colors.text,
-    marginTop: Spacing.xs,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  mapSubText: {
-    color: Colors.textMuted,
-    fontSize: 11,
-    marginTop: 4,
+    marginBottom: Spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 17,
+    fontFamily: "CrimsonBold",
     color: Colors.text,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  tabs: {
-    flexDirection: "row",
-    backgroundColor: Colors.background,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.border,
-    paddingHorizontal: Spacing.xl,
-  },
-  tab: {
-    paddingVertical: Spacing.md,
-    marginRight: Spacing.xl,
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
-  },
-  tabText: {
-    fontSize: 14,
-    color: Colors.textMuted,
-    fontWeight: "500",
-  },
-  tabTextActive: {
-    color: Colors.primary,
-    fontWeight: "700",
-  },
-  body: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxxl,
-  },
-  section: {
-    marginBottom: Spacing.lg,
-  },
-  bodyText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    lineHeight: 22,
-  },
-  infoBox: {
-    flexDirection: "row",
-    gap: Spacing.md,
-    backgroundColor: "#EEF2FF",
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  infoBoxTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.primary,
-    marginBottom: 2,
-  },
-  infoBoxText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  contactGrid: {
-    gap: Spacing.sm,
-  },
-  contactItem: {
+  seeAll: { fontSize: 13, color: Colors.primary, fontWeight: "600" },
+  bodyText: { fontSize: 14, color: Colors.textSecondary, lineHeight: 22 },
+  infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    gap: 8,
+    marginTop: Spacing.sm,
   },
-  contactIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#F0EAE2",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  contactText: {
-    flex: 1,
-    fontSize: 13,
-    color: Colors.text,
-  },
-  workshopCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadow.sm,
-  },
-  workshopHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.xs,
-  },
-  workshopName: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.text,
-    flex: 1,
-  },
-  workshopPrice: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: Colors.primary,
-  },
-  workshopMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    marginBottom: Spacing.xs,
-  },
-  workshopMetaText: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    marginRight: Spacing.sm,
-  },
-  workshopDesc: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: Spacing.sm,
-  },
-  bookBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 8,
-    alignItems: "center",
-  },
-  bookBtnText: {
-    color: Colors.white,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  productsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.md,
-  },
+  infoText: { fontSize: 13, color: Colors.textSecondary },
+  productsList: { gap: Spacing.sm, paddingVertical: Spacing.sm },
   productCard: {
-    width: "47%",
+    width: 120,
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.md,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: Colors.border,
+    marginRight: Spacing.sm,
     ...Shadow.sm,
   },
-  productImg: {
-    width: "100%",
-    height: 120,
-  },
-  productImgPlaceholder: {
-    width: "100%",
-    height: 120,
-    backgroundColor: "#F0EAE2",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  productInfo: {
-    padding: Spacing.sm,
-  },
-  productName: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 4,
-  },
+  productImg: { width: 120, height: 100 },
+  productInfo: { padding: Spacing.sm },
+  productName: { fontSize: 11, fontWeight: "600", color: Colors.text },
   productPrice: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: Colors.primary,
-    marginBottom: 6,
-  },
-  outOfStock: {
     fontSize: 11,
-    color: Colors.error,
-    fontWeight: "500",
-  },
-  orderBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.sm,
-    paddingVertical: 6,
-    alignItems: "center",
-  },
-  orderBtnText: {
-    color: Colors.white,
-    fontSize: 12,
+    color: Colors.primary,
     fontWeight: "700",
+    marginTop: 2,
   },
-  review: {
+  reviewCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...Shadow.sm,
   },
-  reviewHeader: {
+  reviewTop: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
@@ -840,56 +502,32 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primary + "20",
     alignItems: "center",
     justifyContent: "center",
   },
-  reviewAvatarText: {
-    color: Colors.white,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  reviewAuthor: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.text,
-  },
-  reviewDate: {
-    fontSize: 11,
-    color: Colors.textMuted,
-  },
-  reviewText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: Spacing.xxxl,
-    gap: Spacing.sm,
-  },
+  reviewAvatarText: { fontWeight: "700", color: Colors.primary, fontSize: 14 },
+  reviewAuthor: { fontSize: 13, fontWeight: "600", color: Colors.text },
+  reviewDate: { fontSize: 11, color: Colors.textMuted },
+  reviewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
   emptyText: {
     fontSize: 14,
     color: Colors.textMuted,
+    textAlign: "center",
+    paddingVertical: 24,
   },
-  errBox: {
+  errorBox: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.md,
+    gap: 12,
   },
-  errText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  errBtn: {
+  errorText: { fontSize: 15, color: Colors.textSecondary },
+  retryBtn: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
   },
-  errBtnText: {
-    color: Colors.white,
-    fontWeight: "600",
-  },
+  retryText: { color: Colors.white, fontWeight: "700" },
 });

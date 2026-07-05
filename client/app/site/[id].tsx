@@ -370,7 +370,7 @@ function ScavengerHunt({ siteName }: { siteName: string }) {
         <View style={huntStyles.completeContainer}>
           <Ionicons name="trophy" size={32} color={Colors.white} />
           <Text style={huntStyles.completeText}>
-            Congratulations! You've completed the scavenger hunt! 🎉
+            Congratulations! You've completed the scavenger hunt!
           </Text>
         </View>
       )}
@@ -1368,6 +1368,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     marginBottom: Spacing.lg,
+    ...Shadow.sm,
   },
   infoBoxTitle: {
     fontSize: 13,
@@ -1387,6 +1388,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
     alignItems: "center",
+    ...Shadow.sm,
   },
   kidsTitle: { fontSize: 22, fontWeight: "800", color: Colors.text },
   kidsSubtitle: {
@@ -1398,22 +1400,23 @@ const styles = StyleSheet.create({
   funFact: {
     flexDirection: "row",
     gap: Spacing.md,
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "#FFF9E6",
     borderRadius: Radius.lg,
     padding: Spacing.md,
     marginBottom: Spacing.lg,
     borderLeftWidth: 3,
-    borderLeftColor: "#4CAF50",
+    borderLeftColor: Colors.secondary,
+    ...Shadow.sm,
   },
   funFactTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#2E7D32",
+    color: Colors.primary,
     marginBottom: 4,
   },
-  funFactText: { fontSize: 13, color: "#1B5E20", lineHeight: 20 },
+  funFactText: { fontSize: 13, color: Colors.text, lineHeight: 20 },
   quizSectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "800",
     color: Colors.text,
     marginBottom: Spacing.md,

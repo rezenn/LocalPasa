@@ -10,6 +10,8 @@ import {
   TextInput,
   Image,
   Dimensions,
+  ActivityIndicator,
+  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,90 +21,89 @@ import { useArtisan } from "../../hooks/useApi";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - Spacing.lg * 2 - Spacing.md) / 2;
 
-const DEMO_PRODUCTS = [
-  {
-    id: "1",
-    name: "Green Tara Thanka",
-    price: "NPR 15,000",
-    description: "Traditional painting",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Tara_Green_Jokhang.jpg/800px-Tara_Green_Jokhang.jpg",
-    inStock: true,
-  },
-  {
-    id: "2",
-    name: "Saraswati Thanka",
-    price: "NPR 12,000",
-    description: "Goddess of wisdom",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Saraswati_painting.jpg/800px-Saraswati_painting.jpg",
-    inStock: true,
-  },
-  {
-    id: "3",
-    name: "Buddha Avalokite",
-    price: "NPR 18,000",
-    description: "Compassion deity",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Avalokitesvara_Padmapani.jpg/800px-Avalokitesvara_Padmapani.jpg",
-    inStock: false,
-  },
-  {
-    id: "4",
-    name: "Mandala Art",
-    price: "NPR 8,000",
-    description: "Sacred geometry",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Tibetan_mandala.jpg/800px-Tibetan_mandala.jpg",
-    inStock: true,
-  },
-  {
-    id: "5",
-    name: "Medicine Buddha",
-    price: "NPR 22,000",
-    description: "Healing deity painting",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Medicine_Buddha.jpg/800px-Medicine_Buddha.jpg",
-    inStock: true,
-  },
-  {
-    id: "6",
-    name: "Vajrayana Scroll",
-    price: "NPR 9,500",
-    description: "Sacred Tibetan scroll",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Thangka_Depicting_Vajrabhairava.jpg/800px-Thangka_Depicting_Vajrabhairava.jpg",
-    inStock: true,
-  },
-];
-
 export default function ProductsListScreen() {
   const { artisanId } = useLocalSearchParams<{ artisanId?: string }>();
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("default");
 
-  const { data: artisan } = useArtisan(artisanId ?? "");
-  const products = (
-    artisan?.products?.length ? artisan.products : DEMO_PRODUCTS
-  ).filter(
-    (p: any) => !search || p.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const { data: artisan, loading, error } = useArtisan(artisanId ?? "");
+
+  // Filter products based on search
+  const products =
+    artisan?.products?.filter(
+      (p: any) =>
+        !search || p.name.toLowerCase().includes(search.toLowerCase()),
+    ) ?? [];
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={20} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Products</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !artisan) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={20} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Products</Text>
+        </View>
+        <View style={styles.centered}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={48}
+            color={Colors.error}
+          />
+          <Text style={styles.errorText}>Could not load products</Text>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.retryText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={Colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {artisan ? `${artisan.name}'s Products` : "Products"}
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {artisan.name}'s Products
         </Text>
+        <View style={styles.headerRight} />
       </View>
 
+      {/* Search Bar */}
       <View style={styles.searchRow}>
-        <Ionicons name="search" size={16} color={Colors.textMuted} />
+        <Ionicons name="search-outline" size={20} color={Colors.textMuted} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search products..."
@@ -110,23 +111,54 @@ export default function ProductsListScreen() {
           value={search}
           onChangeText={setSearch}
         />
+        {search.length > 0 && (
+          <TouchableOpacity onPress={() => setSearch("")}>
+            <Ionicons name="close-circle" size={20} color={Colors.textMuted} />
+          </TouchableOpacity>
+        )}
       </View>
 
+      {/* Product Count */}
+      <View style={styles.countContainer}>
+        <Text style={styles.countText}>
+          {products.length} {products.length === 1 ? "product" : "products"}{" "}
+          found
+        </Text>
+      </View>
+
+      {/* Product Grid */}
       <FlatList
         data={products}
-        keyExtractor={(item: any) => item.id || item.name}
+        keyExtractor={(item: any, index) =>
+          item._id || item.id || index.toString()
+        }
         numColumns={2}
         contentContainerStyle={styles.grid}
-        columnWrapperStyle={{ gap: Spacing.md }}
+        columnWrapperStyle={styles.columnWrapper}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }: any) => (
-          <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.85}
+            onPress={() => {
+              // Navigate to product detail if needed
+              // router.push(`/screens/product-detail?id=${item._id}` as any);
+            }}
+          >
             <Image
-              source={{ uri: item.image || "https://via.placeholder.com/200" }}
+              source={{
+                uri:
+                  item.image ||
+                  "https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image",
+              }}
               style={styles.cardImage}
+              resizeMode="cover"
             />
-            {!item.inStock && (
-              <View style={styles.soldOut}>
-                <Text style={styles.soldOutText}>Sold Out</Text>
+            {item.inStock === false && (
+              <View style={styles.soldOutOverlay}>
+                <View style={styles.soldOutBadge}>
+                  <Text style={styles.soldOutText}>Sold Out</Text>
+                </View>
               </View>
             )}
             <View style={styles.cardBody}>
@@ -139,15 +171,21 @@ export default function ProductsListScreen() {
                 </Text>
               )}
               <View style={styles.cardBottom}>
-                <Text style={styles.cardPrice}>{item.price}</Text>
+                <Text style={styles.cardPrice}>
+                  {item.price || "Price on request"}
+                </Text>
                 <TouchableOpacity
                   style={[
                     styles.addBtn,
-                    !item.inStock && styles.addBtnDisabled,
+                    item.inStock === false && styles.addBtnDisabled,
                   ]}
-                  disabled={!item.inStock}
+                  disabled={item.inStock === false}
                 >
-                  <Ionicons name="add" size={16} color={Colors.white} />
+                  <Ionicons
+                    name={item.inStock === false ? "close" : "add"}
+                    size={18}
+                    color={Colors.white}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -155,8 +193,13 @@ export default function ProductsListScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="bag-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No products found</Text>
+            <Ionicons name="bag-outline" size={64} color={Colors.textMuted} />
+            <Text style={styles.emptyTitle}>No products found</Text>
+            <Text style={styles.emptySubtitle}>
+              {search
+                ? "Try adjusting your search"
+                : "This artisan hasn't listed any products yet"}
+            </Text>
           </View>
         }
       />
@@ -165,86 +208,182 @@ export default function ProductsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   header: {
     backgroundColor: Colors.primary,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
-    gap: Spacing.md,
+    gap: Spacing.sm,
+    paddingTop: Platform.OS === "android" ? Spacing.sm : Spacing.md,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: "CrimsonBold",
     color: Colors.white,
+  },
+  headerRight: {
+    width: 40,
   },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
     marginHorizontal: Spacing.lg,
-    marginVertical: Spacing.sm,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     ...Shadow.sm,
   },
-  searchInput: { flex: 1, fontSize: 14, color: Colors.text },
-  grid: { padding: Spacing.lg, paddingBottom: Spacing.xl },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+    paddingVertical: Platform.OS === "ios" ? 8 : 4,
+  },
+  countContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+  },
+  countText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  grid: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  columnWrapper: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
   card: {
     flex: 1,
+    maxWidth: CARD_WIDTH,
     backgroundColor: Colors.surface,
     borderRadius: Radius.xl,
     overflow: "hidden",
     ...Shadow.sm,
-    position: "relative",
   },
-  cardImage: { width: "100%", height: 150 },
-  soldOut: {
+  cardImage: {
+    width: "100%",
+    height: 160,
+    backgroundColor: Colors.border,
+  },
+  soldOutOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    bottom: 150,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.3)",
     alignItems: "center",
     justifyContent: "center",
   },
-  soldOutText: { color: Colors.white, fontWeight: "700", fontSize: 13 },
-  cardBody: { padding: Spacing.sm },
+  soldOutBadge: {
+    backgroundColor: "rgba(0,0,0,0.75)",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+  },
+  soldOutText: {
+    color: Colors.white,
+    fontWeight: "700",
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
+  cardBody: {
+    padding: Spacing.sm,
+    gap: 4,
+  },
   cardName: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "600",
     color: Colors.text,
-    marginBottom: 2,
+    lineHeight: 18,
   },
-  cardDesc: { fontSize: 11, color: Colors.textMuted, marginBottom: 6 },
+  cardDesc: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    lineHeight: 16,
+  },
   cardBottom: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginTop: 4,
   },
-  cardPrice: { fontSize: 13, fontWeight: "700", color: Colors.primary },
+  cardPrice: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
   addBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
-  addBtnDisabled: { backgroundColor: Colors.textMuted },
-  empty: { alignItems: "center", paddingVertical: 60, gap: 12 },
-  emptyText: { fontSize: 16, color: Colors.textMuted },
+  addBtnDisabled: {
+    backgroundColor: Colors.border,
+  },
+  empty: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+    gap: Spacing.sm,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.text,
+    marginTop: Spacing.sm,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    textAlign: "center",
+    paddingHorizontal: Spacing.xl,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.md,
+  },
+  errorText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: "center",
+  },
+  retryBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    marginTop: Spacing.sm,
+  },
+  retryText: {
+    color: Colors.white,
+    fontWeight: "600",
+  },
 });
