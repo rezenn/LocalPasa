@@ -19,7 +19,6 @@ function AuthGuard() {
     } else if (user && inAuthGroup) {
       router.replace("/(dashboard)/explore");
     }
-    // router is stable from expo-router, but include it for exhaustive deps.
   }, [user, initializing, segments, router]);
 
   return null;
