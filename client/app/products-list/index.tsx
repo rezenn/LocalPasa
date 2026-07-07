@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   FlatList,
   TouchableOpacity,
@@ -17,6 +16,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - Spacing.lg * 2 - Spacing.md) / 2;
@@ -118,11 +118,11 @@ export default function ProductsListScreen() {
         )}
       </View>
 
-      {/* Product Count - FIXED: ensure all text is properly rendered */}
+      {/* Product Count */}
       <View style={styles.countContainer}>
         <Text style={styles.countText}>
-          {String(products.length)}{" "}
-          {products.length === 1 ? "product" : "products"} found
+          {products.length} {products.length === 1 ? "product" : "products"}{" "}
+          found
         </Text>
       </View>
 
@@ -141,8 +141,8 @@ export default function ProductsListScreen() {
             style={styles.card}
             activeOpacity={0.85}
             onPress={() => {
-              // Navigate to product detail if needed
-              // router.push(`/screens/product-detail?id=${item._id}` as any);
+              const index = products.findIndex((p: any) => p === item);
+              router.push(`/product/${index}?artisanId=${artisanId}` as any);
             }}
           >
             <Image
@@ -208,11 +208,8 @@ export default function ProductsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
+  safe: { flex: 1, backgroundColor: Colors.background },
+
   header: {
     backgroundColor: Colors.primary,
     flexDirection: "row",

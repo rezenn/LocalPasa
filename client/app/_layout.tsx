@@ -76,6 +76,10 @@ function RootLayoutInner() {
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
+          name="product/[id]"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
           name="translate/index"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />

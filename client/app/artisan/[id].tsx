@@ -107,12 +107,12 @@ export default function ArtisanDetailScreen() {
       </SafeAreaView>
     );
 
-  const renderProductItem = ({ item }: { item: any }) => (
+  const renderProductItem = ({ item, index }: { item: any; index: number }) => (
     <TouchableOpacity
       style={styles.productCard}
       activeOpacity={0.85}
       onPress={() =>
-        router.push(`/screens/product-detail?id=${item._id}` as any)
+        router.push(`/product/${index}?artisanId=${artisan._id}` as any)
       }
     >
       <Image
@@ -236,7 +236,7 @@ export default function ArtisanDetailScreen() {
               name={saved ? "heart" : "heart-outline"}
               size={20}
               color={saved ? "#FF6B6B" : Colors.textSecondary}
-            />{" "}
+            />
             <Text style={styles.chatBtnText}>Save</Text>
           </TouchableOpacity>
         </View>
@@ -284,9 +284,7 @@ export default function ArtisanDetailScreen() {
             {(artisan.products ?? []).length > 0 && (
               <TouchableOpacity
                 onPress={() =>
-                  router.push(
-                    `/screens/products-list?artisanId=${artisan._id}` as any,
-                  )
+                  router.push(`/products-list?artisanId=${artisan._id}` as any)
                 }
               >
                 <Text style={styles.seeAll}>See all</Text>
