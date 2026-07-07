@@ -118,11 +118,11 @@ export default function ProductsListScreen() {
         )}
       </View>
 
-      {/* Product Count */}
+      {/* Product Count - FIXED: ensure all text is properly rendered */}
       <View style={styles.countContainer}>
         <Text style={styles.countText}>
-          {products.length} {products.length === 1 ? "product" : "products"}{" "}
-          found
+          {String(products.length)}{" "}
+          {products.length === 1 ? "product" : "products"} found
         </Text>
       </View>
 
