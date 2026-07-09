@@ -37,9 +37,7 @@ export class UserRepository {
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: new Date() },
     })
-      .select(
-        "+password +passwordResetToken +passwordResetExpires +refreshTokens",
-      )
+      .select("+password +passwordResetToken +passwordResetExpires +refreshTokens")
       .exec();
   }
 

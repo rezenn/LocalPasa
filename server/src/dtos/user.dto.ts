@@ -11,24 +11,23 @@ const passwordSchema = z
 const emailSchema = z.string().trim().toLowerCase().email("Invalid email");
 
 const RegisterUserBaseSchema = z.object({
-  fullName: z.string().trim().min(2).max(60),
-  email: emailSchema,
-  password: passwordSchema,
-  confirmPassword: z.string(),
-  role: z
-    .enum([UserRole.TOURIST, UserRole.ARTISAN])
-    .default(UserRole.TOURIST)
-    .optional(),
-  phone: z.string().trim().min(7).max(20).optional(),
-});
+    fullName: z.string().trim().min(2).max(60),
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    role: z
+      .enum([UserRole.TOURIST, UserRole.ARTISAN])
+      .default(UserRole.TOURIST)
+      .optional(),
+    phone: z.string().trim().min(7).max(20).optional(),
+  });
 
-export const RegisterUserDto = RegisterUserBaseSchema.refine(
-  (data) => data.password === data.confirmPassword,
-  {
+export const RegisterUserDto = RegisterUserBaseSchema
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  },
-).transform(({ confirmPassword, ...rest }) => rest);
+  })
+  .transform(({ confirmPassword, ...rest }) => rest);
 export type RegisterUserDto = z.infer<typeof RegisterUserDto>;
 
 export const LoginUserDto = z.object({

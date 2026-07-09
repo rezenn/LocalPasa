@@ -1,7 +1,9 @@
 import { Response } from "express";
 import { SavedModel } from "../models/saved.model";
 import { sendSuccess, sendError } from "../utils/response.util";
+import { AppError } from "../utils/response.util";
 import { AuthRequest } from "../types/user.type";
+import { userRepository } from "../repositories/user.repository";
 
 // GET /profile/me
 export const getProfile = async (req: AuthRequest, res: Response) => {
@@ -78,5 +80,36 @@ export const getSavedStats = async (req: AuthRequest, res: Response) => {
     return sendSuccess(res, result);
   } catch (err) {
     return sendError(res, "Failed to fetch saved stats", 500);
+  }
+};
+
+// POST /profile/change-password
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await userRepository.findByIdWithPassword(
+      req.currentUser!._id.toString(),
+    );
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    const matches = await user.comparePassword(currentPassword);
+    if (!matches) {
+      throw new AppError("Current password is incorrect", 401);
+    }
+
+    user.password = newPassword;
+    user.refreshTokens = []; // force re-login everywhere else
+    await user.save();
+
+    return sendSuccess(res, null, "Password changed successfully");
+  } catch (err) {
+    if (err instanceof AppError) {
+      return sendError(res, err.message, err.statusCode);
+    }
+    console.error(err);
+    return sendError(res, "Failed to change password", 500);
   }
 };
