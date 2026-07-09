@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   ScrollView,
   TouchableOpacity,
@@ -14,7 +15,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useEvents } from "../../hooks/useApi";
 import { Event } from "../../types";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -302,6 +302,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
   scroll: { flex: 1 },
   headerWrap: {

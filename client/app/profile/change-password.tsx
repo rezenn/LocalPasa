@@ -49,10 +49,7 @@ export default function ChangePasswordScreen() {
       return;
     }
     if (newPassword === currentPassword) {
-      Alert.alert(
-        "Error",
-        "New password must be different from your current password",
-      );
+      Alert.alert("Error", "New password must be different from your current password");
       return;
     }
 
@@ -184,8 +181,8 @@ export default function ChangePasswordScreen() {
           </View>
 
           <Text style={styles.hint}>
-            At least 8 characters, with an uppercase letter, a lowercase letter,
-            and a number.
+            At least 8 characters, with an uppercase letter, a lowercase
+            letter, and a number.
           </Text>
         </View>
 

@@ -22,6 +22,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useSites } from "../../hooks/useApi";
 import { Site } from "../../types";
+import FilterPanel, {
+  DEFAULT_FILTERS,
+  ExploreFilters,
+  isFiltersActive,
+} from "../../components/common/FilterPanel";
+import { filterSites } from "../../utils/exploreFilters";
 
 const { width, height } = Dimensions.get("window");
 
@@ -488,6 +494,11 @@ export default function MapScreen() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedCity, setSelectedCity] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] =
+    useState<ExploreFilters>(DEFAULT_FILTERS);
+  const [appliedAdvancedFilters, setAppliedAdvancedFilters] =
+    useState<ExploreFilters>(DEFAULT_FILTERS);
   const [selectedSite, setSelectedSite] = useState<{
     id: string;
     name: string;
@@ -505,6 +516,7 @@ export default function MapScreen() {
   });
 
   const sites = data?.sites ?? [];
+  const displaySites = filterSites(sites, search, appliedAdvancedFilters);
 
   // Refresh map when filters change or sites update
   useEffect(() => {
@@ -513,7 +525,7 @@ export default function MapScreen() {
       setMapReady(false);
       setWebViewError(false);
     }
-  }, [selectedCategory, selectedCity, sites, loading]);
+  }, [selectedCategory, selectedCity, sites, loading, search, appliedAdvancedFilters]);
 
   const toggleFilters = () => {
     const toValue = showFilters ? 0 : 1;
@@ -523,6 +535,21 @@ export default function MapScreen() {
       useNativeDriver: false,
       friction: 8,
     }).start();
+  };
+
+  const openAdvancedFilters = () => {
+    setAdvancedFilters(appliedAdvancedFilters);
+    setShowAdvancedFilters(true);
+  };
+
+  const applyAdvancedFilters = () => {
+    setAppliedAdvancedFilters(advancedFilters);
+    setShowAdvancedFilters(false);
+  };
+
+  const resetAdvancedFilters = () => {
+    setAdvancedFilters(DEFAULT_FILTERS);
+    setAppliedAdvancedFilters(DEFAULT_FILTERS);
   };
 
   const filterHeight = filterAnim.interpolate({
@@ -592,6 +619,20 @@ export default function MapScreen() {
           <TouchableOpacity onPress={toggleFilters} style={styles.filterBtn}>
             <Ionicons name="options" size={18} color={Colors.primary} />
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={openAdvancedFilters}
+            style={styles.filterBtn}
+          >
+            <Ionicons
+              name="funnel"
+              size={17}
+              color={
+                isFiltersActive(appliedAdvancedFilters)
+                  ? Colors.primary
+                  : Colors.textMuted
+              }
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Animated filter row */}
@@ -657,7 +698,7 @@ export default function MapScreen() {
       <WebView
         key={webViewKey}
         ref={webViewRef}
-        source={{ html: buildLeafletHTML(sites) }}
+        source={{ html: buildLeafletHTML(displaySites) }}
         style={styles.map}
         onMessage={handleMessage}
         javaScriptEnabled
@@ -716,6 +757,25 @@ export default function MapScreen() {
         </View>
       )}
 
+      {/* Advanced filters overlay (distance/price/rating/type) */}
+      {showAdvancedFilters && (
+        <View style={styles.advancedFiltersOverlay}>
+          <View style={styles.advancedFiltersHeader}>
+            <Text style={styles.advancedFiltersTitle}>Filters</Text>
+            <TouchableOpacity onPress={() => setShowAdvancedFilters(false)}>
+              <Ionicons name="close" size={24} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          <FilterPanel
+            filters={advancedFilters}
+            onChange={setAdvancedFilters}
+            onApply={applyAdvancedFilters}
+            onReset={resetAdvancedFilters}
+            showEventType={false}
+          />
+        </View>
+      )}
+
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
@@ -754,6 +814,24 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     ...Shadow.md,
   },
+  advancedFiltersOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.background,
+    zIndex: 200,
+    paddingTop: Platform.OS === "ios" ? 50 : 40,
+  },
+  advancedFiltersHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
+  advancedFiltersTitle: { fontSize: 20, fontFamily: "CrimsonBold", color: Colors.text },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",

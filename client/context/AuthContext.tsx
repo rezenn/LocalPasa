@@ -25,6 +25,7 @@ interface AuthContextValue extends AuthState {
   register: (payload: RegisterPayload) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   clearError: () => void;
+  updateUser: (patch: Partial<AuthResponse["user"]>) => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -98,9 +99,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, error: null }));
   }, []);
 
+  // Applies edits locally right away (e.g. from Edit Profile) so the UI
+  // reflects changes instantly even if the backend call is slow, unreachable,
+  // or not wired up yet. Safe to call alongside a background API call.
+  const updateUser = useCallback((patch: Partial<AuthResponse["user"]>) => {
+    setState((s) => (s.user ? { ...s, user: { ...s.user, ...patch } } : s));
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ ...state, login, register, logout, clearError }}
+      value={{ ...state, login, register, logout, clearError, updateUser }}
     >
       {children}
     </AuthContext.Provider>

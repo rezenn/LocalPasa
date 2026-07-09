@@ -4,6 +4,7 @@ import Toast from "react-native-toast-message";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { PreferencesProvider } from "@/context/PreferencesContext";
+import { BookingsProvider } from "@/context/BookingsContext";
 
 function AuthGuard() {
   const router = useRouter();
@@ -80,6 +81,18 @@ function RootLayoutInner() {
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
+          name="experiences-list/index"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="experience/[id]"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="experience/booking-confirmed"
+          options={{ animation: "slide_from_right", gestureEnabled: false }}
+        />
+        <Stack.Screen
           name="translate/index"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
@@ -127,6 +140,10 @@ function RootLayoutInner() {
           name="profile/change-password"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
+        <Stack.Screen
+          name="profile/my-experiences"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
       </Stack>
       <AuthGuard />
       <Toast />
@@ -138,7 +155,9 @@ export default function RootLayout() {
   return (
     <PreferencesProvider>
       <AuthProvider>
-        <RootLayoutInner />
+        <BookingsProvider>
+          <RootLayoutInner />
+        </BookingsProvider>
       </AuthProvider>
     </PreferencesProvider>
   );

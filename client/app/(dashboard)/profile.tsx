@@ -176,6 +176,13 @@ export default function ProfileScreen() {
           color: "#4CAF50",
         },
         {
+          icon: "sparkles-outline" as const,
+          label: "My Experiences",
+          sub: "Booked workshops & activities",
+          route: "/profile/my-experiences",
+          color: "#F5A623",
+        },
+        {
           icon: "language-outline" as const,
           label: "Translate",
           sub: "Translate content",

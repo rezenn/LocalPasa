@@ -16,7 +16,8 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { profileApi } from "../../api/index";
-import { useAsync } from "../../hooks/index";
+import { useAuth } from "../../context/AuthContext";
+import { usePreferences } from "../../context/PreferencesContext";
 import Toast from "react-native-toast-message";
 
 const NATIONALITIES = [
@@ -36,58 +37,64 @@ const NATIONALITIES = [
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { data: profile, loading } = useAsync(() => profileApi.getMe(), []);
+  // Prefill instantly from what we already have client-side (from
+  // login/register/AsyncStorage) instead of blocking on a network call —
+  // this screen needs to work even if the backend is slow or unreachable.
+  const { user, updateUser } = useAuth();
+  const { prefs, setNationality: persistNationality } = usePreferences();
   const [saving, setSaving] = useState(false);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [nationality, setNationality] = useState("");
+  const [firstName, setFirstName] = useState(user?.firstName ?? "");
+  const [lastName, setLastName] = useState(user?.lastName ?? "");
+  const [phone, setPhone] = useState(user?.phoneNumber ?? "");
+  const [nationality, setNationality] = useState(prefs.nationality ?? "");
   const [showNationalityPicker, setShowNationalityPicker] = useState(false);
 
-  // Prefill once loaded
+  // If the user object arrives/changes after mount (e.g. restored on app
+  // start), sync the form once so we don't clobber in-progress edits.
   useEffect(() => {
-    if (profile) {
-      setFirstName(profile.firstName ?? "");
-      setLastName(profile.lastName ?? "");
-      setPhone(profile.phone ?? "");
-      setNationality(profile.nationality ?? "");
+    if (user) {
+      setFirstName((prev) => prev || user.firstName || "");
+      setLastName((prev) => prev || user.lastName || "");
+      setPhone((prev) => prev || user.phoneNumber || "");
     }
-  }, [profile]);
+  }, [user]);
 
   const handleSave = async () => {
-    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-    if (!fullName) {
-      Alert.alert("Validation", "Name cannot be empty.");
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    if (!trimmedFirst) {
+      Alert.alert("Validation", "First name cannot be empty.");
       return;
     }
     setSaving(true);
+
+    // Apply the edit locally right away — Profile, header greetings, etc.
+    // all read from AuthContext/Preferences, so this makes the change feel
+    // instant regardless of backend availability.
+    updateUser({
+      firstName: trimmedFirst,
+      lastName: trimmedLast,
+      phoneNumber: phone.trim(),
+    });
+    await persistNationality(nationality.trim());
+
+    // Best-effort sync to the backend. If it fails (offline, backend not
+    // running, etc.) the local edit above still stands — we just log it.
     try {
       await profileApi.update({
-        fullName,
+        fullName: `${trimmedFirst} ${trimmedLast}`.trim(),
         phone: phone.trim(),
         nationality: nationality.trim(),
       });
-      Toast.show({ type: "success", text1: "Profile updated!" });
-      router.back();
-    } catch (err: any) {
-      Alert.alert("Error", err?.message ?? "Failed to update profile");
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      console.warn("Profile update: backend sync failed, kept local edit", err);
     }
-  };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
-      </SafeAreaView>
-    );
-  }
+    setSaving(false);
+    Toast.show({ type: "success", text1: "Profile updated!" });
+    router.back();
+  };
 
   const initials = firstName
     ? `${firstName[0]}${lastName[0] ?? ""}`.toUpperCase()
@@ -121,8 +128,8 @@ export default function EditProfileScreen() {
       >
         {/* Avatar section */}
         <View style={styles.avatarSection}>
-          {profile?.avatar ? (
-            <Image source={{ uri: profile.avatar }} style={styles.avatar} />
+          {user?.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
           ) : (
             <View style={styles.avatarFallback}>
               <Text style={styles.avatarInitials}>{initials}</Text>
@@ -162,7 +169,7 @@ export default function EditProfileScreen() {
         <View style={styles.formGroup}>
           <Text style={styles.label}>Email</Text>
           <View style={styles.inputDisabled}>
-            <Text style={styles.inputDisabledText}>{profile?.email ?? ""}</Text>
+            <Text style={styles.inputDisabledText}>{user?.email ?? ""}</Text>
             <Ionicons name="lock-closed" size={14} color={Colors.textMuted} />
           </View>
           <Text style={styles.fieldNote}>Email cannot be changed</Text>
@@ -241,8 +248,8 @@ export default function EditProfileScreen() {
           <View style={styles.roleBadge}>
             <Ionicons name="person-circle" size={16} color={Colors.primary} />
             <Text style={styles.roleText}>
-              {profile?.role
-                ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+              {user?.role
+                ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
                 : "Tourist"}
             </Text>
           </View>

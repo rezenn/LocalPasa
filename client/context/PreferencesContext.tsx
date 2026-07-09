@@ -13,6 +13,7 @@ export interface AppPreferences {
   languageCode: string; // e.g. "en", "ne"
   interests: string[]; // e.g. ["Temples & Heritages", "Local Food"]
   preferredLocations: string[]; // e.g. ["Kathmandu Valley", "Pokhara"]
+  nationality: string;
   notificationsEnabled: boolean;
   hasCompletedOnboarding: boolean;
 }
@@ -22,6 +23,7 @@ interface PreferencesContextValue {
   setLanguage: (name: string, code: string) => Promise<void>;
   setInterests: (interests: string[]) => Promise<void>;
   setLocations: (locations: string[]) => Promise<void>;
+  setNationality: (nationality: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   toggleNotifications: () => Promise<void>;
   loading: boolean;
@@ -33,6 +35,7 @@ const DEFAULTS: AppPreferences = {
   languageCode: "en",
   interests: [],
   preferredLocations: [],
+  nationality: "",
   notificationsEnabled: true,
   hasCompletedOnboarding: false,
 };
@@ -91,6 +94,13 @@ export function PreferencesProvider({
     [prefs, persist],
   );
 
+  const setNationality = useCallback(
+    async (nationality: string) => {
+      await persist({ ...prefs, nationality });
+    },
+    [prefs, persist],
+  );
+
   const completeOnboarding = useCallback(async () => {
     await persist({ ...prefs, hasCompletedOnboarding: true });
   }, [prefs, persist]);
@@ -109,6 +119,7 @@ export function PreferencesProvider({
         setLanguage,
         setInterests,
         setLocations,
+        setNationality,
         completeOnboarding,
         toggleNotifications,
         loading,
