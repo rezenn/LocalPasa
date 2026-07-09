@@ -76,6 +76,10 @@ function RootLayoutInner() {
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
         <Stack.Screen
+          name="product/[id]"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
           name="translate/index"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
@@ -113,6 +117,14 @@ function RootLayoutInner() {
         />
         <Stack.Screen
           name="profile/privacy"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/settings"
+          options={{ animation: "slide_from_right", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="profile/change-password"
           options={{ animation: "slide_from_right", gestureEnabled: true }}
         />
       </Stack>

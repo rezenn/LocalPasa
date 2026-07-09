@@ -28,12 +28,16 @@ export default function ProductsListScreen() {
 
   const { data: artisan, loading, error } = useArtisan(artisanId ?? "");
 
-  // Filter products based on search
-  const products =
-    artisan?.products?.filter(
+  // Filter products based on search, but keep each item's original index
+  // (into artisan.products) since that index is how /product/[id] addresses
+  // a specific product — the product data model has no _id of its own.
+  const allProducts = artisan?.products ?? [];
+  const products = allProducts
+    .map((p: any, originalIndex: number) => ({ ...p, originalIndex }))
+    .filter(
       (p: any) =>
         !search || p.name.toLowerCase().includes(search.toLowerCase()),
-    ) ?? [];
+    );
 
   if (loading) {
     return (
@@ -130,7 +134,7 @@ export default function ProductsListScreen() {
       <FlatList
         data={products}
         keyExtractor={(item: any, index) =>
-          item._id || item.id || index.toString()
+          item._id || item.id || `product-${item.originalIndex ?? index}`
         }
         numColumns={2}
         contentContainerStyle={styles.grid}
@@ -141,8 +145,9 @@ export default function ProductsListScreen() {
             style={styles.card}
             activeOpacity={0.85}
             onPress={() => {
-              // Navigate to product detail if needed
-              // router.push(`/screens/product-detail?id=${item._id}` as any);
+              router.push(
+                `/product/${item.originalIndex}?artisanId=${artisanId}` as any,
+              );
             }}
           >
             <Image

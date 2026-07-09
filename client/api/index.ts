@@ -76,6 +76,17 @@ export const profileApi = {
     api.get<{ total: number; sites: number; artisans: number; events: number }>(
       "/profile/saved/stats",
     ),
+
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ) =>
+    api.post<null>("/profile/change-password", {
+      currentPassword,
+      newPassword,
+      confirmNewPassword,
+    }),
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────

@@ -160,7 +160,9 @@ export default function PrivacyScreen() {
               onPress={
                 item.label === "Delete Account"
                   ? handleDeleteAccount
-                  : undefined
+                  : item.label === "Change Password"
+                    ? () => router.push("/profile/change-password" as any)
+                    : undefined
               }
               activeOpacity={0.7}
             >

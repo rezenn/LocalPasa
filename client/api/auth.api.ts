@@ -60,6 +60,18 @@ const authApi = {
 
   me: () => api.get<{ user: PublicUser }>("/auth/me"),
 
+  forgotPassword: (email: string) =>
+    api.post<{ devResetToken?: string } | null>("/auth/forgot-password", {
+      email,
+    }),
+
+  resetPassword: (token: string, password: string, confirmPassword: string) =>
+    api.post<null>("/auth/reset-password", {
+      token,
+      password,
+      confirmPassword,
+    }),
+
   logout: async () => {
     const refreshToken = await tokenStorage.getRefresh();
     try {

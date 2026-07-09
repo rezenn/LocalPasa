@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   FlatList,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   keyboardContainer: {
     flex: 1,

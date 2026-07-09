@@ -11,23 +11,24 @@ const passwordSchema = z
 const emailSchema = z.string().trim().toLowerCase().email("Invalid email");
 
 const RegisterUserBaseSchema = z.object({
-    fullName: z.string().trim().min(2).max(60),
-    email: emailSchema,
-    password: passwordSchema,
-    confirmPassword: z.string(),
-    role: z
-      .enum([UserRole.TOURIST, UserRole.ARTISAN])
-      .default(UserRole.TOURIST)
-      .optional(),
-    phone: z.string().trim().min(7).max(20).optional(),
-  });
+  fullName: z.string().trim().min(2).max(60),
+  email: emailSchema,
+  password: passwordSchema,
+  confirmPassword: z.string(),
+  role: z
+    .enum([UserRole.TOURIST, UserRole.ARTISAN])
+    .default(UserRole.TOURIST)
+    .optional(),
+  phone: z.string().trim().min(7).max(20).optional(),
+});
 
-export const RegisterUserDto = RegisterUserBaseSchema
-  .refine((data) => data.password === data.confirmPassword, {
+export const RegisterUserDto = RegisterUserBaseSchema.refine(
+  (data) => data.password === data.confirmPassword,
+  {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  })
-  .transform(({ confirmPassword, ...rest }) => rest);
+  },
+).transform(({ confirmPassword, ...rest }) => rest);
 export type RegisterUserDto = z.infer<typeof RegisterUserDto>;
 
 export const LoginUserDto = z.object({
@@ -40,6 +41,39 @@ export const CreateAdminSchema = RegisterUserBaseSchema.extend({
   role: z.literal("admin"),
 }).transform(({ confirmPassword, ...rest }) => rest);
 export type CreateAdminDto = z.infer<typeof CreateAdminSchema>;
+
+export const ForgotPasswordDto = z.object({
+  email: emailSchema,
+});
+export type ForgotPasswordDto = z.infer<typeof ForgotPasswordDto>;
+
+export const ResetPasswordDto = z
+  .object({
+    token: z.string().min(10, "Invalid or missing reset token"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+export type ResetPasswordDto = z.infer<typeof ResetPasswordDto>;
+
+export const ChangePasswordDto = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: passwordSchema,
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Passwords do not match",
+    path: ["confirmNewPassword"],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
+  });
+export type ChangePasswordDto = z.infer<typeof ChangePasswordDto>;
 
 export const UpdateUserDto = z.object({
   fullName: z.string().trim().min(2).max(60).optional(),

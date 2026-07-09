@@ -112,6 +112,72 @@ export const refresh = async (
   return sendSuccess(res, { tokens }, "Token refreshed");
 };
 
+// POST /auth/forgot-password
+// Always responds with a generic success message regardless of whether the
+// email exists, to avoid leaking which addresses are registered.
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  const user = await userRepository.findByEmail(req.body.email);
+  let rawToken: string | undefined;
+
+  if (user) {
+    rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+    await user.save({ validateBeforeSave: false });
+
+    // TODO: wire up a real email provider (e.g. SES/SendGrid/Postmark) and
+    // send `rawToken` via a link like `locapasa://reset-password?token=...`.
+    // For now this is logged so the flow is testable end-to-end in dev.
+    console.log(
+      `[password reset] ${user.email} -> token=${rawToken} (expires in 15 min)`,
+    );
+  }
+
+  return sendSuccess(
+    res,
+    // Only echo the token back outside production, so the app can be tested
+    // without a real email service wired up yet.
+    process.env.NODE_ENV !== "production" && rawToken
+      ? { devResetToken: rawToken }
+      : null,
+    "If an account exists for that email, a reset link has been sent.",
+  );
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  const { token, password } = req.body;
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await userRepository.findByResetToken(hashedToken);
+
+  if (!user) {
+    throw new AppError("Reset link is invalid or has expired", 400);
+  }
+
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.refreshTokens = []; // force re-login on all devices
+  await user.save();
+
+  return sendSuccess(
+    res,
+    null,
+    "Password reset successfully. Please log in with your new password.",
+  );
+};
+
 export const logout = async (
   req: Request,
   res: Response,

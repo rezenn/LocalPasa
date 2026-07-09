@@ -5,7 +5,6 @@ import {
   ScrollView,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   TouchableOpacity,
@@ -19,6 +18,8 @@ import SectionHeader from "../../components/common/Header";
 import SiteCard from "../../components/cards/SiteCard";
 import ArtisanCard from "../../components/cards/ArtisansCard";
 import EventCard from "../../components/cards/EventCard";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import {
   useMustVisitSites,
   useHiddenGems,
@@ -163,7 +164,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
-    marginTop: StatusBar.currentHeight || 0,
   },
   scroll: { flex: 1 },
   headerWrap: {
