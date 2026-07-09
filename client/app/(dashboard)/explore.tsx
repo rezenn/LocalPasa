@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   gridRow: {
     paddingHorizontal: Spacing.lg,
     justifyContent: "space-between",
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
   },
   gridPad: { paddingBottom: Spacing.xl },
   bottomPad: { height: Spacing.lg },
