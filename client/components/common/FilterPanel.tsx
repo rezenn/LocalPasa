@@ -5,9 +5,9 @@ import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/the
 import SimpleSlider from "./SimpleSlider";
 
 export interface ExploreFilters {
-  maxDistanceKm: number; // 0–10
-  maxPrice: number; // 0–3000 (NPR); 0 = Free only
-  minRating: number; // 0–5, 0 = any
+  maxDistanceKm: number; 
+  maxPrice: number; 
+  minRating: number; 
   siteTypes: string[];
   artisanTypes: string[];
   eventTypes: string[];
