@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.sm,
     marginHorizontal: Spacing.xl,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.sm,
   },
   searchContainer: {
     flex: 1,

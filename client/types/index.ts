@@ -1,6 +1,7 @@
 // ─── Core domain types (aligned with backend _id) ────────────────────────────
 
 export interface Site {
+  latitude: any;
   _id: string;
   name: string;
   type?: string;
