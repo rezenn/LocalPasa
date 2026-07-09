@@ -4,13 +4,13 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
@@ -212,6 +212,13 @@ export default function ProfileScreen() {
         {/* Hero */}
         <View style={styles.hero}>
           <TouchableOpacity
+            style={styles.settingsHeroBtn}
+            onPress={() => router.push("/profile/settings" as any)}
+          >
+            <Ionicons name="settings-outline" size={16} color={Colors.white} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.editHeroBtn}
             onPress={() => router.push("/profile/edit" as any)}
           >
@@ -350,6 +357,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
   hero: {
     backgroundColor: Colors.brown,
@@ -364,6 +372,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: Spacing.md,
     right: Spacing.lg,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingsHeroBtn: {
+    position: "absolute",
+    top: Spacing.md,
+    right: Spacing.lg + 32 + Spacing.sm,
     width: 32,
     height: 32,
     borderRadius: 16,

@@ -55,10 +55,7 @@ const LoginForm = () => {
   };
 
   const handleForgotPassword = () => {
-    Alert.alert(
-      "Forgot Password",
-      "Password reset link will be sent to your email",
-    );
+    router.push("/(auth)/ForgotPasswordScreen");
   };
 
   return (

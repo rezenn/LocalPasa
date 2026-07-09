@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   FlatList,
   TouchableOpacity,
@@ -16,7 +17,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - Spacing.lg * 2 - Spacing.md) / 2;
@@ -28,12 +28,16 @@ export default function ProductsListScreen() {
 
   const { data: artisan, loading, error } = useArtisan(artisanId ?? "");
 
-  // Filter products based on search
-  const products =
-    artisan?.products?.filter(
+  // Filter products based on search, but keep each item's original index
+  // (into artisan.products) since that index is how /product/[id] addresses
+  // a specific product — the product data model has no _id of its own.
+  const allProducts = artisan?.products ?? [];
+  const products = allProducts
+    .map((p: any, originalIndex: number) => ({ ...p, originalIndex }))
+    .filter(
       (p: any) =>
         !search || p.name.toLowerCase().includes(search.toLowerCase()),
-    ) ?? [];
+    );
 
   if (loading) {
     return (
@@ -130,7 +134,7 @@ export default function ProductsListScreen() {
       <FlatList
         data={products}
         keyExtractor={(item: any, index) =>
-          item._id || item.id || index.toString()
+          item._id || item.id || `product-${item.originalIndex ?? index}`
         }
         numColumns={2}
         contentContainerStyle={styles.grid}
@@ -141,8 +145,9 @@ export default function ProductsListScreen() {
             style={styles.card}
             activeOpacity={0.85}
             onPress={() => {
-              const index = products.findIndex((p: any) => p === item);
-              router.push(`/product/${index}?artisanId=${artisanId}` as any);
+              router.push(
+                `/product/${item.originalIndex}?artisanId=${artisanId}` as any,
+              );
             }}
           >
             <Image
@@ -208,8 +213,11 @@ export default function ProductsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   header: {
     backgroundColor: Colors.primary,
     flexDirection: "row",

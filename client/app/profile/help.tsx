@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   ScrollView,
   Linking,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
@@ -84,6 +84,7 @@ export default function HelpScreen() {
       >
         {/* Hero */}
         <View style={styles.heroBanner}>
+          <Text style={styles.heroEmoji}>🙋</Text>
           <Text style={styles.heroTitle}>How can we help?</Text>
           <Text style={styles.heroSub}>
             Browse the FAQ or reach out directly
@@ -171,7 +172,7 @@ export default function HelpScreen() {
         <View style={styles.appInfo}>
           <Text style={styles.appInfoText}>LocalPasa v1.0.0</Text>
           <Text style={styles.appInfoText}>
-            Built with love for Nepal's cultural heritage
+            Built with ❤️ for Nepal's cultural heritage
           </Text>
         </View>
 
@@ -185,6 +186,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
   header: {
     backgroundColor: Colors.brown,
