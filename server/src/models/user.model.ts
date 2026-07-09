@@ -19,6 +19,8 @@ export interface IUser extends Document {
   loginAttempts: number;
   lockUntil?: Date;
   lastLogin?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -60,6 +62,8 @@ const userMongooseSchema = new Schema<IUser>(
     loginAttempts: { type: Number, default: 0, select: false },
     lockUntil: { type: Date, select: false },
     lastLogin: { type: Date },
+    passwordResetToken: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
   },
   { timestamps: true },
 );
