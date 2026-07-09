@@ -284,9 +284,7 @@ export default function ArtisanDetailScreen() {
             {(artisan.products ?? []).length > 0 && (
               <TouchableOpacity
                 onPress={() =>
-                  router.push(
-                    `/products-list?artisanId=${artisan._id}` as any,
-                  )
+                  router.push(`/products-list?artisanId=${artisan._id}` as any)
                 }
               >
                 <Text style={styles.seeAll}>See all</Text>
@@ -381,7 +379,7 @@ const styles = StyleSheet.create({
   nameBlock: {
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.xxxl,
   },
   artisanName: {
     fontSize: 22,
