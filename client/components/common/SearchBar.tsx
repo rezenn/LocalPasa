@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.xl,
+    marginBottom: Spacing.xl,
   },
   searchContainer: {
     flex: 1,

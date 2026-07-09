@@ -37,6 +37,7 @@ import {
   filterEvents,
   filterSites,
 } from "../../utils/exploreFilters";
+import ArtisansCard2 from "@/components/cards/ArtisanCard2";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -130,10 +131,15 @@ export default function HomeScreen() {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onFilterPress={showFilters ? () => setShowFilters(false) : openFilters}
+          onFilterPress={
+            showFilters ? () => setShowFilters(false) : openFilters
+          }
         />
         {isFiltersActive(appliedFilters) && !showFilters && (
-          <TouchableOpacity style={styles.activeFilterPill} onPress={openFilters}>
+          <TouchableOpacity
+            style={styles.activeFilterPill}
+            onPress={openFilters}
+          >
             <Ionicons name="options" size={13} color={Colors.white} />
             <Text style={styles.activeFilterPillText}>Filters applied</Text>
             <TouchableOpacity onPress={resetFilters} hitSlop={8}>
@@ -204,7 +210,7 @@ export default function HomeScreen() {
                     columnWrapperStyle={styles.gridRow}
                     contentContainerStyle={styles.gridPad}
                     renderItem={({ item }) => (
-                      <ArtisanCard
+                      <ArtisansCard2
                         artisan={item}
                         onPress={() =>
                           router.push(`/artisan/${item._id}` as any)
@@ -388,7 +394,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: Radius.full,
   },
-  activeFilterPillText: { color: Colors.white, fontSize: 12, fontWeight: "600" },
+  activeFilterPillText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   loader: { marginVertical: Spacing.lg },
   horizontalList: {
     paddingLeft: Spacing.lg,
@@ -397,8 +407,12 @@ const styles = StyleSheet.create({
   },
   flatList: { marginBottom: -Spacing.xs },
   eventsList: { marginBottom: Spacing.md },
-  gridRow: { paddingHorizontal: Spacing.lg, justifyContent: "space-between" },
-  gridPad: { paddingBottom: Spacing.md },
+  gridRow: {
+    paddingHorizontal: Spacing.lg,
+    justifyContent: "space-between",
+    marginBottom: Spacing.xl,
+  },
+  gridPad: { paddingBottom: Spacing.xl },
   bottomPad: { height: Spacing.lg },
   emptyState: {
     alignItems: "center",
