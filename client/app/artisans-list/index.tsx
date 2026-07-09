@@ -5,11 +5,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
@@ -158,6 +158,7 @@ const s = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
   header: {
     backgroundColor: Colors.brown,

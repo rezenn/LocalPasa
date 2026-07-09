@@ -199,7 +199,9 @@ export default function SettingsScreen() {
               activeOpacity={0.7}
               onPress={handleLogout}
             >
-              <View style={[styles.iconWrap, { backgroundColor: "#D32F2F18" }]}>
+              <View
+                style={[styles.iconWrap, { backgroundColor: "#D32F2F18" }]}
+              >
                 <Ionicons name="log-out-outline" size={18} color="#D32F2F" />
               </View>
               <View style={styles.rowText}>

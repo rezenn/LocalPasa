@@ -5,12 +5,12 @@ import {
   ScrollView,
   FlatList,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import SiteCard from "../../components/cards/SiteCard";
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
   },
   header: {
     backgroundColor: Colors.brown,

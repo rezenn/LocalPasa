@@ -236,7 +236,7 @@ export default function ArtisanDetailScreen() {
               name={saved ? "heart" : "heart-outline"}
               size={20}
               color={saved ? "#FF6B6B" : Colors.textSecondary}
-            />
+            />{" "}
             <Text style={styles.chatBtnText}>Save</Text>
           </TouchableOpacity>
         </View>
@@ -284,7 +284,9 @@ export default function ArtisanDetailScreen() {
             {(artisan.products ?? []).length > 0 && (
               <TouchableOpacity
                 onPress={() =>
-                  router.push(`/products-list?artisanId=${artisan._id}` as any)
+                  router.push(
+                    `/products-list?artisanId=${artisan._id}` as any,
+                  )
                 }
               >
                 <Text style={styles.seeAll}>See all</Text>

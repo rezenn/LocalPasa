@@ -1,39 +1,65 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   ScrollView,
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Dimensions,
+  Platform,
+  Share,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
+import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
-import { SafeAreaView } from "react-native-safe-area-context";
 
+const { width } = Dimensions.get("window");
+
+// Products are subdocuments of an Artisan with no independent _id exposed to
+// the client, so a product is addressed by `artisanId` + its array `index`
+// (the `id` route param) rather than by a standalone product id.
 export default function ProductDetailScreen() {
   const { id, artisanId } = useLocalSearchParams<{
     id: string;
     artisanId: string;
   }>();
   const router = useRouter();
+  const [imageError, setImageError] = useState(false);
 
   const { data: artisan, loading, error } = useArtisan(artisanId ?? "");
 
-  const product = artisan?.products?.[Number(id)];
+  const index = Number(id);
+  const product =
+    artisan?.products && !Number.isNaN(index)
+      ? artisan.products[index]
+      : undefined;
+
+  const handleShare = async () => {
+    if (!product) return;
+    try {
+      await Share.share({
+        message: `${product.name} — ${product.price}${
+          artisan ? ` from ${artisan.name} on LocalPasa` : ""
+        }`,
+      });
+    } catch {
+      // user cancelled share sheet — no-op
+    }
+  };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
+        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+        <Header router={router} title="Product" />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
       </SafeAreaView>
     );
   }
@@ -41,18 +67,16 @@ export default function ProductDetailScreen() {
   if (error || !artisan || !product) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.errorBox}>
-          <Ionicons
-            name="alert-circle-outline"
-            size={40}
-            color={Colors.error}
-          />
-          <Text style={styles.errorText}>Could not load product details</Text>
+        <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+        <Header router={router} title="Product" />
+        <View style={styles.centered}>
+          <Ionicons name="bag-outline" size={56} color={Colors.textMuted} />
+          <Text style={styles.errorText}>Product not found</Text>
           <TouchableOpacity
             style={styles.retryBtn}
             onPress={() => router.back()}
           >
-            <Text style={styles.retryText}>Go back</Text>
+            <Text style={styles.retryText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -62,26 +86,21 @@ export default function ProductDetailScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <Header router={router} title={product.name} onShare={handleShare} />
 
-      <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.imageWrap}>
           <Image
             source={{
-              uri: product.image || "https://via.placeholder.com/400x260",
+              uri:
+                !imageError && product.image
+                  ? product.image
+                  : "https://via.placeholder.com/600x400/E8E2D9/6B4F3A?text=No+Image",
             }}
-            style={styles.heroImage}
+            style={styles.image}
+            resizeMode="cover"
+            onError={() => setImageError(true)}
           />
-          <View style={styles.heroOverlay} />
-
-          <View style={styles.topBar}>
-            <TouchableOpacity
-              style={styles.backBtn}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={20} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-
           {product.inStock === false && (
             <View style={styles.soldOutBadge}>
               <Text style={styles.soldOutText}>Sold Out</Text>
@@ -89,165 +108,186 @@ export default function ProductDetailScreen() {
           )}
         </View>
 
-        <View style={styles.contentBlock}>
-          <Text style={styles.productName}>{product.name}</Text>
-          <Text style={styles.productPrice}>
-            {product.price || "Price on request"}
-          </Text>
+        <View style={styles.body}>
+          <Text style={styles.name}>{product.name}</Text>
+          <Text style={styles.price}>{product.price || "Price on request"}</Text>
 
-          {product.description && (
-            <View style={styles.section}>
+          {product.description ? (
+            <>
               <Text style={styles.sectionTitle}>Description</Text>
-              <Text style={styles.bodyText}>{product.description}</Text>
-            </View>
-          )}
+              <Text style={styles.description}>{product.description}</Text>
+            </>
+          ) : null}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Artisan</Text>
-            <TouchableOpacity
-              style={styles.artisanRow}
-              onPress={() => router.push(`/artisan/${artisan._id}` as any)}
-            >
-              <Image
-                source={{
-                  uri: artisan.image || "https://via.placeholder.com/60",
-                }}
-                style={styles.artisanAvatar}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.artisanName}>{artisan.name}</Text>
-                <Text style={styles.artisanCraft}>{artisan.craft}</Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted}
-              />
-            </TouchableOpacity>
-          </View>
-
+          <Text style={styles.sectionTitle}>Sold by</Text>
           <TouchableOpacity
-            style={[
-              styles.chatBtn,
-              product.inStock === false && styles.chatBtnDisabled,
-            ]}
-            disabled={product.inStock === false}
-            onPress={() => router.push(`/chat/${artisan._id}` as any)}
+            style={styles.artisanCard}
+            activeOpacity={0.8}
+            onPress={() => router.push(`/artisan/${artisan._id}` as any)}
           >
+            <Image source={{ uri: artisan.image }} style={styles.artisanImg} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.artisanName}>{artisan.name}</Text>
+              <Text style={styles.artisanCraft}>{artisan.craft}</Text>
+            </View>
             <Ionicons
-              name="chatbubble-ellipses"
+              name="chevron-forward"
               size={18}
-              color={Colors.white}
+              color={Colors.textMuted}
             />
-            <Text style={styles.chatBtnText}>
-              {product.inStock === false
-                ? "Currently Unavailable"
-                : "Message Artisan to Order"}
-            </Text>
           </TouchableOpacity>
         </View>
-
-        <View style={{ height: 32 }} />
       </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.chatBtn}
+          activeOpacity={0.85}
+          onPress={() => router.push(`/chat/${artisan._id}` as any)}
+        >
+          <Ionicons name="chatbubble-outline" size={18} color={Colors.white} />
+          <Text style={styles.chatBtnText}>
+            {product.inStock === false ? "Ask about restock" : "Message artisan to order"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
+function Header({
+  router,
+  title,
+  onShare,
+}: {
+  router: ReturnType<typeof useRouter>;
+  title: string;
+  onShare?: () => void;
+}) {
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={20} color={Colors.white} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle} numberOfLines={1}>
+        {title}
+      </Text>
+      <TouchableOpacity
+        style={styles.headerBtn}
+        onPress={onShare}
+        disabled={!onShare}
+      >
+        <Ionicons
+          name="share-outline"
+          size={20}
+          color={onShare ? Colors.white : "transparent"}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  hero: { height: 260, position: "relative" },
-  heroImage: { width: "100%", height: 260 },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.15)",
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  topBar: {
-    position: "absolute",
-    top: 16,
-    left: 0,
-    right: 0,
-    paddingHorizontal: Spacing.lg,
+  header: {
+    backgroundColor: Colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.4)",
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
   },
-  soldOutBadge: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    backgroundColor: "rgba(0,0,0,0.75)",
-    paddingHorizontal: Spacing.md,
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontFamily: "CrimsonBold",
+    color: Colors.white,
+    textAlign: "center",
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.md,
+  },
+  errorText: { fontSize: 16, color: Colors.textSecondary },
+  retryBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
   },
-  soldOutText: {
-    color: Colors.white,
-    fontWeight: "700",
-    fontSize: 13,
-    letterSpacing: 0.5,
+  retryText: { color: Colors.white, fontWeight: "600" },
+  imageWrap: { width, height: 280, backgroundColor: Colors.border },
+  image: { width: "100%", height: "100%" },
+  soldOutBadge: {
+    position: "absolute",
+    top: Spacing.lg,
+    right: Spacing.lg,
+    backgroundColor: "rgba(0,0,0,0.75)",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.md,
   },
-  body: { flex: 1, backgroundColor: Colors.background },
-  contentBlock: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg },
-  productName: {
-    fontSize: 22,
-    fontFamily: "CrimsonBold",
-    color: Colors.text,
-  },
-  productPrice: {
-    fontSize: 18,
+  soldOutText: { color: Colors.white, fontWeight: "700", fontSize: 13 },
+  body: { padding: Spacing.lg, gap: Spacing.xs },
+  name: { ...Typography.h1 },
+  price: {
+    fontSize: 20,
+    fontWeight: "800",
     color: Colors.primary,
-    fontWeight: "700",
-    marginTop: 4,
-  },
-  section: { marginTop: Spacing.lg },
-  sectionTitle: {
-    fontSize: 15,
-    fontFamily: "CrimsonBold",
-    color: Colors.text,
     marginBottom: Spacing.sm,
   },
-  bodyText: { fontSize: 14, color: Colors.textSecondary, lineHeight: 22 },
-  artisanRow: {
+  sectionTitle: {
+    ...Typography.h3,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xs,
+  },
+  description: { ...Typography.body, lineHeight: 21, color: Colors.textSecondary },
+  artisanCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    gap: Spacing.md,
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     ...Shadow.sm,
   },
-  artisanAvatar: { width: 44, height: 44, borderRadius: 22 },
-  artisanName: { fontSize: 14, fontWeight: "700", color: Colors.text },
-  artisanCraft: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
+  artisanImg: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.border,
+  },
+  artisanName: { fontSize: 15, fontWeight: "700", color: Colors.text },
+  artisanCraft: { fontSize: 13, color: Colors.textMuted, marginTop: 2 },
+  footer: {
+    padding: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
   chatBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: Spacing.sm,
     backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    marginTop: Spacing.xl,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    ...Shadow.md,
   },
-  chatBtnDisabled: { backgroundColor: Colors.border },
-  chatBtnText: { color: Colors.white, fontWeight: "700", fontSize: 14 },
-  errorBox: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  errorText: { fontSize: 15, color: Colors.textSecondary },
-  retryBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-  },
-  retryText: { color: Colors.white, fontWeight: "700" },
+  chatBtnText: { color: Colors.white, fontWeight: "700", fontSize: 15 },
 });
