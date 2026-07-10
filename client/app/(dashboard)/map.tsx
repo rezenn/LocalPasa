@@ -55,25 +55,80 @@ const CITY_FILTERS = ["All", "Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"];
 
 type SiteType = ApiSite;
 
-// Helper function to get coordinates from site
+// Approximate city centers used as a fallback when a site document has no
+// (or invalid) coordinates set. Keeps every site visible on the map instead
+// of silently disappearing — which is what was causing only a handful of
+// markers (sometimes just one) to ever render.
+const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  kathmandu: { lat: 27.7172, lng: 85.324 },
+  lalitpur: { lat: 27.6588, lng: 85.3247 },
+  patan: { lat: 27.6588, lng: 85.3247 },
+  bhaktapur: { lat: 27.671, lng: 85.4298 },
+  pokhara: { lat: 28.2096, lng: 83.9856 },
+  solukhumbu: { lat: 27.8067, lng: 86.7112 },
+  lumbini: { lat: 27.4833, lng: 83.2767 },
+  dolpa: { lat: 29.03, lng: 82.9 },
+  manang: { lat: 28.6667, lng: 84.0167 },
+  rasuwa: { lat: 28.1167, lng: 85.3667 },
+  mugu: { lat: 29.5333, lng: 82.1333 },
+  gorkha: { lat: 28.0, lng: 84.6333 },
+  mustang: { lat: 28.9974, lng: 83.8163 },
+  janakpur: { lat: 26.7288, lng: 85.9266 },
+  sanga: { lat: 27.6572, lng: 85.5493 },
+  chitwan: { lat: 27.5291, lng: 84.3542 },
+};
+
+// Geographic center of Nepal — last-resort fallback for an unrecognized city.
+const NEPAL_CENTER = { lat: 28.3949, lng: 84.124 };
+
+// Deterministic small offset (derived from the site's own id) so multiple
+// un-mapped sites that fall back to the same city center don't stack
+// exactly on top of one another and hide each other.
+function hashOffset(seed: string): { dLat: number; dLng: number } {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const angle = (Math.abs(hash) % 360) * (Math.PI / 180);
+  const radius = 0.01 + (Math.abs(hash) % 100) / 6000; // roughly 1–2.5km spread
+  return {
+    dLat: Math.cos(angle) * radius,
+    dLng: Math.sin(angle) * radius,
+  };
+}
+
+// Helper function to get coordinates from a site. Returns real coordinates
+// when present and valid; otherwise falls back to an approximate position
+// near the site's city so it still shows up on the map.
 const getSiteCoordinates = (
   site: SiteType,
-): { lat: number; lng: number } | null => {
-  const lat =
+): { lat: number; lng: number; approximate: boolean } | null => {
+  const rawLat =
     (site as any).coordinates?.lat ??
     (site as any).latitude ??
-    (site as any).locationLat ??
-    null;
-  const lng =
+    (site as any).locationLat;
+  const rawLng =
     (site as any).coordinates?.lng ??
     (site as any).longitude ??
-    (site as any).locationLng ??
-    null;
+    (site as any).locationLng;
 
-  if (lat && lng) {
-    return { lat, lng };
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
+  if (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    (lat !== 0 || lng !== 0)
+  ) {
+    return { lat, lng, approximate: false };
   }
-  return null;
+
+  if (!site?._id && !site?.name) return null;
+
+  const cityKey = (site.city || "").trim().toLowerCase();
+  const base = CITY_COORDINATES[cityKey] ?? NEPAL_CENTER;
+  const { dLat, dLng } = hashOffset(site._id || site.name || "");
+  return { lat: base.lat + dLat, lng: base.lng + dLng, approximate: true };
 };
 
 // Helper to get icon name based on site type
@@ -95,8 +150,37 @@ const CustomMarker: React.FC<{
   const coords = getSiteCoordinates(site);
   const isMustVisit = (site as any).mustVisit || false;
   const isHiddenGem = (site as any).isHiddenGem || false;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!isSelected) {
+      pulseAnim.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 1400,
+        useNativeDriver: true,
+      }),
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+      pulseAnim.setValue(0);
+    };
+  }, [isSelected, pulseAnim]);
 
   if (!coords) return null;
+
+  const pulseScale = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.6, 1.8],
+  });
+  const pulseOpacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.55, 0],
+  });
 
   return (
     <Marker
@@ -105,15 +189,29 @@ const CustomMarker: React.FC<{
         longitude: coords.lng,
       }}
       onPress={() => onPress(site)}
-      tracksViewChanges={false}
+      tracksViewChanges={isSelected}
     >
       <View style={styles.markerWrapper}>
+        {isSelected && (
+          <Animated.View
+            style={[
+              styles.markerPulse,
+              {
+                opacity: pulseOpacity,
+                transform: [{ scale: pulseScale }],
+              },
+            ]}
+          >
+            <View style={styles.pulseRing} />
+          </Animated.View>
+        )}
         <View
           style={[
             styles.markerContainer,
             isSelected && styles.markerSelected,
             isMustVisit && styles.markerMustVisit,
             isHiddenGem && styles.markerHiddenGem,
+            coords.approximate && styles.markerApproximate,
           ]}
         >
           {isMustVisit && (
@@ -121,17 +219,17 @@ const CustomMarker: React.FC<{
               <Ionicons name="star" size={10} color="#FFF" />
             </View>
           )}
+          {!isMustVisit && isHiddenGem && (
+            <View style={[styles.markerBadge, styles.markerBadgeGem]}>
+              <Ionicons name="diamond" size={9} color="#FFF" />
+            </View>
+          )}
           <Ionicons
             name={getSiteIcon(site.type)}
             size={16}
-            color={isMustVisit ? "#FFF" : Colors.primary}
+            color={isMustVisit || isHiddenGem ? "#FFF" : Colors.primary}
           />
         </View>
-        {isSelected && (
-          <View style={styles.markerPulse}>
-            <View style={styles.pulseRing} />
-          </View>
-        )}
       </View>
     </Marker>
   );
@@ -188,6 +286,26 @@ export default function MapScreen() {
       appliedAdvancedFilters,
     ) as SiteType[];
   }, [sites, search, appliedAdvancedFilters]);
+
+  // Live counts for the legend, so it reflects what's actually on screen
+  // (post search/filter) rather than a static, disconnected key.
+  const siteCounts = useMemo(() => {
+    let mustVisit = 0;
+    let hiddenGem = 0;
+    let approximate = 0;
+    for (const site of displaySites) {
+      if ((site as any).mustVisit) mustVisit++;
+      if ((site as any).isHiddenGem) hiddenGem++;
+      if (getSiteCoordinates(site)?.approximate) approximate++;
+    }
+    return {
+      total: displaySites.length,
+      mustVisit,
+      hiddenGem,
+      regular: displaySites.length - mustVisit - hiddenGem,
+      approximate,
+    };
+  }, [displaySites]);
 
   // Get user location
   useEffect(() => {
@@ -349,6 +467,18 @@ export default function MapScreen() {
     // Small delay to ensure map is fully rendered
     setTimeout(fitToMarkers, 500);
   }, [fitToMarkers]);
+
+  // The sites request can resolve after the map itself finishes loading (or
+  // vice versa), so the timed fitToMarkers() call above can fire before any
+  // markers exist. Once both the map is ready and data has arrived, fit the
+  // camera to the full set of markers exactly once.
+  const hasAutoFitRef = useRef(false);
+  useEffect(() => {
+    if (isMapReady && displaySites.length > 0 && !hasAutoFitRef.current) {
+      hasAutoFitRef.current = true;
+      fitToMarkers();
+    }
+  }, [isMapReady, displaySites.length, fitToMarkers]);
 
   // Handle map error
   const onMapError = useCallback((error: any) => {
@@ -540,17 +670,53 @@ export default function MapScreen() {
       {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: Colors.primary }]} />
+          <View
+            style={[
+              styles.legendIcon,
+              { backgroundColor: Colors.surface, borderColor: Colors.primary },
+            ]}
+          >
+            <Ionicons name="location" size={10} color={Colors.primary} />
+          </View>
           <Text style={styles.legendText}>Cultural Site</Text>
+          <Text style={styles.legendCount}>{siteCounts.regular}</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: "#2C7A3A" }]} />
+          <View
+            style={[
+              styles.legendIcon,
+              { backgroundColor: "#2C7A3A", borderColor: "#1a5a2a" },
+            ]}
+          >
+            <Ionicons name="star" size={10} color="#FFF" />
+          </View>
           <Text style={styles.legendText}>Must Visit</Text>
+          <Text style={styles.legendCount}>{siteCounts.mustVisit}</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.dot, { backgroundColor: "#D4A843" }]} />
+          <View
+            style={[
+              styles.legendIcon,
+              { backgroundColor: "#D4A843", borderColor: "#b8922a" },
+            ]}
+          >
+            <Ionicons name="diamond" size={10} color="#FFF" />
+          </View>
           <Text style={styles.legendText}>Hidden Gem</Text>
+          <Text style={styles.legendCount}>{siteCounts.hiddenGem}</Text>
         </View>
+        {siteCounts.approximate > 0 && (
+          <View style={styles.legendNote}>
+            <Ionicons
+              name="information-circle-outline"
+              size={12}
+              color={Colors.textMuted}
+            />
+            <Text style={styles.legendNoteText}>
+              {siteCounts.approximate} shown near city center
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Bottom Sheet for Site Details */}
@@ -608,6 +774,20 @@ export default function MapScreen() {
                 <Text style={styles.bottomSheetDescription} numberOfLines={2}>
                   {(selectedSite as any).summary}
                 </Text>
+              )}
+
+              {getSiteCoordinates(selectedSite)?.approximate && (
+                <View style={styles.approximateNote}>
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={13}
+                    color={Colors.textMuted}
+                  />
+                  <Text style={styles.approximateNoteText}>
+                    Exact location not mapped yet — pin is an approximate
+                    position near {selectedSite.city || "the area"}.
+                  </Text>
+                </View>
               )}
 
               <View style={styles.bottomSheetActions}>
@@ -847,8 +1027,9 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     padding: 10,
     ...Shadow.sm,
-    gap: 4,
+    gap: 6,
     zIndex: 40,
+    maxWidth: 170,
   },
   legendItem: {
     flexDirection: "row",
@@ -860,10 +1041,41 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
   },
+  legendIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   legendText: {
     fontSize: 11,
     color: Colors.textSecondary,
     fontFamily: "Inter-Regular",
+    flex: 1,
+  },
+  legendCount: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.text,
+    fontFamily: "Inter-SemiBold",
+  },
+  legendNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  legendNoteText: {
+    fontSize: 9.5,
+    color: Colors.textMuted,
+    fontFamily: "Inter-Regular",
+    flex: 1,
+    flexWrap: "wrap",
   },
   loadingContainer: {
     flex: 1,
@@ -951,6 +1163,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#D4A843",
     borderColor: "#b8922a",
   },
+  markerApproximate: {
+    opacity: 0.88,
+    borderStyle: "dashed",
+  },
   markerBadge: {
     position: "absolute",
     top: -6,
@@ -963,6 +1179,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1.5,
     borderColor: Colors.white,
+  },
+  markerBadgeGem: {
+    backgroundColor: "#D4A843",
   },
   markerPulse: {
     position: "absolute",
@@ -1053,6 +1272,22 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
     marginBottom: Spacing.md,
+    fontFamily: "Inter-Regular",
+  },
+  approximateNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+    backgroundColor: Colors.surfaceWarm,
+    borderRadius: Radius.sm,
+    padding: 8,
+    marginBottom: Spacing.md,
+  },
+  approximateNoteText: {
+    flex: 1,
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: Colors.textMuted,
     fontFamily: "Inter-Regular",
   },
   bottomSheetActions: {
