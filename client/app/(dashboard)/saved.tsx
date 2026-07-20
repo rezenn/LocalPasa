@@ -7,7 +7,6 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
   TouchableOpacity,
   Alert,
 } from "react-native";
@@ -19,6 +18,10 @@ import EventCard from "../../components/cards/EventCard";
 import { savedApi } from "../../api/index";
 import { useAsync } from "../../hooks/index";
 import { Site, Artisan, Event } from "../../types";
+import {
+  CardRowSkeleton,
+  EventListSkeleton,
+} from "../../components/skeletons";
 
 const TABS = ["Sites", "Artisans", "Events"] as const;
 type TabKey = (typeof TABS)[number];
@@ -108,11 +111,13 @@ export default function SavedScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          style={styles.loader}
-          color={Colors.primary}
-          size="large"
-        />
+        activeTab === "Sites" ? (
+          <CardRowSkeleton variant="site" />
+        ) : activeTab === "Artisans" ? (
+          <CardRowSkeleton variant="artisan" />
+        ) : (
+          <EventListSkeleton />
+        )
       ) : error ? (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>Failed to load saved items</Text>
@@ -310,7 +315,6 @@ const styles = StyleSheet.create({
   },
   eventRow: { position: "relative" },
   unsaveText: { color: "#fff", fontSize: 11, fontWeight: "700" },
-  loader: { marginTop: 60 },
   errorBox: { alignItems: "center", marginTop: 60, gap: Spacing.md },
   errorText: { fontSize: 15, color: Colors.textSecondary },
   retryBtn: {

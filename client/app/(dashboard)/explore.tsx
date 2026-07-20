@@ -6,8 +6,8 @@ import {
   FlatList,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   ActivityIndicator,
+  StatusBar,
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -37,7 +37,12 @@ import {
   filterEvents,
   filterSites,
 } from "../../utils/exploreFilters";
-import ArtisansCard2 from "@/components/cards/ArtisanCard2";
+import {
+  HiddenGemBannerSkeleton,
+  CardRowSkeleton,
+  EventListSkeleton,
+  SearchResultsSkeleton,
+} from "../../components/skeletons";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -55,8 +60,14 @@ export default function HomeScreen() {
   });
   const { data: eventsData, loading: eventsLoading } = useUpcomingEvents(5);
 
-  // Broader pools to search/filter over — separate from the small
-  // home-feed queries above so "see all results" isn't capped at 5–10.
+  const normalizeSite = (site: any) => {
+    return {
+      ...site,
+      latitude: site.coordinates?.lat ?? site.latitude ?? 0,
+      longitude: site.coordinates?.lng ?? site.longitude ?? 0,
+    };
+  };
+
   const isSearchActive =
     searchQuery.trim().length > 0 || isFiltersActive(appliedFilters);
   const { data: allSitesData, loading: allSitesLoading } = useSites({
@@ -159,11 +170,7 @@ export default function HomeScreen() {
       ) : isSearchActive ? (
         <ScrollView showsVerticalScrollIndicator={false}>
           {resultsLoading ? (
-            <ActivityIndicator
-              style={styles.loader}
-              color={Colors.primary}
-              size="large"
-            />
+            <SearchResultsSkeleton />
           ) : noResults ? (
             <View style={styles.emptyState}>
               <Ionicons
@@ -190,7 +197,7 @@ export default function HomeScreen() {
                     contentContainerStyle={styles.gridPad}
                     renderItem={({ item }) => (
                       <SiteCard
-                        site={item}
+                        site={normalizeSite(item)}
                         onPress={() => router.push(`/site/${item._id}` as any)}
                       />
                     )}
@@ -210,7 +217,7 @@ export default function HomeScreen() {
                     columnWrapperStyle={styles.gridRow}
                     contentContainerStyle={styles.gridPad}
                     renderItem={({ item }) => (
-                      <ArtisansCard2
+                      <ArtisanCard
                         artisan={item}
                         onPress={() =>
                           router.push(`/artisan/${item._id}` as any)
@@ -250,7 +257,7 @@ export default function HomeScreen() {
             />
           ) : hiddenGem ? (
             <HiddenGemBanner
-              gem={hiddenGem}
+              gem={normalizeSite(hiddenGem)}
               onPress={() => router.push(`/site/${hiddenGem._id}` as any)}
             />
           ) : null}
@@ -260,18 +267,14 @@ export default function HomeScreen() {
             onSeeAll={() => router.push("/sites-list" as any)}
           />
           {sitesLoading ? (
-            <ActivityIndicator
-              style={styles.loader}
-              color={Colors.primary}
-              size="small"
-            />
+            <CardRowSkeleton variant="site" />
           ) : (
             <FlatList
               data={sites}
               keyExtractor={(item) => item._id}
               renderItem={({ item }) => (
                 <SiteCard
-                  site={item}
+                  site={normalizeSite(item)}
                   onPress={() => router.push(`/site/${item._id}` as any)}
                 />
               )}
@@ -287,11 +290,7 @@ export default function HomeScreen() {
             onSeeAll={() => router.push("/artisans-list" as any)}
           />
           {artisansLoading ? (
-            <ActivityIndicator
-              style={styles.loader}
-              color={Colors.primary}
-              size="small"
-            />
+            <CardRowSkeleton variant="artisan" />
           ) : (
             <FlatList
               data={artisans}
@@ -314,11 +313,7 @@ export default function HomeScreen() {
             onSeeAll={() => router.push("/events-list" as any)}
           />
           {eventsLoading ? (
-            <ActivityIndicator
-              style={styles.loader}
-              color={Colors.primary}
-              size="small"
-            />
+            <EventListSkeleton />
           ) : (
             <View style={styles.eventsList}>
               {events.map((event) => (
@@ -399,20 +394,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  loader: { marginVertical: Spacing.lg },
   horizontalList: {
     paddingLeft: Spacing.lg,
     paddingRight: Spacing.xs,
     paddingBottom: Spacing.md,
   },
+  loader: { marginVertical: Spacing.lg },
   flatList: { marginBottom: -Spacing.xs },
   eventsList: { marginBottom: Spacing.md },
-  gridRow: {
-    paddingHorizontal: Spacing.lg,
-    justifyContent: "space-between",
-    marginBottom: Spacing.md,
-  },
-  gridPad: { paddingBottom: Spacing.xl },
+  gridRow: { paddingHorizontal: Spacing.lg, justifyContent: "space-between" },
+  gridPad: { paddingBottom: Spacing.md },
   bottomPad: { height: Spacing.lg },
   emptyState: {
     alignItems: "center",

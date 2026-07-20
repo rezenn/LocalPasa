@@ -3,24 +3,41 @@ import { useFonts } from "expo-font";
 import Toast from "react-native-toast-message";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { PreferencesProvider } from "@/context/PreferencesContext";
+import {
+  PreferencesProvider,
+  usePreferences,
+} from "@/context/PreferencesContext";
 import { BookingsProvider } from "@/context/BookingsContext";
 
 function AuthGuard() {
   const router = useRouter();
   const segments = useSegments();
   const { user, initializing } = useAuth();
+  const { prefs, loading: prefsLoading } = usePreferences();
 
   useEffect(() => {
-    if (initializing) return;
+    if (initializing || prefsLoading) return;
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboarding = segments[0] === "(onboarding)";
     if (!user && !inAuthGroup && !inOnboarding) {
       router.replace("/(auth)/LoginScreen");
     } else if (user && inAuthGroup) {
-      router.replace("/(dashboard)/explore");
+      // New sign-ups haven't seen onboarding yet — send them there instead
+      // of straight to the dashboard.
+      router.replace(
+        prefs.hasCompletedOnboarding
+          ? "/(dashboard)/explore"
+          : "/(onboarding)/OnboardingScreen1",
+      );
     }
-  }, [user, initializing, segments, router]);
+  }, [
+    user,
+    initializing,
+    prefsLoading,
+    prefs.hasCompletedOnboarding,
+    segments,
+    router,
+  ]);
 
   return null;
 }

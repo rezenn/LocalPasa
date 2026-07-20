@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   Image,
 } from "react-native";
@@ -18,6 +17,7 @@ import { profileApi } from "../../api/index";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { useAsync } from "../../hooks/index";
+import { ProfileSkeleton } from "../../components/skeletons";
 
 const LANGUAGE_FLAGS: Record<string, string> = {
   en: "🇬🇧",
@@ -34,16 +34,15 @@ const LANGUAGE_FLAGS: Record<string, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { prefs } = usePreferences();
 
-  // The screen renders instantly from AuthContext (populated at login/
-  // register and restored on app boot) instead of blocking on a network
-  // call. profileApi.getMe() only fills in the saved-items count in the
-  // background — if it's slow or the backend is unreachable, the rest of
-  // the profile still works.
-  const { data: profile } = useAsync(() => profileApi.getMe(), []);
-  const savedCount = profile?.savedCount ?? 0;
+  const {
+    data: profile,
+    loading,
+    error,
+    refetch,
+  } = useAsync(() => profileApi.getMe(), []);
 
   const handleLogout = () => {
     Alert.alert("Log out", "Are you sure you want to log out?", [
@@ -62,35 +61,52 @@ export default function ProfileScreen() {
     ]);
   };
 
-  if (!user) {
+  if (loading) {
+    return <ProfileSkeleton />;
+  }
+
+  if (error || !profile) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
+        <View style={styles.errorBox}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={56}
+            color={Colors.border}
+          />
+          <Text style={styles.errorText}>Could not load profile</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={refetch}>
+            <Text style={styles.retryText}>Try again</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtnAlt} onPress={handleLogout}>
+            <Text style={styles.logoutBtnAltText}>Log out</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
 
-  const initials = user.firstName
-    ? `${user.firstName[0]}${user.lastName?.[0] ?? ""}`.toUpperCase()
-    : user.email[0].toUpperCase();
+  const initials = profile.firstName
+    ? `${profile.firstName[0]}${profile.lastName?.[0] ?? ""}`.toUpperCase()
+    : profile.email[0].toUpperCase();
 
-  // Use prefs.language if set, otherwise default
-  const displayLang = prefs.language || "English";
+  // Use prefs.language if set, otherwise fall back to profile field
+  const displayLang = prefs.language || profile.preferredLanguage || "English";
   const displayLangCode = prefs.languageCode || "en";
   const langFlag = LANGUAGE_FLAGS[displayLangCode] ?? "🌐";
 
-  // Interests/locations/nationality all live in PreferencesContext — set
-  // during onboarding and editable afterwards from Profile.
-  const displayInterests = prefs.interests;
+  // Use prefs.interests if set, otherwise profile
+  const displayInterests =
+    prefs.interests.length > 0
+      ? prefs.interests
+      : (profile.tourismPreferences ?? []);
+
+  // Locations from prefs
   const displayLocations = prefs.preferredLocations;
 
   const stats = [
-    { label: "Sites", value: savedCount },
-    { label: "Saved", value: savedCount },
+    { label: "Sites", value: profile.savedCount ?? 0 },
+    { label: "Saved", value: profile.savedCount ?? 0 },
     { label: "Reviews", value: 0 },
   ];
 
@@ -209,9 +225,9 @@ export default function ProfileScreen() {
           </TouchableOpacity>
 
           <View style={styles.avatarWrapper}>
-            {prefs.avatarUri || user.avatar ? (
+            {profile.avatar ? (
               <Image
-                source={{ uri: prefs.avatarUri || user.avatar }}
+                source={{ uri: profile.avatar }}
                 style={styles.avatarImage}
               />
             ) : (
@@ -228,12 +244,12 @@ export default function ProfileScreen() {
           </View>
 
           <Text style={styles.name}>
-            {user.firstName} {user.lastName}
+            {profile.firstName} {profile.lastName}
           </Text>
-          <Text style={styles.email}>{user.email}</Text>
-          {prefs.nationality ? (
+          <Text style={styles.email}>{profile.email}</Text>
+          {profile.nationality ? (
             <View style={styles.nationalityBadge}>
-              <Text style={styles.nationalityText}>{prefs.nationality}</Text>
+              <Text style={styles.nationalityText}>{profile.nationality}</Text>
             </View>
           ) : null}
         </View>
@@ -253,6 +269,27 @@ export default function ProfileScreen() {
             </View>
           ))}
         </View>
+
+        {/* Interest chips preview */}
+        {displayInterests.length > 0 && (
+          <TouchableOpacity
+            style={styles.interestPreview}
+            onPress={() => router.push("/profile/interests" as any)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.interestPreviewHeader}>
+              <Text style={styles.interestPreviewTitle}>My Interests</Text>
+              <Text style={styles.interestPreviewEdit}>Edit</Text>
+            </View>
+            <View style={styles.chips}>
+              {displayInterests.map((pref) => (
+                <View key={pref} style={styles.chip}>
+                  <Text style={styles.chipText}>{pref}</Text>
+                </View>
+              ))}
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Menu sections */}
         {MENU_SECTIONS.map((section) => (

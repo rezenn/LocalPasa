@@ -7,6 +7,8 @@ export interface Site {
   location: string;
   city: string;
   coordinates?: { lat: number; lng: number };
+  latitude?: number;
+  longitude?: number;
   distance?: string;
   price: string;
   mustVisit: boolean;
@@ -24,7 +26,7 @@ export interface Site {
   quizzes?: Array<{ question: string; options: string[]; correct: number }>;
   translations?: Record<string, string>;
 }
-// 
+//
 export interface SiteDetail extends Site {
   updatedAt: string | number | Date;
   nearbyArtisans: import("./artisans.api").Artisan[];
