@@ -10,13 +10,14 @@ import {
   TextInput,
   Image,
   Dimensions,
-  ActivityIndicator,
+  ScrollView,
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
+import { ProductGridSkeleton } from "../../components/skeletons";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - Spacing.lg * 2 - Spacing.md) / 2;
@@ -52,9 +53,9 @@ export default function ProductsListScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Products</Text>
         </View>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <ProductGridSkeleton count={6} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

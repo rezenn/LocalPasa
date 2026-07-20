@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { OutputTextSkeleton } from "../../components/skeletons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 
 type LanguageCode =
@@ -380,10 +381,9 @@ export default function TranslateScreen() {
               {toLangObj.flag} {toLangObj.name}
             </Text>
             {loading ? (
-              <ActivityIndicator
-                color={Colors.primary}
-                style={{ marginTop: Spacing.md }}
-              />
+              <View style={{ marginTop: Spacing.md }}>
+                <OutputTextSkeleton />
+              </View>
             ) : (
               <>
                 <Text style={styles.outputText}>{translatedText}</Text>

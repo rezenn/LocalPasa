@@ -7,13 +7,13 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
-  ActivityIndicator,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useSaved } from "../../hooks/useApi";
+import { ListRowsSkeleton } from "../../components/skeletons";
 
 const TABS = ["Sites", "Artisans", "Events"] as const;
 type Tab = (typeof TABS)[number];
@@ -72,11 +72,12 @@ export default function SavedScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.list}
+        >
+          <ListRowsSkeleton count={6} imageSize={68} />
+        </ScrollView>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.emptyText}>Failed to load saved items</Text>

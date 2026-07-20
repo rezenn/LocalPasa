@@ -3,26 +3,20 @@ import {
   View,
   Text,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
   ScrollView,
   TouchableOpacity,
   Image,
-  ActivityIndicator,
   Dimensions,
   Platform,
   Share,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Radius,
-  Spacing,
-  Shadow,
-  Typography,
-} from "../../constants/theme";
+import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
+import { ProductDetailSkeleton } from "../../components/skeletons";
 
 const { width } = Dimensions.get("window");
 
@@ -63,9 +57,9 @@ export default function ProductDetailScreen() {
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
         <Header router={router} title="Product" />
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <ProductDetailSkeleton />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -116,9 +110,7 @@ export default function ProductDetailScreen() {
 
         <View style={styles.body}>
           <Text style={styles.name}>{product.name}</Text>
-          <Text style={styles.price}>
-            {product.price || "Price on request"}
-          </Text>
+          <Text style={styles.price}>{product.price || "Price on request"}</Text>
 
           {product.description ? (
             <>
@@ -155,9 +147,7 @@ export default function ProductDetailScreen() {
         >
           <Ionicons name="chatbubble-outline" size={18} color={Colors.white} />
           <Text style={styles.chatBtnText}>
-            {product.inStock === false
-              ? "Ask about restock"
-              : "Message artisan to order"}
+            {product.inStock === false ? "Ask about restock" : "Message artisan to order"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -201,6 +191,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   header: {
     backgroundColor: Colors.primary,
@@ -209,8 +200,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     gap: Spacing.sm,
-    borderBottomLeftRadius: Radius.md,
-    borderBottomRightRadius: Radius.md,
   },
   headerBtn: {
     width: 40,
@@ -266,11 +255,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     marginBottom: Spacing.xs,
   },
-  description: {
-    ...Typography.body,
-    lineHeight: 21,
-    color: Colors.textSecondary,
-  },
+  description: { ...Typography.body, lineHeight: 21, color: Colors.textSecondary },
   artisanCard: {
     flexDirection: "row",
     alignItems: "center",

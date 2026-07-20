@@ -7,7 +7,6 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -15,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useSites } from "../../hooks/useApi";
 import { Site } from "../../types";
+import { ListRowsSkeleton } from "../../components/skeletons";
 
 const CITIES = ["All", "Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"];
 const TYPES = ["All", "Temple", "Monastery", "Stupa", "Palace", "Museum"];
@@ -77,11 +77,12 @@ export default function SitesList() {
       </ScrollView>
 
       {loading ? (
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={s.list}
+        >
+          <ListRowsSkeleton count={6} imageSize={80} />
+        </ScrollView>
       ) : error ? (
         <View style={s.center}>
           <Text style={s.emptyText}>Failed to load sites</Text>
