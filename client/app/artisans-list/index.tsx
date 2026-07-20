@@ -5,16 +5,16 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
-  ActivityIndicator,
   Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useArtisans } from "../../hooks/useApi";
 import { Artisan } from "../../types";
+import { ListRowsSkeleton } from "../../components/skeletons";
 
 const CITIES = ["All", "Kathmandu", "Bhaktapur", "Lalitpur", "Pokhara"];
 const CRAFTS = [
@@ -85,11 +85,12 @@ export default function ArtisansList() {
       </ScrollView>
 
       {loading ? (
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={s.grid}
+        >
+          <ListRowsSkeleton count={6} imageSize={72} />
+        </ScrollView>
       ) : error ? (
         <View style={s.center}>
           <Text style={s.emptyText}>Failed to load artisans</Text>

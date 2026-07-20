@@ -8,7 +8,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
@@ -18,11 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
 import { savedApi } from "../../api/index";
-import artisansApi from "../../api/artisans.api";
-import { ApiError } from "../../api/client";
-import { useAuth } from "../../context/AuthContext";
-import WriteReviewModal from "../../components/common/WriteReviewModal";
-import ReportModal from "../../components/common/ReportModal";
+import { ArtisanDetailSkeleton } from "../../components/skeletons";
 
 const { width } = Dimensions.get("window");
 
@@ -43,13 +38,8 @@ export default function ArtisanDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [saved, setSaved] = useState(false);
-  const [reviewModalVisible, setReviewModalVisible] = useState(false);
-  const [reviewSubmitting, setReviewSubmitting] = useState(false);
-  const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [reportSubmitting, setReportSubmitting] = useState(false);
 
-  const { user } = useAuth();
-  const { data: artisan, loading, error, refetch } = useArtisan(id ?? "");
+  const { data: artisan, loading, error } = useArtisan(id ?? "");
 
   const toggleSave = async () => {
     try {
@@ -66,61 +56,27 @@ export default function ArtisanDetailScreen() {
   };
 
   const handleReport = () => {
-    if (!user) {
-      Alert.alert("Login Required", "Please log in to report this artisan.");
-      return;
-    }
-    setReportModalVisible(true);
-  };
-  const handleReportSubmit = (description: string) => {
-    setReportSubmitting(true);
-    // Simulated submission — no dedicated report endpoint on the server yet.
-    setTimeout(() => {
-      setReportSubmitting(false);
-      setReportModalVisible(false);
-      Alert.alert(
-        "Report Submitted",
-        "Thank you for your report. We'll review it shortly.",
-      );
-    }, 400);
-  };
-
-  const handleWriteReview = () => {
-    if (!user) {
-      Alert.alert("Login Required", "Please log in to write a review.");
-      return;
-    }
-    setReviewModalVisible(true);
-  };
-
-  const handleReviewSubmit = async (rating: number, text: string) => {
-    if (!id) return;
-    setReviewSubmitting(true);
-    try {
-      await artisansApi.addReview(id, { rating, text });
-      setReviewModalVisible(false);
-      await refetch();
-      Alert.alert("Thank You", "Your review has been submitted.");
-    } catch (err) {
-      Alert.alert(
-        "Error",
-        err instanceof ApiError ? err.message : "Failed to submit review",
-      );
-    } finally {
-      setReviewSubmitting(false);
-    }
-  };
-
-  if (loading)
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
-      </SafeAreaView>
+    Alert.alert(
+      "Report Artisan",
+      "Are you sure you want to report this artisan?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () => {
+            // Implement report logic here
+            Alert.alert(
+              "Report Submitted",
+              "Thank you for your report. We'll review it shortly.",
+            );
+          },
+        },
+      ],
     );
+  };
+
+  if (loading) return <ArtisanDetailSkeleton />;
 
   if (error || !artisan)
     return (
@@ -184,6 +140,7 @@ export default function ArtisanDetailScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+
       <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
         {/* Hero image */}
         <View style={styles.hero}>
@@ -318,7 +275,9 @@ export default function ArtisanDetailScreen() {
             {(artisan.products ?? []).length > 0 && (
               <TouchableOpacity
                 onPress={() =>
-                  router.push(`/products-list?artisanId=${artisan._id}` as any)
+                  router.push(
+                    `/products-list?artisanId=${artisan._id}` as any,
+                  )
                 }
               >
                 <Text style={styles.seeAll}>See all</Text>
@@ -343,7 +302,7 @@ export default function ArtisanDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Reviews</Text>
-            <TouchableOpacity onPress={handleWriteReview}>
+            <TouchableOpacity>
               <Text style={styles.seeAll}>Write a review</Text>
             </TouchableOpacity>
           </View>
@@ -360,21 +319,7 @@ export default function ArtisanDetailScreen() {
         </View>
 
         <View style={{ height: 32 }} />
-      </ScrollView>{" "}
-      <WriteReviewModal
-        visible={reviewModalVisible}
-        title={artisan.name}
-        submitting={reviewSubmitting}
-        onClose={() => setReviewModalVisible(false)}
-        onSubmit={handleReviewSubmit}
-      />
-      <ReportModal
-        visible={reportModalVisible}
-        title="Report Artisan"
-        submitting={reportSubmitting}
-        onClose={() => setReportModalVisible(false)}
-        onSubmit={handleReportSubmit}
-      />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -427,7 +372,7 @@ const styles = StyleSheet.create({
   nameBlock: {
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xxxl,
+    paddingTop: Spacing.md,
   },
   artisanName: {
     fontSize: 22,
