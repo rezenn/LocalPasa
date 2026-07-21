@@ -8,7 +8,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  ActivityIndicator,
   Dimensions,
   Platform,
   Share,
@@ -17,6 +16,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
+import { ProductDetailSkeleton } from "../../components/skeletons";
 
 const { width } = Dimensions.get("window");
 
@@ -57,9 +57,9 @@ export default function ProductDetailScreen() {
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
         <Header router={router} title="Product" />
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <ProductDetailSkeleton />
+        </ScrollView>
       </SafeAreaView>
     );
   }

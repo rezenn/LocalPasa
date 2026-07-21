@@ -7,13 +7,13 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useEvents } from "../../hooks/useApi";
 import { Event } from "../../types";
+import { EventListItemSkeleton } from "../../components/skeletons";
 
 const TYPES = [
   "All",
@@ -84,11 +84,14 @@ export default function EventsList() {
       </ScrollView>
 
       {loading ? (
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={s.list}
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <EventListItemSkeleton key={i} />
+          ))}
+        </ScrollView>
       ) : error ? (
         <View style={s.center}>
           <Text style={s.emptyText}>Failed to load events</Text>

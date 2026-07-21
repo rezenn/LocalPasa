@@ -1239,7 +1239,6 @@ const sites = [
   },
 ];
 
-// Generate additional sites (60 more to reach 100+)
 const siteNames = [
   "Dakshinkali Temple",
   "Gokarna Mahadev",
@@ -1293,7 +1292,6 @@ const siteNames = [
   "Garden of Dreams",
 ];
 
-// Add more sites
 for (let i = 0; i < 50; i++) {
   const name =
     siteNames[i % siteNames.length] +
@@ -1912,7 +1910,6 @@ const artisans = [
   },
 ];
 
-// Generate additional artisans (94 more to reach 100+)
 const craftNames = [
   "Metalwork",
   "Stone Carving",
@@ -2170,7 +2167,6 @@ const events = [
   },
 ];
 
-// Generate additional events (90 more to reach 100+)
 const eventTitles = [
   "Buddha Jayanti",
   "Janai Purnima",
@@ -2339,7 +2335,7 @@ async function seed() {
     if (siteArtisanLinks.length > 0) {
       await SiteArtisanModel.insertMany(siteArtisanLinks);
       console.log(
-        `✅ Linked: ${siteArtisanLinks.length} site-artisan relationships`,
+        `Linked: ${siteArtisanLinks.length} site-artisan relationships`,
       );
     }
 
@@ -2379,7 +2375,7 @@ async function seed() {
     }
 
     console.log(
-      `✅ Seeded: ${insertedSites.length} sites, ${insertedArtisans.length} artisans, ${events.length} events, ${siteReviewDocs.length + artisanReviewDocs.length} reviews`,
+      `Seeded: ${insertedSites.length} sites, ${insertedArtisans.length} artisans, ${events.length} events, ${siteReviewDocs.length + artisanReviewDocs.length} reviews`,
     );
 
     process.exit(0);

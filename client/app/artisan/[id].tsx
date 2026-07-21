@@ -8,7 +8,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
@@ -18,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useArtisan } from "../../hooks/useApi";
 import { savedApi } from "../../api/index";
+import { ArtisanDetailSkeleton } from "../../components/skeletons";
 
 const { width } = Dimensions.get("window");
 
@@ -76,16 +76,7 @@ export default function ArtisanDetailScreen() {
     );
   };
 
-  if (loading)
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
-      </SafeAreaView>
-    );
+  if (loading) return <ArtisanDetailSkeleton />;
 
   if (error || !artisan)
     return (

@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { profileApi } from "../../api/index";
 import { useAuth } from "../../context/AuthContext";
@@ -41,14 +42,63 @@ export default function EditProfileScreen() {
   // login/register/AsyncStorage) instead of blocking on a network call —
   // this screen needs to work even if the backend is slow or unreachable.
   const { user, updateUser } = useAuth();
-  const { prefs, setNationality: persistNationality } = usePreferences();
+  const {
+    prefs,
+    setNationality: persistNationality,
+    setAvatar: persistAvatar,
+  } = usePreferences();
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [phone, setPhone] = useState(user?.phoneNumber ?? "");
   const [nationality, setNationality] = useState(prefs.nationality ?? "");
   const [showNationalityPicker, setShowNationalityPicker] = useState(false);
+  // Local device photo takes priority over whatever the backend has on
+  // file — avatar upload/storage isn't wired up server-side yet, so the
+  // photo is kept on-device (same pattern as nationality).
+  const avatarUri = prefs.avatarUri || user?.avatar || "";
+
+  const handleChangePhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        "Permission needed",
+        "Please allow photo library access to set a profile picture.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+
+    const uri = result.assets[0].uri;
+    setUploadingPhoto(true);
+    try {
+      // Apply immediately so it's visible everywhere (Profile, header, etc.)
+      await persistAvatar(uri);
+      updateUser({ avatar: uri });
+
+      // Best-effort backend sync — safe to fail silently since the photo
+      // already stuck locally.
+      try {
+        await profileApi.update({ avatar: uri });
+      } catch (err) {
+        console.warn("Avatar: backend sync failed, kept local photo", err);
+      }
+
+      Toast.show({ type: "success", text1: "Profile photo updated!" });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   // If the user object arrives/changes after mount (e.g. restored on app
   // start), sync the form once so we don't clobber in-progress edits.
@@ -128,16 +178,26 @@ export default function EditProfileScreen() {
       >
         {/* Avatar section */}
         <View style={styles.avatarSection}>
-          {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatar} />
           ) : (
             <View style={styles.avatarFallback}>
               <Text style={styles.avatarInitials}>{initials}</Text>
             </View>
           )}
-          <TouchableOpacity style={styles.changePhotoBtn}>
-            <Ionicons name="camera" size={14} color={Colors.primary} />
-            <Text style={styles.changePhotoText}>Change Photo</Text>
+          <TouchableOpacity
+            style={styles.changePhotoBtn}
+            onPress={handleChangePhoto}
+            disabled={uploadingPhoto}
+          >
+            {uploadingPhoto ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <>
+                <Ionicons name="camera" size={14} color={Colors.primary} />
+                <Text style={styles.changePhotoText}>Change Photo</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 

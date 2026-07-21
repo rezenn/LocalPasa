@@ -8,7 +8,6 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -17,6 +16,7 @@ import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useEvent } from "../../hooks/useApi";
 import { savedApi } from "../../api/index";
 import { ApiError } from "../../api/client";
+import { EventDetailSkeleton } from "../../components/skeletons";
 
 export default function EventDetailScreen() {
   const router = useRouter();
@@ -46,15 +46,7 @@ export default function EventDetailScreen() {
   };
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
-      </SafeAreaView>
-    );
+    return <EventDetailSkeleton />;
   }
 
   if (error || !event) {

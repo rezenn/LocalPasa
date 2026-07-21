@@ -6,12 +6,18 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Shadow,
+  Typography,
+} from "../../constants/theme";
 import { EXPERIENCES_SEED } from "../../constants/data/experiencesSeed";
 import { Experience } from "../../types/experience";
 
@@ -46,18 +52,17 @@ function ExperienceCard({
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.9}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onPress}>
       <View style={styles.cardImageWrap}>
         <Image source={{ uri: experience.image }} style={styles.cardImage} />
         {experience.badge && (
           <View
             style={[
               styles.badge,
-              { backgroundColor: BADGE_COLORS[experience.badge] ?? Colors.primary },
+              {
+                backgroundColor:
+                  BADGE_COLORS[experience.badge] ?? Colors.primary,
+              },
             ]}
           >
             <Text style={styles.badgeText}>{experience.badge}</Text>
@@ -87,7 +92,9 @@ function ExperienceCard({
           <Text style={styles.cardMetaText}>{experience.durationLabel}</Text>
         </View>
         <View style={styles.cardFooterRow}>
-          <Text style={styles.cardPrice}>NPR {experience.price.toLocaleString()}</Text>
+          <Text style={styles.cardPrice}>
+            NPR {experience.price.toLocaleString()}
+          </Text>
           <View style={styles.bookNowBtn}>
             <Text style={styles.bookNowText}>Book Now</Text>
           </View>
@@ -148,8 +155,14 @@ export default function ExperiencesListScreen() {
 
       {experiences.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="sparkles-outline" size={48} color={Colors.textMuted} />
-          <Text style={styles.emptyTitle}>No experiences in this category yet</Text>
+          <Ionicons
+            name="sparkles-outline"
+            size={48}
+            color={Colors.textMuted}
+          />
+          <Text style={styles.emptyTitle}>
+            No experiences in this category yet
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -178,6 +191,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
   },
   backBtn: {
     width: 36,
@@ -187,16 +202,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: "CrimsonBold",
     color: Colors.white,
+    flex: 1,
   },
   tabsWrap: {
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  tabsContent: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingVertical: Spacing.md },
+  tabsContent: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+  },
   tab: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
@@ -231,9 +251,23 @@ const styles = StyleSheet.create({
   cardBody: { flex: 1, padding: Spacing.md, gap: 2 },
   cardTitle: { ...Typography.h3, fontSize: 14 },
   cardArtisan: { ...Typography.caption },
-  cardMetaRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
-  cardRatingText: { fontSize: 11, color: Colors.textSecondary, fontWeight: "600" },
-  cardSpotsLeft: { fontSize: 10, color: Colors.error, marginLeft: Spacing.xs, fontWeight: "600" },
+  cardMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  cardRatingText: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    fontWeight: "600",
+  },
+  cardSpotsLeft: {
+    fontSize: 10,
+    color: Colors.error,
+    marginLeft: Spacing.xs,
+    fontWeight: "600",
+  },
   cardMetaText: { fontSize: 11, color: Colors.textMuted },
   cardFooterRow: {
     flexDirection: "row",

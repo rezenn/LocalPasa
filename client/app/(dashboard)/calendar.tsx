@@ -7,7 +7,6 @@ import {
   StatusBar,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -15,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useEvents } from "../../hooks/useApi";
 import { Event } from "../../types";
+import { EventListItemSkeleton } from "../../components/skeletons";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -228,10 +228,11 @@ export default function CalendarScreen() {
           </View>
 
           {loading ? (
-            <ActivityIndicator
-              color={Colors.primary}
-              style={{ marginVertical: 24 }}
-            />
+            <View>
+              <EventListItemSkeleton />
+              <EventListItemSkeleton />
+              <EventListItemSkeleton />
+            </View>
           ) : upcomingEvents.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons

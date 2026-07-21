@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   Image,
 } from "react-native";
@@ -18,6 +17,7 @@ import { profileApi } from "../../api/index";
 import { useAuth } from "../../context/AuthContext";
 import { usePreferences } from "../../context/PreferencesContext";
 import { useAsync } from "../../hooks/index";
+import { ProfileSkeleton } from "../../components/skeletons";
 
 const LANGUAGE_FLAGS: Record<string, string> = {
   en: "🇬🇧",
@@ -62,15 +62,7 @@ export default function ProfileScreen() {
   };
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
-      </SafeAreaView>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (error || !profile) {

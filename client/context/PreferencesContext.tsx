@@ -14,6 +14,7 @@ export interface AppPreferences {
   interests: string[]; // e.g. ["Temples & Heritages", "Local Food"]
   preferredLocations: string[]; // e.g. ["Kathmandu Valley", "Pokhara"]
   nationality: string;
+  avatarUri: string; // local device URI/data-URI for the profile photo
   notificationsEnabled: boolean;
   hasCompletedOnboarding: boolean;
 }
@@ -24,6 +25,7 @@ interface PreferencesContextValue {
   setInterests: (interests: string[]) => Promise<void>;
   setLocations: (locations: string[]) => Promise<void>;
   setNationality: (nationality: string) => Promise<void>;
+  setAvatar: (uri: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   toggleNotifications: () => Promise<void>;
   loading: boolean;
@@ -36,6 +38,7 @@ const DEFAULTS: AppPreferences = {
   interests: [],
   preferredLocations: [],
   nationality: "",
+  avatarUri: "",
   notificationsEnabled: true,
   hasCompletedOnboarding: false,
 };
@@ -101,6 +104,13 @@ export function PreferencesProvider({
     [prefs, persist],
   );
 
+  const setAvatar = useCallback(
+    async (avatarUri: string) => {
+      await persist({ ...prefs, avatarUri });
+    },
+    [prefs, persist],
+  );
+
   const completeOnboarding = useCallback(async () => {
     await persist({ ...prefs, hasCompletedOnboarding: true });
   }, [prefs, persist]);
@@ -120,6 +130,7 @@ export function PreferencesProvider({
         setInterests,
         setLocations,
         setNationality,
+        setAvatar,
         completeOnboarding,
         toggleNotifications,
         loading,

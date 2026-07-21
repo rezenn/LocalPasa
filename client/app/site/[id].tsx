@@ -8,7 +8,6 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
   Alert,
   Animated,
   Linking,
@@ -21,6 +20,7 @@ import StarRating from "../../components/common/Ratings";
 import { useSite } from "../../hooks/useApi";
 import { savedApi } from "../../api/index";
 import { ApiError } from "../../api/client";
+import { SiteDetailSkeleton } from "../../components/skeletons";
 
 const TABS = ["Summary", "Deep Dive", "Kids Mode"];
 
@@ -636,15 +636,7 @@ export default function SiteDetailScreen() {
   };
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator
-          style={{ flex: 1 }}
-          color={Colors.primary}
-          size="large"
-        />
-      </SafeAreaView>
-    );
+    return <SiteDetailSkeleton />;
   }
 
   if (error || !site) {
