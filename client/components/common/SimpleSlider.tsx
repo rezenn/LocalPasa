@@ -15,12 +15,8 @@ interface SimpleSliderProps {
   onChange: (value: number) => void;
 }
 
-const THUMB_SIZE = 20;
+const THUMB_SIZE = 24;
 
-// A minimal single-thumb slider built on PanResponder so we don't need to
-// pull in a native slider dependency (which would need a custom dev client
-// to work reliably). Track width is measured on layout; thumb position is
-// derived from `value` so it stays controlled.
 export default function SimpleSlider({
   min,
   max,
@@ -30,25 +26,25 @@ export default function SimpleSlider({
 }: SimpleSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const trackWidthRef = useRef(0);
+  const thumbOffsetRef = useRef(0);
 
   const clamp = (v: number) => Math.min(max, Math.max(min, v));
 
   const valueToX = (v: number) => {
     if (trackWidthRef.current <= 0) return 0;
-    const pct = (clamp(v) - min) / (max - min || 1);
+    const clamped = clamp(v);
+    const pct = (clamped - min) / (max - min || 1);
     return pct * trackWidthRef.current;
   };
 
   const xToValue = (x: number) => {
     const width = trackWidthRef.current || 1;
-    const pct = clamp2(x / width, 0, 1);
+    const clampedX = Math.max(0, Math.min(x, width));
+    const pct = clampedX / width;
     const raw = min + pct * (max - min);
     const stepped = Math.round(raw / step) * step;
     return clamp(stepped);
   };
-
-  const clamp2 = (v: number, lo: number, hi: number) =>
-    Math.min(hi, Math.max(lo, v));
 
   const panResponder = useMemo(
     () =>
@@ -56,72 +52,84 @@ export default function SimpleSlider({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: (e) => {
-          const x = e.nativeEvent.locationX;
-          onChange(xToValue(x));
+          const x = e.nativeEvent.locationX - THUMB_SIZE / 2;
+          const newValue = xToValue(x);
+          onChange(newValue);
         },
         onPanResponderMove: (e) => {
-          const x = e.nativeEvent.locationX;
-          onChange(xToValue(x));
+          const x = e.nativeEvent.locationX - THUMB_SIZE / 2;
+          const newValue = xToValue(x);
+          onChange(newValue);
         },
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [min, max, step],
+    [min, max, step, onChange],
   );
 
   const onLayout = (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
-    trackWidthRef.current = w;
+    trackWidthRef.current = w - THUMB_SIZE;
     setTrackWidth(w);
   };
 
   const thumbX = trackWidth ? valueToX(value) : 0;
 
   return (
-    <View style={styles.wrap} onLayout={onLayout} {...panResponder.panHandlers}>
-      <View style={styles.track} />
-      <View style={[styles.fill, { width: thumbX }]} />
+    <View style={styles.wrap}>
       <View
-        style={[
-          styles.thumb,
-          { transform: [{ translateX: thumbX - THUMB_SIZE / 2 }] },
-        ]}
-      />
+        style={styles.trackContainer}
+        onLayout={onLayout}
+        {...panResponder.panHandlers}
+      >
+        <View style={styles.track} />
+        <View style={[styles.fill, { width: thumbX }]} />
+        <View
+          style={[
+            styles.thumb,
+            { transform: [{ translateX: thumbX - THUMB_SIZE / 2 }] },
+          ]}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    height: THUMB_SIZE + 8,
+    height: 48,
     justifyContent: "center",
-    paddingHorizontal: THUMB_SIZE / 2,
-    marginHorizontal: -THUMB_SIZE / 2,
+    paddingHorizontal: 0,
+  },
+  trackContainer: {
+    height: 32,
+    justifyContent: "center",
+    position: "relative",
   },
   track: {
     height: 4,
     borderRadius: 2,
     backgroundColor: Colors.border,
+    width: "100%",
   },
   fill: {
     position: "absolute",
     height: 4,
     borderRadius: 2,
     backgroundColor: Colors.primary,
-    left: THUMB_SIZE / 2,
+    left: 0,
   },
   thumb: {
     position: "absolute",
-    left: THUMB_SIZE / 2,
+    left: 0,
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     borderRadius: THUMB_SIZE / 2,
     backgroundColor: Colors.white,
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: Colors.primary,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -82,8 +83,9 @@ interface FilterPanelProps {
   onChange: (filters: ExploreFilters) => void;
   onApply: () => void;
   onReset: () => void;
-  /** Hide sections that don't apply to the current screen (e.g. Map has no event list). */
   showEventType?: boolean;
+  visible?: boolean;
+  onClose?: () => void;
 }
 
 export default function FilterPanel({
@@ -92,101 +94,136 @@ export default function FilterPanel({
   onApply,
   onReset,
   showEventType = true,
+  visible = false,
+  onClose,
 }: FilterPanelProps) {
   const set = (patch: Partial<ExploreFilters>) =>
     onChange({ ...filters, ...patch });
 
-  return (
+  const filterCount = () => {
+    let count = 0;
+    if (filters.maxDistanceKm < DEFAULT_FILTERS.maxDistanceKm) count++;
+    if (filters.maxPrice < DEFAULT_FILTERS.maxPrice) count++;
+    if (filters.minRating > 0) count++;
+    count += filters.siteTypes.length;
+    count += filters.artisanTypes.length;
+    count += filters.eventTypes.length;
+    return count;
+  };
+
+  const FilterContent = () => (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Filters</Text>
+        <TouchableOpacity
+          onPress={onClose || onReset}
+          style={styles.closeButton}
+        >
+          <Ionicons name="close" size={24} color={Colors.text} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Distance */}
-        <Text style={styles.label}>Distance</Text>
-        <SimpleSlider
-          min={0}
-          max={10}
-          step={1}
-          value={filters.maxDistanceKm}
-          onChange={(v) => set({ maxDistanceKm: v })}
-        />
-        <View style={styles.rangeLabels}>
-          <Text style={styles.rangeLabelText}>0 Km</Text>
-          <Text style={styles.rangeLabelText}>{filters.maxDistanceKm} Km</Text>
+        <View style={styles.filterSection}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Distance</Text>
+            <Text style={styles.valueLabel}>{filters.maxDistanceKm} km</Text>
+          </View>
+          <SimpleSlider
+            min={0}
+            max={10}
+            step={1}
+            value={filters.maxDistanceKm}
+            onChange={(v) => set({ maxDistanceKm: v })}
+          />
         </View>
 
         {/* Price */}
-        <Text style={[styles.label, styles.sectionSpacing]}>Price</Text>
-        <Text style={styles.priceValue}>
-          {filters.maxPrice === 0 ? "Free" : `Rs ${filters.maxPrice}`}
-        </Text>
-        <SimpleSlider
-          min={0}
-          max={3000}
-          step={100}
-          value={filters.maxPrice}
-          onChange={(v) => set({ maxPrice: v })}
-        />
-        <View style={styles.rangeLabels}>
-          <Text style={styles.rangeLabelText}>Free</Text>
-          <Text style={styles.rangeLabelText}>Rs 3000</Text>
-        </View>
-
-        {/* Star rating */}
-        <Text style={[styles.label, styles.sectionSpacing]}>Star Rating</Text>
-        <View style={styles.starsRow}>
-          {[1, 2, 3, 4, 5].map((s) => (
-            <TouchableOpacity
-              key={s}
-              onPress={() =>
-                set({ minRating: filters.minRating === s ? 0 : s })
-              }
-            >
-              <Ionicons
-                name={s <= filters.minRating ? "star" : "star-outline"}
-                size={30}
-                color={s <= filters.minRating ? Colors.star : Colors.textMuted}
-                style={styles.starIcon}
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Site type */}
-        <Text style={[styles.label, styles.sectionSpacing]}>Site Type</Text>
-        <View style={styles.chipRow}>
-          {SITE_TYPES.map((t) => (
-            <Chip
-              key={t}
-              label={t}
-              active={filters.siteTypes.includes(t)}
-              onPress={() => set({ siteTypes: toggle(filters.siteTypes, t) })}
-            />
-          ))}
-        </View>
-
-        {/* Artisan type */}
-        <Text style={[styles.label, styles.sectionSpacing]}>Artisans Type</Text>
-        <View style={styles.chipRow}>
-          {ARTISAN_TYPES.map((t) => (
-            <Chip
-              key={t}
-              label={t}
-              active={filters.artisanTypes.includes(t)}
-              onPress={() =>
-                set({ artisanTypes: toggle(filters.artisanTypes, t) })
-              }
-            />
-          ))}
-        </View>
-
-        {/* Event type */}
-        {showEventType && (
-          <>
-            <Text style={[styles.label, styles.sectionSpacing]}>
-              Event Type
+        <View style={styles.filterSection}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Price</Text>
+            <Text style={styles.valueLabel}>
+              {filters.maxPrice === 0 ? "Free" : `Rs ${filters.maxPrice}`}
             </Text>
+          </View>
+          <SimpleSlider
+            min={0}
+            max={3000}
+            step={100}
+            value={filters.maxPrice}
+            onChange={(v) => set({ maxPrice: v })}
+          />
+        </View>
+
+        {/* Rating */}
+        <View style={styles.filterSection}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Rating</Text>
+            <Text style={styles.valueLabel}>
+              {filters.minRating > 0 ? `${filters.minRating}+ Stars` : "Any"}
+            </Text>
+          </View>
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <TouchableOpacity
+                key={s}
+                onPress={() =>
+                  set({ minRating: filters.minRating === s ? 0 : s })
+                }
+                style={styles.starButton}
+              >
+                <Ionicons
+                  name={s <= filters.minRating ? "star" : "star-outline"}
+                  size={28}
+                  color={
+                    s <= filters.minRating ? Colors.star : Colors.textMuted
+                  }
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Site Type */}
+        <View style={styles.filterSection}>
+          <Text style={styles.label}>Site Type</Text>
+          <View style={styles.chipRow}>
+            {SITE_TYPES.map((t) => (
+              <Chip
+                key={t}
+                label={t}
+                active={filters.siteTypes.includes(t)}
+                onPress={() => set({ siteTypes: toggle(filters.siteTypes, t) })}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Artisan Type */}
+        <View style={styles.filterSection}>
+          <Text style={styles.label}>Artisan Type</Text>
+          <View style={styles.chipRow}>
+            {ARTISAN_TYPES.map((t) => (
+              <Chip
+                key={t}
+                label={t}
+                active={filters.artisanTypes.includes(t)}
+                onPress={() =>
+                  set({ artisanTypes: toggle(filters.artisanTypes, t) })
+                }
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Event Type */}
+        {showEventType && (
+          <View style={styles.filterSection}>
+            <Text style={styles.label}>Event Type</Text>
             <View style={styles.chipRow}>
               {EVENT_TYPES.map((t) => (
                 <Chip
@@ -199,58 +236,129 @@ export default function FilterPanel({
                 />
               ))}
             </View>
-          </>
+          </View>
         )}
 
-        <View style={{ height: Spacing.xxxl }} />
+        <View style={styles.footerSpacer} />
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity onPress={onReset} activeOpacity={0.7}>
-          <Text style={styles.resetText}>Reset Filters</Text>
+        <TouchableOpacity onPress={onReset} style={styles.resetButton}>
+          <Text style={styles.resetText}>Reset All</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onApply} activeOpacity={0.7}>
-          <Text style={styles.applyText}>Apply Filters</Text>
+        <TouchableOpacity onPress={onApply} style={styles.applyButton}>
+          <Text style={styles.applyText}>
+            Apply Filters {filterCount() > 0 && `(${filterCount()})`}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
+
+  if (visible !== undefined) {
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={onClose}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={onClose}
+        >
+          <View style={styles.modalContent}>
+            <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+              <FilterContent />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  }
+
+  return <FilterContent />;
 }
 
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+    paddingBottom: 100,
+  },
+  modalContent: {
     backgroundColor: Colors.background,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    maxHeight: "75%",
+  },
+  container: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.xl,
+    paddingBottom: Spacing.md,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerTitle: {
+    ...Typography.h2,
+    fontSize: 18,
+    fontFamily: "CrimsonBold",
+  },
+  closeButton: {
+    padding: Spacing.xs,
   },
   scrollContent: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
+    paddingTop: Spacing.md,
   },
-  label: { ...Typography.h3, fontFamily: "CrimsonBold", fontSize: 15 },
-  sectionSpacing: { marginTop: Spacing.xl },
-  rangeLabels: {
+  filterSection: {
+    marginBottom: Spacing.lg,
+  },
+  labelRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  label: {
+    ...Typography.h3,
+    fontSize: 16,
+    fontFamily: "CrimsonBold",
+    color: Colors.text,
+    flex: 1,
+  },
+  valueLabel: {
+    ...Typography.caption,
+    color: Colors.primary,
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  starsRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
     marginTop: Spacing.xs,
   },
-  rangeLabelText: { ...Typography.caption },
-  priceValue: {
-    ...Typography.caption,
-    textAlign: "center",
-    marginBottom: Spacing.xs,
-    fontWeight: "600",
-    color: Colors.text,
+  starButton: {
+    padding: 2,
   },
-  starsRow: { flexDirection: "row", marginTop: Spacing.sm },
-  starIcon: { marginRight: Spacing.sm },
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.sm,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   chip: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
     backgroundColor: Colors.surface,
@@ -261,19 +369,50 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  chipText: { fontSize: 13, color: Colors.text, fontWeight: "500" },
-  chipTextActive: { color: Colors.white },
+  chipText: {
+    fontSize: 12,
+    color: Colors.text,
+    fontWeight: "500",
+  },
+  chipTextActive: {
+    color: Colors.white,
+  },
   footer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    gap: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
-    ...Shadow.sm,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
   },
-  resetText: { fontSize: 14, color: Colors.textSecondary, fontWeight: "500" },
-  applyText: { fontSize: 15, color: Colors.primary, fontWeight: "700" },
+  resetButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+  },
+  resetText: {
+    color: Colors.textSecondary,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  applyButton: {
+    flex: 2,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+  },
+  applyText: {
+    color: Colors.white,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  footerSpacer: {
+    height: Spacing.sm,
+  },
 });

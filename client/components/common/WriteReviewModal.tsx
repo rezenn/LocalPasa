@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
   cancelBtn: {
-    backgroundColor: "#F28B82",
+    backgroundColor: Colors.error,
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.xl,
     borderRadius: Radius.full,

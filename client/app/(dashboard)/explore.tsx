@@ -167,6 +167,9 @@ export default function HomeScreen() {
           onChange={setFilters}
           onApply={applyFilters}
           onReset={resetFilters}
+          visible={showFilters}
+          onClose={() => setShowFilters(false)}
+          showEventType={true}
         />
       ) : isSearchActive ? (
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -402,11 +405,11 @@ const styles = StyleSheet.create({
   },
   loader: { marginVertical: Spacing.lg },
   flatList: { marginBottom: -Spacing.xs },
-  eventsList: { marginBottom: 900 },
+  eventsList: { marginBottom: Spacing.md },
   gridRow: {
     paddingHorizontal: Spacing.lg,
     justifyContent: "space-between",
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xxxl,
   },
   gridPad: { paddingBottom: Spacing.md },
   bottomPad: { height: Spacing.lg },
