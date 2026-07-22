@@ -13,15 +13,12 @@ import {
 import { useRouter } from "expo-router";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import SiteCard from "../../components/cards/SiteCard";
-import ArtisanCard from "../../components/cards/ArtisansCard";
+import ArtisanCard from "../../components/cards/ArtisanCard2";
 import EventCard from "../../components/cards/EventCard";
 import { savedApi } from "../../api/index";
 import { useAsync } from "../../hooks/index";
 import { Site, Artisan, Event } from "../../types";
-import {
-  CardRowSkeleton,
-  EventListSkeleton,
-} from "../../components/skeletons";
+import { CardRowSkeleton, EventListSkeleton } from "../../components/skeletons";
 
 const TABS = ["Sites", "Artisans", "Events"] as const;
 type TabKey = (typeof TABS)[number];
@@ -282,7 +279,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingTop: Spacing.md },
   horizontalList: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     paddingBottom: Spacing.md,
     flexWrap: "wrap",
     flexDirection: "row",

@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     marginBottom: Spacing.sm,
     ...Shadow.sm,
   },

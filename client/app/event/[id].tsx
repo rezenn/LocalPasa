@@ -44,7 +44,10 @@ export default function EventDetailScreen() {
       setSaving(false);
     }
   };
-
+  const openMap = () => {
+    // Navigate to the map screen in the app
+    router.push("/map" as any);
+  };
   if (loading) {
     return <EventDetailSkeleton />;
   }
@@ -227,14 +230,16 @@ export default function EventDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>Location</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={openMap}>
                 <Text style={styles.linkText}>Open in Maps</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.mapBox}>
-              <Ionicons name="map" size={40} color={Colors.border} />
-              <Text style={styles.mapText}>{event.location}</Text>
-            </View>
+            <TouchableOpacity onPress={openMap} activeOpacity={0.8}>
+              <View style={styles.mapBox}>
+                <Ionicons name="map" size={40} color={Colors.border} />
+                <Text style={styles.mapText}>{event.location}</Text>
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Website */}
@@ -409,6 +414,7 @@ const styles = StyleSheet.create({
   },
   linkText: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
   descText: { fontSize: 14, color: Colors.textSecondary, lineHeight: 22 },
+
   mapBox: {
     height: 130,
     backgroundColor: "#E8F0E8",

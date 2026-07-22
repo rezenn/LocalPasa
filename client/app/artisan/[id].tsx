@@ -82,7 +82,10 @@ export default function ArtisanDetailScreen() {
       );
     }, 400);
   };
-
+  const openMap = () => {
+    // Navigate to the map screen in the app
+    router.push("/map" as any);
+  };
   const handleWriteReview = () => {
     if (!user) {
       Alert.alert("Login Required", "Please log in to write a review.");
@@ -261,6 +264,28 @@ export default function ArtisanDetailScreen() {
               color={saved ? "#FF6B6B" : Colors.textSecondary}
             />{" "}
             <Text style={styles.chatBtnText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+        {/* Map Preview */}
+        <View style={styles.mapPreviewContainer}>
+          <View style={styles.mapPreviewHeader}>
+            <Text style={styles.sectionTitle}>Location</Text>
+            <TouchableOpacity onPress={openMap}>
+              <Text style={styles.linkText}>Open Full Map</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.mapPreview}
+            onPress={openMap}
+            activeOpacity={0.8}
+          >
+            <View style={styles.mapPlaceholder}>
+              <Ionicons name="map" size={40} color={Colors.border} />
+              <Text style={styles.mapText}>
+                {artisan.city || artisan.location}
+              </Text>
+              <Text style={styles.mapSubText}>Tap to explore on map</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -442,6 +467,45 @@ const styles = StyleSheet.create({
   },
   locationRow: { flexDirection: "row", alignItems: "center", gap: 2 },
   locationText: { fontSize: 12, color: Colors.textMuted },
+  linkText: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
+
+  mapPreviewContainer: {
+    marginBottom: Spacing.lg,
+  },
+  mapPreviewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: Spacing.lg,
+  },
+  mapPreview: {
+    height: 150,
+    borderRadius: Radius.lg,
+    overflow: "hidden",
+    marginHorizontal: Spacing.md,
+  },
+  mapPlaceholder: {
+    flex: 1,
+    backgroundColor: "#E8F0E8",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+  },
+  mapText: {
+    color: Colors.text,
+    marginTop: Spacing.xs,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  mapSubText: { color: Colors.textMuted, fontSize: 11, marginTop: 4 },
+  locationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
