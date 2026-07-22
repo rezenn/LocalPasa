@@ -9,7 +9,7 @@ import {
   StatusBar,
   Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import { useSites } from "../../hooks/useApi";
@@ -21,8 +21,13 @@ const TYPES = ["All", "Temple", "Monastery", "Stupa", "Palace", "Museum"];
 
 export default function SitesList() {
   const router = useRouter();
+
+  const params = useLocalSearchParams<{ type?: string }>();
+  const initialType =
+    TYPES.find((t) => t.toLowerCase() === (params.type || "").toLowerCase()) ??
+    "All";
   const [city, setCity] = useState("All");
-  const [type, setType] = useState("All");
+  const [type, setType] = useState(initialType);
 
   const { data, loading, error, refetch } = useSites({
     city: city === "All" ? undefined : city,

@@ -221,7 +221,9 @@ export default function ItineraryScreen() {
                     </Text>
                   </View>
                   <Ionicons
-                    name={inItinerary ? "checkmark-circle" : "add-circle-outline"}
+                    name={
+                      inItinerary ? "checkmark-circle" : "add-circle-outline"
+                    }
                     size={22}
                     color={inItinerary ? "#2C7A3A" : Colors.textMuted}
                   />
@@ -237,7 +239,11 @@ export default function ItineraryScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
+  },
   header: {
     backgroundColor: Colors.brown,
     flexDirection: "row",

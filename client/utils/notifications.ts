@@ -52,10 +52,7 @@ export async function scheduleLocalNotification(
   try {
     const id = await Notifications.scheduleNotificationAsync({
       content: { title, body, data },
-      trigger:
-        Platform.OS === "web"
-          ? null
-          : ({ type: "date", date } as any),
+      trigger: Platform.OS === "web" ? null : ({ type: "date", date } as any),
     });
     return id;
   } catch {

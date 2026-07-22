@@ -37,6 +37,8 @@ import {
   filterEvents,
   filterSites,
 } from "../../utils/exploreFilters";
+import { sortSitesByInterest } from "../../utils/interestMatch";
+import { usePreferences } from "../../context/PreferencesContext";
 import {
   HiddenGemBannerSkeleton,
   CardRowSkeleton,

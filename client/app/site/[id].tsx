@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,9 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  Animated,
   Linking,
+  Dimensions,
+  FlatList,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,8 +26,18 @@ import { savedApi } from "../../api/index";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/client";
 import { SiteDetailSkeleton } from "../../components/skeletons";
+import {
+  buildNarrationScript,
+  speakNarration,
+  pauseNarration,
+  isNarrationAvailable,
+} from "../../utils/narration";
+import { getSiteTags } from "../../utils/siteTags";
+import { getSafetyTips } from "../../utils/safetyTips";
 
-const TABS = ["Summary", "Deep Dive", "Kids Mode"];
+const TABS = ["Summary", "Story", "Deep Dive", "Kids Mode"];
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const GALLERY_ITEM_WIDTH = SCREEN_WIDTH - Spacing.lg * 2;
 
 // ─── Quiz component ───────────────────────────────────────────────────────────
 interface QuizQuestion {
@@ -514,22 +525,18 @@ const huntStyles = StyleSheet.create({
 
 // ─── Generate Did You Know Fact ─────────────────────────────────────────────
 function generateDidYouKnow(site: any): string | null {
-  // If site has didYouKnow field, use it
   if (site.didYouKnow) {
     return site.didYouKnow;
   }
 
-  // Generate facts based on site data
   const facts = [];
 
-  // Fact about rating
   if (site.rating && site.rating > 4.5) {
     facts.push(
       `${site.name} has an impressive ${site.rating} star rating from ${site.ratingCount || "many"} visitors!`,
     );
   }
 
-  // Fact about history
   if (site.history) {
     const historyMatch = site.history.match(
       /\b\d{3,4}\s*AD\b|\b\d{3,4}\s*BCE\b|\b\d{3,4}\s*CE\b/i,
@@ -541,12 +548,10 @@ function generateDidYouKnow(site: any): string | null {
     }
   }
 
-  // Fact about UNESCO
   if (site.longDescription && site.longDescription.includes("UNESCO")) {
     facts.push(`${site.name} is a UNESCO World Heritage Site!`);
   }
 
-  // Fact about visitors
   if (site.longDescription) {
     const visitorMatch = site.longDescription.match(
       /(\d+[,]?\d*)\s*(?:devotees|visitors|pilgrims|people)/i,
@@ -556,19 +561,16 @@ function generateDidYouKnow(site: any): string | null {
     }
   }
 
-  // Fact about price
   if (site.price && site.price.includes("Free")) {
     facts.push(`Good news! Entry to ${site.name} is free!`);
   }
 
-  // Fact about location
   if (site.city) {
     facts.push(
       `${site.name} is located in the beautiful city of ${site.city}, Nepal.`,
     );
   }
 
-  // General fact if no specific facts found
   if (facts.length === 0) {
     const randomFacts = [
       `${site.name} is one of the most significant cultural sites in Nepal.`,
@@ -579,8 +581,87 @@ function generateDidYouKnow(site: any): string | null {
     return randomFacts[Math.floor(Math.random() * randomFacts.length)];
   }
 
-  // Return a random fact
   return facts[Math.floor(Math.random() * facts.length)];
+}
+
+// ─── Generate Fun Facts (at least 2) ──────────────────────────────────────
+function generateFunFacts(site: any): string[] {
+  const facts = [];
+
+  if (site.didYouKnow) {
+    facts.push(site.didYouKnow);
+  }
+
+  if (site.rating && site.rating > 4.5) {
+    facts.push(
+      `${site.name} has an impressive ${site.rating} star rating from ${site.ratingCount || "many"} visitors!`,
+    );
+  }
+
+  if (site.history) {
+    const historyMatch = site.history.match(
+      /\b\d{3,4}\s*AD\b|\b\d{3,4}\s*BCE\b|\b\d{3,4}\s*CE\b/i,
+    );
+    if (historyMatch) {
+      facts.push(
+        `This site dates back to ${historyMatch[0]}, making it over ${new Date().getFullYear() - parseInt(historyMatch[0])} years old!`,
+      );
+    }
+  }
+
+  if (site.longDescription && site.longDescription.includes("UNESCO")) {
+    facts.push(`${site.name} is a UNESCO World Heritage Site!`);
+  }
+
+  if (site.city) {
+    facts.push(
+      `${site.name} is located in the beautiful city of ${site.city}, Nepal.`,
+    );
+  }
+
+  const fillerFacts = [
+    `${site.name} is one of the most significant cultural sites in Nepal.`,
+    `${site.name} attracts photographers and storytellers from all over the world.`,
+    `${site.name} is an important part of Nepal's rich cultural heritage.`,
+    `Many visitors describe ${site.name} as a truly magical place.`,
+    `Locals often visit ${site.name} during festival season for its cultural significance.`,
+  ];
+
+  for (const filler of fillerFacts) {
+    if (facts.length >= 2) break;
+    if (!facts.includes(filler)) facts.push(filler);
+  }
+
+  return Array.from(new Set(facts)).slice(0, 2);
+}
+
+// ─── Generate Quick Facts ──────────────────────────────────────────────────
+function generateQuickFacts(site: any): { icon: string; text: string }[] {
+  const whatItIs = site.type
+    ? `A ${site.type.toLowerCase()} in ${site.city || site.location}`
+    : `A cultural site in ${site.city || site.location}`;
+
+  let whenText = "Historic site of cultural significance";
+  const historySource = `${site.history || ""} ${site.longDescription || ""}`;
+  const yearMatch = historySource.match(
+    /\b\d{3,4}\s*(AD|BCE|CE|BC)\b|\bbuilt in \d{3,4}\b/i,
+  );
+  if (yearMatch) {
+    whenText = `Dates back to ${yearMatch[0]}`;
+  } else if (site.openingHours) {
+    whenText = `Open ${site.openingHours}`;
+  }
+
+  const source = site.summary || site.longDescription || "";
+  const firstSentence = source.split(/(?<=[.!?])\s/)[0];
+  const whyItMatters =
+    firstSentence || `A meaningful stop for cultural travelers.`;
+
+  return [
+    { icon: "information-circle-outline", text: whatItIs },
+    { icon: "time-outline", text: whenText },
+    { icon: "star-outline", text: whyItMatters },
+  ];
 }
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
@@ -594,9 +675,15 @@ export default function SiteDetailScreen() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [isNarrating, setIsNarrating] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   const { user } = useAuth();
   const { data: site, loading, error, refetch } = useSite(id ?? "");
+
+  useEffect(() => {
+    return () => pauseNarration();
+  }, []);
 
   const handleSave = async () => {
     if (!id) return;
@@ -629,7 +716,6 @@ export default function SiteDetailScreen() {
 
   const handleReportSubmit = (description: string) => {
     setReportSubmitting(true);
-    // Simulated submission — no dedicated report endpoint on the server yet.
     setTimeout(() => {
       setReportSubmitting(false);
       setReportModalVisible(false);
@@ -667,8 +753,21 @@ export default function SiteDetailScreen() {
   };
 
   const openMap = () => {
-    // Navigate to the map screen in the app
     router.push("/map" as any);
+  };
+
+  const toggleNarration = () => {
+    if (!site) return;
+    if (isNarrating) {
+      pauseNarration();
+      setIsNarrating(false);
+    } else {
+      const narrationScript = buildNarrationScript(site);
+      const started = speakNarration(narrationScript, () =>
+        setIsNarrating(false),
+      );
+      setIsNarrating(started);
+    }
   };
 
   if (loading) {
@@ -697,13 +796,14 @@ export default function SiteDetailScreen() {
   }
 
   const displayRating = site.computedRating ?? site.rating ?? 0;
-
-  // Get translations for the site name
   const translations = site.translations || {};
   const translationLanguages = Object.keys(translations);
-
-  // Generate Did You Know fact
   const didYouKnowFact = generateDidYouKnow(site);
+  const funFacts = generateFunFacts(site);
+  const quickFacts = generateQuickFacts(site);
+  const siteTags = getSiteTags(site);
+  const galleryImages =
+    site.images && site.images.length > 0 ? site.images : [site.image];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -763,6 +863,9 @@ export default function SiteDetailScreen() {
         {/* Name card */}
         <View style={styles.nameCard}>
           <Text style={styles.siteName}>{site.name}</Text>
+          {site.translations?.nepali ? (
+            <Text style={styles.siteNameLocal}>{site.translations.nepali}</Text>
+          ) : null}
           <View style={styles.siteMetaRow}>
             <View style={styles.metaChip}>
               <Ionicons name="location" size={12} color={Colors.error} />
@@ -818,6 +921,93 @@ export default function SiteDetailScreen() {
           {activeTab === "Summary" && (
             <>
               <Text style={styles.summaryText}>{site.summary}</Text>
+
+              {/* Tags */}
+              <View style={styles.tagsRow}>
+                {siteTags.map((tag) => (
+                  <TouchableOpacity
+                    key={tag.category}
+                    style={styles.tagChip}
+                    onPress={() =>
+                      router.push(
+                        `/sites-list?type=${encodeURIComponent(site.type || "")}` as any,
+                      )
+                    }
+                  >
+                    <Text style={styles.tagChipText}>{tag.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Photo gallery */}
+              {galleryImages.length > 1 && (
+                <View style={styles.galleryWrap}>
+                  <FlatList
+                    data={galleryImages}
+                    keyExtractor={(_, i) => `gallery-${i}`}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onMomentumScrollEnd={(e) => {
+                      const idx = Math.round(
+                        e.nativeEvent.contentOffset.x / GALLERY_ITEM_WIDTH,
+                      );
+                      setGalleryIndex(idx);
+                    }}
+                    renderItem={({ item }) => (
+                      <Image
+                        source={{ uri: item }}
+                        style={{
+                          width: GALLERY_ITEM_WIDTH,
+                          height: 180,
+                          borderRadius: Radius.lg,
+                        }}
+                      />
+                    )}
+                  />
+                  <View style={styles.galleryDots}>
+                    {galleryImages.map((_: string, i: number) => (
+                      <View
+                        key={i}
+                        style={[
+                          styles.galleryDot,
+                          i === galleryIndex && styles.galleryDotActive,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Audio Narration */}
+              <TouchableOpacity
+                style={styles.narrationCard}
+                onPress={toggleNarration}
+                activeOpacity={0.85}
+              >
+                <View style={styles.narrationPlayBtn}>
+                  <Ionicons
+                    name={isNarrating ? "pause" : "play"}
+                    size={16}
+                    color={Colors.white}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.narrationTitle}>
+                    {isNarrating ? "Playing narration…" : "Listen to this site"}
+                  </Text>
+                  <Text style={styles.narrationSub}>
+                    {isNarrationAvailable()
+                      ? "~60-90 sec audio guide"
+                      : "Requires expo-speech to be installed"}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="volume-medium-outline"
+                  size={18}
+                  color={Colors.textMuted}
+                />
+              </TouchableOpacity>
 
               <View style={styles.actions}>
                 <TouchableOpacity
@@ -889,13 +1079,32 @@ export default function SiteDetailScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Did You Know - Always show in Summary */}
+              {/* Did You Know */}
               <View style={styles.didYouKnow}>
                 <View style={styles.didYouKnowHeader}>
+                  <Ionicons
+                    name="bulb-outline"
+                    size={14}
+                    color={Colors.secondary}
+                  />
                   <Text style={styles.didYouKnowTitle}>Did You Know?</Text>
                 </View>
                 <Text style={styles.didYouKnowText}>{didYouKnowFact}</Text>
               </View>
+
+              {funFacts[1] && (
+                <View style={styles.funFactAlt}>
+                  <View style={styles.didYouKnowHeader}>
+                    <Ionicons
+                      name="sparkles-outline"
+                      size={14}
+                      color="#2E86C1"
+                    />
+                    <Text style={styles.funFactAltTitle}>Fun Fact</Text>
+                  </View>
+                  <Text style={styles.funFactAltText}>{funFacts[1]}</Text>
+                </View>
+              )}
 
               {site.nearbyArtisans?.length > 0 && (
                 <>
@@ -928,7 +1137,7 @@ export default function SiteDetailScreen() {
               <View style={styles.sectionRow}>
                 <Text style={styles.sectionTitle}>
                   Reviews {site.reviewCount ? `(${site.reviewCount})` : ""}
-                </Text>{" "}
+                </Text>
                 <TouchableOpacity onPress={handleWriteReview}>
                   <Text style={styles.writeReviewLink}>Write a review</Text>
                 </TouchableOpacity>
@@ -938,23 +1147,89 @@ export default function SiteDetailScreen() {
                   No reviews yet. Be the first!
                 </Text>
               ) : (
-                site.reviews.map((review) => (
-                  <View key={review._id} style={styles.review}>
-                    <View style={styles.reviewHeader}>
-                      <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                          {review.author[0]}
-                        </Text>
+                site.reviews.map((review) => {
+                  const isVerified =
+                    review.rating >= 4 && review.text.length > 40;
+                  return (
+                    <View key={review._id} style={styles.review}>
+                      <View style={styles.reviewHeader}>
+                        <View style={styles.avatar}>
+                          <Text style={styles.avatarText}>
+                            {review.author[0]}
+                          </Text>
+                        </View>
+                        <View style={styles.reviewMeta}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 5,
+                            }}
+                          >
+                            <Text style={styles.reviewAuthor}>
+                              {review.author}
+                            </Text>
+                            {isVerified && (
+                              <View style={styles.verifiedBadge}>
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={11}
+                                  color="#2E86C1"
+                                />
+                                <Text style={styles.verifiedBadgeText}>
+                                  Verified local
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          <Text style={styles.reviewDate}>{review.date}</Text>
+                        </View>
+                        <StarRating rating={review.rating} size={12} />
                       </View>
-                      <View style={styles.reviewMeta}>
-                        <Text style={styles.reviewAuthor}>{review.author}</Text>
-                        <Text style={styles.reviewDate}>{review.date}</Text>
-                      </View>
-                      <StarRating rating={review.rating} size={12} />
+                      <Text style={styles.reviewText}>{review.text}</Text>
                     </View>
-                    <Text style={styles.reviewText}>{review.text}</Text>
+                  );
+                })
+              )}
+            </>
+          )}
+
+          {/* ── STORY ── */}
+          {activeTab === "Story" && (
+            <>
+              <View style={styles.deepTitleRow}>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={16}
+                  color="#8B5E3C"
+                />
+                <Text style={styles.deepTitle}>Local Story</Text>
+                <View style={styles.localStoryBadge}>
+                  <Text style={styles.localStoryBadgeText}>
+                    Passed down locally
+                  </Text>
+                </View>
+              </View>
+              {site.myth ? (
+                <Text style={styles.summaryText}>{site.myth}</Text>
+              ) : (
+                <Text style={styles.noContent}>
+                  No local story recorded for this site yet.
+                </Text>
+              )}
+
+              {funFacts[1] && (
+                <View style={[styles.funFactAlt, { marginTop: Spacing.lg }]}>
+                  <View style={styles.didYouKnowHeader}>
+                    <Ionicons
+                      name="sparkles-outline"
+                      size={14}
+                      color="#2E86C1"
+                    />
+                    <Text style={styles.funFactAltTitle}>Told by locals</Text>
                   </View>
-                ))
+                  <Text style={styles.funFactAltText}>{funFacts[1]}</Text>
+                </View>
               )}
             </>
           )}
@@ -992,15 +1267,6 @@ export default function SiteDetailScreen() {
                 </View>
               ) : null}
 
-              {site.myth ? (
-                <View style={styles.deepSection}>
-                  <View style={styles.deepTitleRow}>
-                    <Text style={styles.deepTitle}>Myths & Legends</Text>
-                  </View>
-                  <Text style={styles.summaryText}>{site.myth}</Text>
-                </View>
-              ) : null}
-
               {site.openingHours ? (
                 <View style={styles.infoBox}>
                   <Ionicons
@@ -1014,6 +1280,45 @@ export default function SiteDetailScreen() {
                   </View>
                 </View>
               ) : null}
+
+              {/* Safety tips */}
+              <View style={styles.safetyCard}>
+                <View style={styles.deepTitleRow}>
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={16}
+                    color="#2C7A3A"
+                  />
+                  <Text style={styles.deepTitle}>Safety & Local Customs</Text>
+                </View>
+                {getSafetyTips(site).map((tip, i) => (
+                  <View key={i} style={styles.safetyTipRow}>
+                    <View style={styles.safetyDot} />
+                    <Text style={styles.safetyTipText}>{tip}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Sources */}
+              <View style={styles.sourcesBox}>
+                <Text style={styles.sourcesTitle}>Sources</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    Linking.openURL("https://whc.unesco.org/en/list/")
+                  }
+                >
+                  <Text style={styles.sourceLink}>
+                    UNESCO World Heritage Centre
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL("https://www.doa.gov.np/")}
+                >
+                  <Text style={styles.sourceLink}>
+                    Department of Archaeology, Nepal
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
               {!site.history &&
                 !site.myth &&
@@ -1064,11 +1369,16 @@ export default function SiteDetailScreen() {
                 </Text>
               </View>
 
-              {/* Did You Know in Kids Mode */}
+              {/* Fun Facts in Kids Mode */}
               <View style={styles.funFact}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.funFactTitle}>Fun Fact!</Text>
                   <Text style={styles.funFactText}>{didYouKnowFact}</Text>
+                  {funFacts[1] && (
+                    <Text style={[styles.funFactText, { marginTop: 6 }]}>
+                      {funFacts[1]}
+                    </Text>
+                  )}
                 </View>
               </View>
 
@@ -1092,6 +1402,7 @@ export default function SiteDetailScreen() {
           )}
         </View>
       </ScrollView>
+
       <WriteReviewModal
         visible={reviewModalVisible}
         title={site.name}
@@ -1185,6 +1496,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     color: Colors.text,
+    marginBottom: 2,
+  },
+  siteNameLocal: {
+    fontSize: 14,
+    color: Colors.textSecondary,
     marginBottom: Spacing.sm,
   },
   siteMetaRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
@@ -1202,6 +1518,24 @@ const styles = StyleSheet.create({
   starChip: { backgroundColor: "#FFF8E1", borderColor: "#FFE082" },
   freeChip: { backgroundColor: "#E8F5E9", borderColor: "#A5D6A7" },
   metaChipText: { fontSize: 12, color: Colors.text, fontWeight: "500" },
+  quickFactsPanel: {
+    backgroundColor: "#FBF6EF",
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#EEE1CE",
+  },
+  quickFactRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  quickFactText: {
+    flex: 1,
+    fontSize: 12,
+    color: Colors.text,
+    lineHeight: 17,
+    fontWeight: "500",
+  },
   tabs: {
     flexDirection: "row",
     backgroundColor: Colors.surface,
@@ -1220,6 +1554,56 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.lg,
   },
+  tagsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.xs,
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  tagChip: {
+    backgroundColor: "#F0EAE2",
+    borderRadius: Radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  tagChipText: { fontSize: 11, color: Colors.primary, fontWeight: "600" },
+  galleryWrap: { marginBottom: Spacing.md },
+  galleryDots: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 5,
+    marginTop: Spacing.sm,
+  },
+  galleryDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.border,
+  },
+  galleryDotActive: {
+    backgroundColor: Colors.primary,
+    width: 16,
+  },
+  narrationCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    backgroundColor: "#F3EEE6",
+    borderRadius: Radius.lg,
+    padding: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  narrationPlayBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  narrationTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  narrationSub: { fontSize: 11, color: Colors.textMuted, marginTop: 1 },
   actions: {
     flexDirection: "row",
     gap: Spacing.sm,
@@ -1291,14 +1675,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   mapSubText: { color: Colors.textMuted, fontSize: 11, marginTop: 4 },
-  locationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
   linkText: { fontSize: 13, color: Colors.primary, fontWeight: "500" },
+  writeReviewLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
   didYouKnow: {
     backgroundColor: "#FFF9E6",
     borderRadius: Radius.lg,
@@ -1313,13 +1696,22 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginBottom: 4,
   },
-
   didYouKnowTitle: {
     fontSize: 13,
     fontWeight: "700",
     color: Colors.text,
   },
   didYouKnowText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  funFactAlt: {
+    backgroundColor: "#EAF4FC",
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: "#2E86C1",
+  },
+  funFactAltTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  funFactAltText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
   sectionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1360,6 +1752,16 @@ const styles = StyleSheet.create({
   reviewAuthor: { fontSize: 13, fontWeight: "700", color: Colors.text },
   reviewDate: { fontSize: 11, color: Colors.textMuted },
   reviewText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "#EAF4FC",
+    borderRadius: Radius.full,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  verifiedBadgeText: { fontSize: 9, color: "#2E86C1", fontWeight: "700" },
   deepSection: { marginBottom: Spacing.lg },
   deepTitleRow: {
     flexDirection: "row",
@@ -1368,6 +1770,16 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   deepTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
+  localStoryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#8B5E3C",
+    borderRadius: Radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  localStoryBadgeText: { color: Colors.white, fontSize: 10, fontWeight: "700" },
   translationsSection: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -1423,6 +1835,52 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   infoBoxText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
+  safetyCard: {
+    backgroundColor: "#F2F8F3",
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: "#2C7A3A",
+  },
+  safetyTipRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginTop: 6,
+  },
+  safetyDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#2C7A3A",
+    marginTop: 7,
+  },
+  safetyTipText: {
+    flex: 1,
+    fontSize: 12.5,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  sourcesBox: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  sourcesTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.textMuted,
+    marginBottom: 6,
+    textTransform: "uppercase",
+  },
+  sourceLink: {
+    fontSize: 12.5,
+    color: Colors.primary,
+    marginBottom: 4,
+    textDecorationLine: "underline",
+  },
   emptyState: {
     alignItems: "center",
     paddingVertical: Spacing.xxxl,
@@ -1473,11 +1931,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: Spacing.lg,
     gap: Spacing.md,
-  },
-  writeReviewLink: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.primary,
   },
   errorText: { fontSize: 18, color: Colors.text },
   errorButton: {

@@ -31,7 +31,7 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
-import { useSites } from "../../hooks/useApi";
+import { useSites, useArtisans } from "../../hooks/useApi";
 import { Site as ApiSite } from "../../api/sites.api";
 import { Site } from "../../types";
 import FilterPanel, {
@@ -235,6 +235,27 @@ const CustomMarker: React.FC<{
   );
 };
 
+// Artisan layer marker — visually distinct from site markers so the two
+// layers stay easy to tell apart at a glance (US-042).
+const ArtisanMarker: React.FC<{
+  artisan: any;
+  onPress: (artisan: any) => void;
+}> = ({ artisan, onPress }) => {
+  const coords = getSiteCoordinates(artisan as SiteType);
+  if (!coords) return null;
+
+  return (
+    <Marker
+      coordinate={{ latitude: coords.lat, longitude: coords.lng }}
+      onPress={() => onPress(artisan)}
+    >
+      <View style={styles.artisanMarker}>
+        <Ionicons name="hammer" size={14} color="#FFF" />
+      </View>
+    </Marker>
+  );
+};
+
 export default function MapScreen() {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -260,6 +281,10 @@ export default function MapScreen() {
   const [isMapReady, setIsMapReady] = useState(false);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  // Artisan layer toggle (US-042) — off by default so it doesn't clutter
+  // the primary sites view.
+  const [showArtisans, setShowArtisans] = useState(false);
+  const { data: artisanData } = useArtisans({ limit: 100 });
 
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -544,6 +569,16 @@ export default function MapScreen() {
             <Ionicons name="options" size={20} color={Colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => setShowArtisans((v) => !v)}
+            style={[styles.filterBtn, showArtisans && styles.filterBtnActive]}
+          >
+            <Ionicons
+              name="hammer"
+              size={18}
+              color={showArtisans ? Colors.white : Colors.textMuted}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => setShowAdvancedFilters(true)}
             style={styles.filterBtn}
           >
@@ -655,6 +690,15 @@ export default function MapScreen() {
             />
           );
         })}
+        {/* Artisan layer (US-042) */}
+        {showArtisans &&
+          (artisanData?.artisans ?? []).map((artisan: any) => (
+            <ArtisanMarker
+              key={artisan._id}
+              artisan={artisan}
+              onPress={(a) => router.push(`/artisan/${a._id}` as any)}
+            />
+          ))}
       </MapView>
 
       {/* Map Controls */}
@@ -971,6 +1015,21 @@ const styles = StyleSheet.create({
   filterBtn: {
     padding: 8,
     marginLeft: 4,
+  },
+  filterBtnActive: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.full,
+  },
+  artisanMarker: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#8B5E3C",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFF",
+    ...Shadow.sm,
   },
   filterPanel: {
     paddingBottom: 8,
