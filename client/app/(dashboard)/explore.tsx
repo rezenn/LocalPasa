@@ -43,6 +43,7 @@ import {
   EventListSkeleton,
   SearchResultsSkeleton,
 } from "../../components/skeletons";
+import ArtisansCard2 from "@/components/cards/ArtisanCard2";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -217,7 +218,7 @@ export default function HomeScreen() {
                     columnWrapperStyle={styles.gridRow}
                     contentContainerStyle={styles.gridPad}
                     renderItem={({ item }) => (
-                      <ArtisanCard
+                      <ArtisansCard2
                         artisan={item}
                         onPress={() =>
                           router.push(`/artisan/${item._id}` as any)
@@ -401,8 +402,12 @@ const styles = StyleSheet.create({
   },
   loader: { marginVertical: Spacing.lg },
   flatList: { marginBottom: -Spacing.xs },
-  eventsList: { marginBottom: Spacing.md },
-  gridRow: { paddingHorizontal: Spacing.lg, justifyContent: "space-between" },
+  eventsList: { marginBottom: 900 },
+  gridRow: {
+    paddingHorizontal: Spacing.lg,
+    justifyContent: "space-between",
+    marginBottom: Spacing.lg,
+  },
   gridPad: { paddingBottom: Spacing.md },
   bottomPad: { height: Spacing.lg },
   emptyState: {

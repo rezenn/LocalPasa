@@ -1,5 +1,10 @@
 import React, { useMemo, useRef, useState } from "react";
-import { View, StyleSheet, PanResponder, LayoutChangeEvent } from "react-native";
+import {
+  View,
+  StyleSheet,
+  PanResponder,
+  LayoutChangeEvent,
+} from "react-native";
 import { Colors } from "../../constants/theme";
 
 interface SimpleSliderProps {

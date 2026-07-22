@@ -1,13 +1,25 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Shadow,
+  Typography,
+} from "../../constants/theme";
 import SimpleSlider from "./SimpleSlider";
 
 export interface ExploreFilters {
-  maxDistanceKm: number; 
-  maxPrice: number; 
-  minRating: number; 
+  maxDistanceKm: number;
+  maxPrice: number;
+  minRating: number;
   siteTypes: string[];
   artisanTypes: string[];
   eventTypes: string[];
@@ -127,14 +139,14 @@ export default function FilterPanel({
           {[1, 2, 3, 4, 5].map((s) => (
             <TouchableOpacity
               key={s}
-              onPress={() => set({ minRating: filters.minRating === s ? 0 : s })}
+              onPress={() =>
+                set({ minRating: filters.minRating === s ? 0 : s })
+              }
             >
               <Ionicons
                 name={s <= filters.minRating ? "star" : "star-outline"}
                 size={30}
-                color={
-                  s <= filters.minRating ? Colors.star : Colors.textMuted
-                }
+                color={s <= filters.minRating ? Colors.star : Colors.textMuted}
                 style={styles.starIcon}
               />
             </TouchableOpacity>
