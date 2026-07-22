@@ -58,7 +58,7 @@ export const EventListItemSkeleton: React.FC = () => (
 export const CardRowSkeleton: React.FC<{
   variant: "site" | "artisan";
   count?: number;
-}> = ({ variant, count = 3 }) => (
+}> = ({ variant, count = 2 }) => (
   <View style={styles.row}>
     {Array.from({ length: count }).map((_, i) =>
       variant === "site" ? (
@@ -70,20 +70,16 @@ export const CardRowSkeleton: React.FC<{
   </View>
 );
 
-/** Stacked list of N event card skeletons, for home-feed / list sections */
 export const EventListSkeleton: React.FC<{ count?: number }> = ({
   count = 3,
 }) => (
-  <View style={{ marginBottom: Spacing.md }}>
+  <View style={{ marginBottom: Spacing.md, marginTop: Spacing.md }}>
     {Array.from({ length: count }).map((_, i) => (
       <EventCardSkeleton key={i} />
     ))}
   </View>
 );
 
-/** Full-width row card skeleton — matches the list-row layout used in
- * app/sites-list/index.tsx and app/artisans-list/index.tsx (thumbnail +
- * title + subtitle + meta row). */
 export const ListRowSkeleton: React.FC<{ imageSize?: number }> = ({
   imageSize = 80,
 }) => (
@@ -166,6 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingLeft: Spacing.lg,
     paddingBottom: Spacing.md,
+    marginTop: Spacing.md,
   },
   listRow: {
     flexDirection: "row",

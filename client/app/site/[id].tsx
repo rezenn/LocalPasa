@@ -1177,7 +1177,7 @@ export default function SiteDetailScreen() {
                                   color="#2E86C1"
                                 />
                                 <Text style={styles.verifiedBadgeText}>
-                                  Verified local
+                                  Verified
                                 </Text>
                               </View>
                             )}

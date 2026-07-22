@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StatusBar,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -84,7 +85,8 @@ export default function HomeScreen() {
   });
 
   const hiddenGem = hiddenGems?.[0] ?? null;
-  const sites = mustVisitData ?? [];
+  const { prefs } = usePreferences();
+  const sites = sortSitesByInterest(mustVisitData ?? [], prefs.interests);
   const artisans = artisansData?.artisans ?? [];
   const events = eventsData ?? [];
 
@@ -129,6 +131,42 @@ export default function HomeScreen() {
     setAppliedFilters(DEFAULT_FILTERS);
   };
 
+  // Surprise Me - pick a random site
+  const handleSurpriseMe = () => {
+    if (!allSitesData?.sites || allSitesData.sites.length === 0) {
+      Alert.alert("No sites available", "Please try again later.");
+      return;
+    }
+
+    // Get all sites except must-visit sites for more surprise
+    const mustVisitIds = new Set((mustVisitData ?? []).map((s: any) => s._id));
+    const pool = allSitesData.sites.filter(
+      (s: any) => !mustVisitIds.has(s._id),
+    );
+
+    // If no other sites, use all sites
+    const availableSites = pool.length > 0 ? pool : allSitesData.sites;
+    const randomSite =
+      availableSites[Math.floor(Math.random() * availableSites.length)];
+
+    if (randomSite) {
+      router.push(`/site/${randomSite._id}` as any);
+    }
+  };
+
+  // Local Secrets - pick a random hidden gem
+  const handleLocalSecrets = () => {
+    if (!hiddenGems || hiddenGems.length === 0) {
+      Alert.alert("No hidden gems available", "Please try again later.");
+      return;
+    }
+
+    const randomGem = hiddenGems[Math.floor(Math.random() * hiddenGems.length)];
+    if (randomGem) {
+      router.push(`/site/${randomGem._id}` as any);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
@@ -140,6 +178,22 @@ export default function HomeScreen() {
             <Text style={styles.tagline}>
               Discover Nepal's cultural heritage
             </Text>
+          </View>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={handleSurpriseMe}
+            >
+              <Ionicons name="shuffle" size={16} color={Colors.white} />
+              <Text style={styles.headerButtonLabel}>Surprise</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={handleLocalSecrets}
+            >
+              <Ionicons name="sparkles" size={16} color={Colors.white} />
+              <Text style={styles.headerButtonLabel}>Secret</Text>
+            </TouchableOpacity>
           </View>
         </View>
         <SearchBar
@@ -269,7 +323,11 @@ export default function HomeScreen() {
           ) : null}
 
           <SectionHeader
-            title="Must-Visit Sites"
+            title={
+              prefs.interests.length > 0
+                ? "Recommended For You"
+                : "Must-Visit Sites"
+            }
             onSeeAll={() => router.push("/sites-list" as any)}
           />
           {sitesLoading ? (
@@ -384,6 +442,24 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 22, color: Colors.white, fontFamily: "CrimsonBold" },
   tagline: { fontSize: 12, color: "#E2DBDB", marginTop: 2 },
+  headerButtons: {
+    flexDirection: "row",
+    gap: Spacing.xs,
+  },
+  headerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.full,
+    gap: 4,
+  },
+  headerButtonLabel: {
+    color: Colors.white,
+    fontSize: 11,
+    fontWeight: "600",
+  },
   activeFilterPill: {
     flexDirection: "row",
     alignItems: "center",

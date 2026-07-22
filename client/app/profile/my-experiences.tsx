@@ -11,7 +11,13 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Shadow,
+  Typography,
+} from "../../constants/theme";
 import { Booking, useBookings } from "../../context/BookingsContext";
 
 function BookingCard({
@@ -24,7 +30,6 @@ function BookingCard({
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Ionicons name="sparkles" size={16} color={Colors.primary} />
         <Text style={styles.cardTitle} numberOfLines={1}>
           {booking.experienceTitle}
         </Text>
@@ -44,7 +49,9 @@ function BookingCard({
       </View>
       <View style={styles.cardFooter}>
         <Text style={styles.cardRef}>Ref: {booking.id}</Text>
-        <Text style={styles.cardPrice}>NPR {booking.totalPaid.toLocaleString()}</Text>
+        <Text style={styles.cardPrice}>
+          NPR {booking.totalPaid.toLocaleString()}
+        </Text>
       </View>
       <TouchableOpacity
         style={styles.cancelBtn}
@@ -54,7 +61,11 @@ function BookingCard({
             `This will remove your booking for ${booking.experienceTitle}.`,
             [
               { text: "Keep booking", style: "cancel" },
-              { text: "Cancel booking", style: "destructive", onPress: onCancel },
+              {
+                text: "Cancel booking",
+                style: "destructive",
+                onPress: onCancel,
+              },
             ],
           )
         }
@@ -84,7 +95,11 @@ export default function MyExperiencesScreen() {
 
       {!loading && bookings.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="sparkles-outline" size={48} color={Colors.textMuted} />
+          <Ionicons
+            name="sparkles-outline"
+            size={48}
+            color={Colors.textMuted}
+          />
           <Text style={styles.emptyTitle}>No experiences booked yet</Text>
           <Text style={styles.emptySubtitle}>
             Book a hands-on workshop with a local artisan to see it here.
@@ -103,7 +118,10 @@ export default function MyExperiencesScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <BookingCard booking={item} onCancel={() => removeBooking(item.id)} />
+            <BookingCard
+              booking={item}
+              onCancel={() => removeBooking(item.id)}
+            />
           )}
         />
       )}
@@ -112,7 +130,11 @@ export default function MyExperiencesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    marginTop: StatusBar.currentHeight || 0,
+  },
   header: {
     backgroundColor: Colors.primary,
     flexDirection: "row",
@@ -120,6 +142,8 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
   },
   backBtn: {
     width: 36,
@@ -142,7 +166,12 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   cardTitle: { ...Typography.h3, flex: 1 },
   cardArtisan: { ...Typography.caption, marginBottom: Spacing.sm },
-  cardRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, marginTop: 4 },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    marginTop: 4,
+  },
   cardRowText: { fontSize: 12, color: Colors.textSecondary },
   cardFooter: {
     flexDirection: "row",

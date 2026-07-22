@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
   },
   hiddenGemBadge: {
     position: "absolute",
-    top: Spacing.sm,
-    right: Spacing.sm,
+    top: Spacing.xxxl,
+    left: Spacing.sm,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#00285280",

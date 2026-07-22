@@ -14,12 +14,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Share,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Radius, Spacing, Shadow } from "../../constants/theme";
 import SiteCard from "../../components/cards/SiteCard";
-import ArtisanCard from "../../components/cards/ArtisansCard";
+import ArtisanCard from "../../components/cards/ArtisanCard2";
 import EventCard from "../../components/cards/EventCard";
 import { savedApi } from "../../api/index";
 import { useAsync } from "../../hooks/index";
@@ -42,6 +43,8 @@ const REMINDER_OPTIONS = [
 
 const TABS = ["Sites", "Artisans", "Events"] as const;
 type TabKey = (typeof TABS)[number];
+
+const { width } = Dimensions.get("window");
 
 export default function SavedScreen() {
   const router = useRouter();
@@ -99,9 +102,6 @@ export default function SavedScreen() {
       date.toISOString(),
       label,
     );
-    // Schedule the actual on-device notification for this reminder
-    // (US-026) — degrades silently to a stored-only reminder if
-    // expo-notifications isn't installed or permission wasn't granted.
     await scheduleLocalNotification(
       "Time to plan your visit!",
       `You saved "${noteModalItem.name}" for ${label.toLowerCase()} — don't forget to check it out.`,
@@ -117,10 +117,10 @@ export default function SavedScreen() {
   };
 
   const sites: Site[] = (data?.sites as Site[]) ?? [];
+  const artisans: Artisan[] = (data?.artisans as Artisan[]) ?? [];
+  const events: Event[] = (data?.events as Event[]) ?? [];
 
-  // Export/share the saved list as a plain-text trip plan (US-032) — uses
-  // React Native's built-in Share sheet rather than a generated PDF, so a
-  // travel companion can receive it via any app (Messages, WhatsApp, email…).
+  // Export/share the saved list as a plain-text trip plan
   const exportSavedList = async () => {
     if (sites.length === 0) {
       Alert.alert("Nothing to export", "Save a few places first.");
@@ -139,8 +139,6 @@ export default function SavedScreen() {
       // person cancelled the share sheet — nothing to do
     }
   };
-  const artisans: Artisan[] = (data?.artisans as Artisan[]) ?? [];
-  const events: Event[] = (data?.events as Event[]) ?? [];
 
   const handleUnsave = async (
     itemId: string,
@@ -167,6 +165,68 @@ export default function SavedScreen() {
     Sites: sites.length,
     Artisans: artisans.length,
     Events: events.length,
+  };
+
+  // Render a grid of items for Sites and Artisans
+  const renderGridItems = (
+    items: any[],
+    type: "site" | "artisan" | "event",
+    renderCard: (item: any) => React.ReactNode,
+    getItemId: (item: any) => string,
+    getItemName: (item: any) => string,
+  ) => {
+    const numColumns = 2;
+    const itemWidth = (width - Spacing.lg * 3) / numColumns;
+
+    return (
+      <View style={styles.gridContainer}>
+        {items.map((item) => {
+          const extra = extras[`${type}:${getItemId(item)}`];
+          return (
+            <View
+              key={getItemId(item)}
+              style={[styles.gridItem, { width: itemWidth }]}
+            >
+              <View style={styles.savedCardWrapper}>
+                {renderCard(item)}
+                <TouchableOpacity
+                  style={styles.unsaveBtn}
+                  onPress={() => handleUnsave(getItemId(item), type)}
+                >
+                  <Text style={styles.unsaveText}>✕</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.noteBtn}
+                  onPress={() =>
+                    openNoteModal(getItemId(item), type, getItemName(item))
+                  }
+                >
+                  <Ionicons
+                    name={
+                      extra?.note ? "document-text" : "document-text-outline"
+                    }
+                    size={12}
+                    color={Colors.white}
+                  />
+                </TouchableOpacity>
+                {type === "site" && extra?.reminderDate && (
+                  <View style={styles.reminderChip}>
+                    <Ionicons
+                      name="alarm-outline"
+                      size={10}
+                      color={Colors.white}
+                    />
+                    <Text style={styles.reminderChipText}>
+                      {extra.reminderLabel || "Reminder set"}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    );
   };
 
   return (
@@ -253,117 +313,56 @@ export default function SavedScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Sites tab */}
+          {/* Sites tab - Grid View */}
           {activeTab === "Sites" &&
             (sites.length === 0 ? (
               <EmptyState message="No saved sites yet" />
             ) : (
-              <FlatList
-                data={sites}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => {
-                  const extra = extras[`site:${item._id}`];
-                  return (
-                    <View style={styles.savedRow}>
-                      <SiteCard
-                        site={item}
-                        onPress={() => router.push(`/site/${item._id}` as any)}
-                      />
-                      <TouchableOpacity
-                        style={styles.unsaveBtn}
-                        onPress={() => handleUnsave(item._id, "site")}
-                      >
-                        <Text style={styles.unsaveText}>✕</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.noteBtn}
-                        onPress={() =>
-                          openNoteModal(item._id, "site", item.name)
-                        }
-                      >
-                        <Ionicons
-                          name={
-                            extra?.note
-                              ? "document-text"
-                              : "document-text-outline"
-                          }
-                          size={12}
-                          color={Colors.white}
-                        />
-                      </TouchableOpacity>
-                      {extra?.reminderDate && (
-                        <View style={styles.reminderChip}>
-                          <Ionicons
-                            name="alarm-outline"
-                            size={10}
-                            color={Colors.white}
-                          />
-                          <Text style={styles.reminderChipText}>
-                            {extra.reminderLabel || "Reminder set"}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  );
-                }}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalList}
-                scrollEnabled={false}
-              />
+              renderGridItems(
+                sites,
+                "site",
+                (item) => (
+                  <SiteCard
+                    site={item}
+                    onPress={() => router.push(`/site/${item._id}` as any)}
+                  />
+                ),
+                (item) => item._id,
+                (item) => item.name,
+              )
             ))}
 
-          {/* Artisans tab */}
+          {/* Artisans tab - Grid View */}
           {activeTab === "Artisans" &&
             (artisans.length === 0 ? (
               <EmptyState message="No saved artisans yet" />
             ) : (
-              <FlatList
-                data={artisans}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (
-                  <View style={styles.savedRow}>
-                    <ArtisanCard artisan={item} onPress={() => {}} />
-                    <TouchableOpacity
-                      style={styles.unsaveBtn}
-                      onPress={() => handleUnsave(item._id, "artisan")}
-                    >
-                      <Text style={styles.unsaveText}>✕</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.noteBtn}
-                      onPress={() =>
-                        openNoteModal(item._id, "artisan", item.name)
-                      }
-                    >
-                      <Ionicons
-                        name={
-                          extras[`artisan:${item._id}`]?.note
-                            ? "document-text"
-                            : "document-text-outline"
-                        }
-                        size={12}
-                        color={Colors.white}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                )}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalList}
-                scrollEnabled={false}
-              />
+              renderGridItems(
+                artisans,
+                "artisan",
+                (item) => (
+                  <ArtisanCard
+                    artisan={item}
+                    onPress={() => router.push(`/artisan/${item._id}` as any)}
+                  />
+                ),
+                (item) => item._id,
+                (item) => item.name,
+              )
             ))}
 
-          {/* Events tab */}
+          {/* Events tab - List View */}
           {activeTab === "Events" &&
             (events.length === 0 ? (
               <EmptyState message="No saved events yet" />
             ) : (
-              <View>
+              <View style={styles.eventsContainer}>
                 {events.map((event) => (
                   <View key={event._id} style={styles.eventRow}>
-                    <EventCard event={event} onPress={() => {}} />
+                    <EventCard
+                      event={event}
+                      onPress={() => router.push(`/event/${event._id}` as any)}
+                    />
                     <TouchableOpacity
                       style={styles.unsaveBtnEvent}
                       onPress={() => handleUnsave(event._id, "event")}
@@ -398,7 +397,7 @@ export default function SavedScreen() {
         </ScrollView>
       )}
 
-      {/* Notes & Reminder modal (US-030, US-031) */}
+      {/* Notes & Reminder modal */}
       <Modal
         visible={!!noteModalItem}
         transparent
@@ -559,19 +558,24 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, color: Colors.textSecondary, fontWeight: "700" },
   badgeTextActive: { color: Colors.white },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: Spacing.md },
-  horizontalList: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-    flexWrap: "wrap",
+  scrollContent: { paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  gridContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: Spacing.lg,
     gap: Spacing.md,
   },
-  savedRow: { position: "relative" },
+  gridItem: {
+    marginBottom: Spacing.md,
+  },
+  savedCardWrapper: {
+    position: "relative",
+    width: "100%",
+  },
   unsaveBtn: {
     position: "absolute",
     top: 6,
-    right: 6 + Spacing.md,
+    right: 6,
     width: 22,
     height: 22,
     borderRadius: 11,
@@ -592,12 +596,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     zIndex: 10,
   },
-  eventRow: { position: "relative" },
+  eventRow: {
+    position: "relative",
+    paddingHorizontal: -Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  eventsContainer: {
+    paddingBottom: Spacing.md,
+  },
   unsaveText: { color: "#fff", fontSize: 11, fontWeight: "700" },
   noteBtn: {
     position: "absolute",
     top: 6,
-    right: 6 + Spacing.md + 26,
+    right: 32,
     width: 22,
     height: 22,
     borderRadius: 11,
