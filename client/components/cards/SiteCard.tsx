@@ -24,6 +24,12 @@ const SiteCard: React.FC<SiteCardProps> = ({ site, onPress }) => {
             <Text style={styles.mustVisitText}>Must visit</Text>
           </View>
         )}
+        {site.isHiddenGem && (
+          <View style={styles.hiddenGemBadge}>
+            <Ionicons name="diamond" size={10} color={Colors.white} />
+            <Text style={styles.hiddenGemText}>Hidden gem</Text>
+          </View>
+        )}
       </View>
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
@@ -78,6 +84,23 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "600",
   },
+  hiddenGemBadge: {
+    position: "absolute",
+    top: Spacing.sm,
+    right: Spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#00285280",
+    borderRadius: Radius.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    gap: 3,
+  },
+  hiddenGemText: {
+    color: Colors.white,
+    fontSize: 9,
+    fontWeight: "600",
+  },
   info: {
     paddingLeft: Spacing.sm,
     paddingTop: 4,
@@ -105,4 +128,4 @@ const styles = StyleSheet.create({
 });
 
 export default SiteCard;
-// 
+//

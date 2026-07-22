@@ -13,9 +13,19 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Radius, Spacing, Shadow, Typography } from "../../constants/theme";
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Shadow,
+  Typography,
+} from "../../constants/theme";
 import { EXPERIENCES_SEED } from "../../constants/data/experiencesSeed";
-import { useBookings, generateBookingReference } from "../../context/BookingsContext";
+import {
+  useBookings,
+  generateBookingReference,
+} from "../../context/BookingsContext";
+import { getValueForMoneyScore } from "../../utils/valueScore";
 
 function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
@@ -69,9 +79,16 @@ export default function ExperienceDetailScreen() {
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.centered}>
-          <Ionicons name="sparkles-outline" size={48} color={Colors.textMuted} />
+          <Ionicons
+            name="sparkles-outline"
+            size={48}
+            color={Colors.textMuted}
+          />
           <Text style={styles.errorText}>Experience not found</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => router.back()}
+          >
             <Text style={styles.retryText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -100,9 +117,7 @@ export default function ExperienceDetailScreen() {
       experienceTitle: experience.title,
       artisanName: experience.artisanName,
       date: formatLongDate(selectedDate),
-      time: `${selectedTime}${
-        experience.timeOptions.length > 0 ? "" : ""
-      }`,
+      time: `${selectedTime}${experience.timeOptions.length > 0 ? "" : ""}`,
       location: experience.location,
       totalPaid: experience.price,
       createdAt: new Date().toISOString(),
@@ -122,7 +137,10 @@ export default function ExperienceDetailScreen() {
         <View style={styles.heroWrap}>
           <Image source={{ uri: experience.image }} style={styles.hero} />
           <View style={styles.heroTopRow}>
-            <TouchableOpacity style={styles.heroIconBtn} onPress={() => router.back()}>
+            <TouchableOpacity
+              style={styles.heroIconBtn}
+              onPress={() => router.back()}
+            >
               <Ionicons name="arrow-back" size={20} color={Colors.white} />
             </TouchableOpacity>
             <View style={{ flexDirection: "row", gap: Spacing.sm }}>
@@ -135,7 +153,11 @@ export default function ExperienceDetailScreen() {
                   )
                 }
               >
-                <Ionicons name="alert-circle-outline" size={20} color={Colors.white} />
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={20}
+                  color={Colors.white}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.heroIconBtn}
@@ -147,7 +169,10 @@ export default function ExperienceDetailScreen() {
                   color={saved ? "#F64447" : Colors.white}
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.heroIconBtn} onPress={handleShare}>
+              <TouchableOpacity
+                style={styles.heroIconBtn}
+                onPress={handleShare}
+              >
                 <Ionicons name="share-outline" size={20} color={Colors.white} />
               </TouchableOpacity>
             </View>
@@ -165,7 +190,9 @@ export default function ExperienceDetailScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.artisanName}>{experience.artisanName}</Text>
               {!!experience.artisanTitle && (
-                <Text style={styles.artisanTitle}>{experience.artisanTitle}</Text>
+                <Text style={styles.artisanTitle}>
+                  {experience.artisanTitle}
+                </Text>
               )}
             </View>
           </View>
@@ -175,6 +202,20 @@ export default function ExperienceDetailScreen() {
             <Text style={styles.ratingText}>
               {experience.rating.toFixed(1)} ({experience.reviewCount} reviews)
             </Text>
+            {(() => {
+              const value = getValueForMoneyScore(
+                experience.price,
+                experience.rating,
+                experience.reviewCount,
+              );
+              return (
+                <View
+                  style={[styles.valueBadge, { backgroundColor: value.color }]}
+                >
+                  <Text style={styles.valueBadgeText}>{value.label}</Text>
+                </View>
+              );
+            })()}
           </View>
 
           <View style={styles.tagsRow}>
@@ -182,7 +223,9 @@ export default function ExperienceDetailScreen() {
               <Text style={styles.tagText}>{experience.durationLabel}</Text>
             </View>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>Max {experience.maxPeople} People</Text>
+              <Text style={styles.tagText}>
+                Max {experience.maxPeople} People
+              </Text>
             </View>
             {experience.materialsIncluded && (
               <View style={styles.tag}>
@@ -287,7 +330,12 @@ export default function ExperienceDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: Spacing.md },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.md,
+  },
   errorText: { fontSize: 16, color: Colors.textSecondary },
   retryBtn: {
     backgroundColor: Colors.primary,
@@ -316,13 +364,40 @@ const styles = StyleSheet.create({
   },
   body: { padding: Spacing.lg },
   title: { ...Typography.h1, marginBottom: Spacing.sm },
-  artisanRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.xs },
-  artisanAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.border },
+  artisanRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  artisanAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.border,
+  },
   artisanName: { fontSize: 15, fontWeight: "700", color: Colors.text },
   artisanTitle: { fontSize: 12, color: Colors.textMuted },
-  ratingRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, marginBottom: Spacing.md },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
   ratingText: { fontSize: 12, color: Colors.textSecondary },
-  tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginBottom: Spacing.lg },
+  valueBadge: {
+    borderRadius: Radius.full,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginLeft: 4,
+  },
+  valueBadgeText: { color: Colors.white, fontSize: 10, fontWeight: "700" },
+  tagsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
   tag: {
     backgroundColor: Colors.badge,
     paddingHorizontal: Spacing.md,
@@ -330,7 +405,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   tagText: { fontSize: 11, color: Colors.badgeText, fontWeight: "600" },
-  sectionTitle: { ...Typography.h3, marginTop: Spacing.lg, marginBottom: Spacing.sm },
+  sectionTitle: {
+    ...Typography.h3,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
   about: { ...Typography.body, lineHeight: 21, color: Colors.textSecondary },
   dateRow: { gap: Spacing.sm, paddingBottom: Spacing.xs },
   dateChip: {
@@ -342,10 +421,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  dateChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  dateChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
   dateChipDisabled: { backgroundColor: Colors.background, opacity: 0.5 },
   dateChipWeekday: { fontSize: 11, color: Colors.textMuted },
-  dateChipDay: { fontSize: 16, fontWeight: "700", color: Colors.text, marginTop: 2 },
+  dateChipDay: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.text,
+    marginTop: 2,
+  },
   dateChipTextActive: { color: Colors.white },
   dateChipTextDisabled: { color: Colors.textMuted },
   timeRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
@@ -357,7 +444,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  timeChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  timeChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
   timeChipText: { fontSize: 13, color: Colors.text, fontWeight: "500" },
   timeChipTextActive: { color: Colors.white },
   footer: {

@@ -79,6 +79,17 @@ export default function OnboardingScreen1() {
         ))}
       </View>
 
+      <View className="flex-row justify-end px-1">
+        <TouchableOpacity
+          onPress={() => router.push("/(onboarding)/OnboardingScreen2")}
+          hitSlop={10}
+        >
+          <Text style={{ color: "#6B4F3A", fontWeight: "700", fontSize: 13 }}>
+            Skip
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <Text className="font-bold text-4xl px-1 mt-4">
         What are you {"\n"}Interested in?
       </Text>
